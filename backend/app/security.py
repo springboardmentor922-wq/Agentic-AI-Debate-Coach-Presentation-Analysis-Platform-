@@ -1,6 +1,6 @@
-from passlib.context import CryptContext
-from jose import jwt
 from datetime import datetime, timedelta
+from jose import jwt, JWTError
+from passlib.context import CryptContext
 
 SECRET_KEY = "AI_DEBATE_COACH_SECRET_KEY_2026"
 ALGORITHM = "HS256"
@@ -11,11 +11,14 @@ pwd_context = CryptContext(
     deprecated="auto"
 )
 
+
 def hash_password(password):
     return pwd_context.hash(password)
 
+
 def verify_password(password, hashed):
     return pwd_context.verify(password, hashed)
+
 
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -31,3 +34,17 @@ def create_access_token(data: dict):
         SECRET_KEY,
         algorithm=ALGORITHM
     )
+
+
+def verify_token(token: str):
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+
+        return payload
+
+    except JWTError:
+        return None

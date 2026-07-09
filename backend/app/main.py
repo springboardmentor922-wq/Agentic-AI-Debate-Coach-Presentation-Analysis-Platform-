@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from .database import Base, engine
 from . import models
 from .routers import users
+from .routers import profile
+from .routers import debate
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -26,7 +28,8 @@ app.add_middleware(
 )
 
 app.include_router(users.router)
-
+app.include_router(profile.router)
+app.include_router(debate.router)
 
 @app.get("/")
 def home():

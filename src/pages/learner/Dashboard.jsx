@@ -1,8 +1,10 @@
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import StatCard from "../../components/StatCard";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
+  const navigate = useNavigate();   
   return (
     <div className="flex bg-slate-100 min-h-screen">
 
@@ -43,9 +45,12 @@ function Dashboard() {
               Practice with AI, improve your reasoning, and track your progress.
             </p>
 
-            <button className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg">
-              Start Debate
-            </button>
+           <button
+  onClick={() => navigate("/debate")}
+  className="bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg"
+>
+  Start Debate
+</button>
 
           </div>
 

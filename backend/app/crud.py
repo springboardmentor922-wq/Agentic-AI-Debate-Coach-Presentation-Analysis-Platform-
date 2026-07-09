@@ -34,3 +34,34 @@ def authenticate_user(db: Session, email: str, password: str):
         return None
 
     return user
+
+def create_profile(db: Session, profile: schemas.ProfileCreate, user_id: int):
+
+    db_profile = models.Profile(
+        user_id=user_id,
+        college=profile.college,
+        department=profile.department,
+        year=profile.year,
+        language=profile.language,
+        experience=profile.experience
+    )
+
+    db.add(db_profile)
+    db.commit()
+    db.refresh(db_profile)
+
+    return db_profile
+
+def create_debate(db: Session, debate: schemas.DebateCreate, user_id: int):
+
+    db_debate = models.Debate(
+        user_id=user_id,
+        topic=debate.topic,
+        difficulty=debate.difficulty
+    )
+
+    db.add(db_debate)
+    db.commit()
+    db.refresh(db_debate)
+
+    return db_debate

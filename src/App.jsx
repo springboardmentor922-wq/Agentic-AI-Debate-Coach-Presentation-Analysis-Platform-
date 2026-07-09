@@ -7,6 +7,7 @@ import LearnerDashboard from "./pages/learner/Dashboard";
 import CoachDashboard from "./pages/coach/Dashboard";
 import EducatorDashboard from "./pages/educator/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Profile from "./pages/learner/Profile";
 import DebateSession from "./pages/learner/DebateSession";
@@ -20,14 +21,41 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
 
-        <Route path="/learner" element={<LearnerDashboard />} />
+        <Route
+  path="/learner"
+  element={
+    <ProtectedRoute>
+      <LearnerDashboard />
+    </ProtectedRoute>
+  }
+/>
 
-        <Route path="/coach" element={<CoachDashboard />} />
+        <Route
+  path="/coach"
+  element={
+    <ProtectedRoute>
+      <CoachDashboard />
+    </ProtectedRoute>
+  }
+/>
 
-        <Route path="/educator" element={<EducatorDashboard />} />
+<Route
+  path="/educator"
+  element={
+    <ProtectedRoute>
+      <EducatorDashboard />
+    </ProtectedRoute>
+  }
+/>
 
-        <Route path="/admin" element={<AdminDashboard />} />
-
+<Route
+  path="/admin"
+  element={
+    <ProtectedRoute>
+      <AdminDashboard />
+    </ProtectedRoute>
+  }
+/>
         <Route path="/profile" element={<Profile />} />
 
         <Route path="/debate" element={<DebateSession />} />

@@ -1,4 +1,15 @@
+import { useNavigate } from "react-router-dom";
+
 function Navbar() {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+
+    navigate("/");
+  };
+
   return (
     <div className="bg-white shadow px-8 py-4 flex justify-between">
 
@@ -6,7 +17,10 @@ function Navbar() {
         Learner Dashboard
       </h2>
 
-      <button className="bg-green-700 text-white px-5 py-2 rounded-lg">
+      <button
+        onClick={handleLogout}
+        className="bg-green-700 hover:bg-green-800 text-white px-5 py-2 rounded-lg"
+      >
         Logout
       </button>
 

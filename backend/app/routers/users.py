@@ -40,11 +40,12 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         )
 
     token = create_access_token(
-        {
-            "sub": db_user.email,
-            "role": db_user.role
-        }
-    )
+    {
+        "id": db_user.id,
+        "sub": db_user.email,
+        "role": db_user.role
+    }
+)
 
     return {
         "access_token": token,

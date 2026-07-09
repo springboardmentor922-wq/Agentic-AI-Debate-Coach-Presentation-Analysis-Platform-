@@ -6,19 +6,20 @@ from ..dependencies import get_current_user
 from .. import crud, schemas
 
 router = APIRouter(
-    prefix="/debates",
-    tags=["Debates"]
+    prefix="/profile",
+    tags=["Profile"]
 )
 
+
 @router.post("/")
-def create_debate(
-    debate: schemas.DebateCreate,
+def create_profile(
+    profile: schemas.ProfileCreate,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
 
-    return crud.create_debate(
+    return crud.create_profile(
         db,
-        debate,
+        profile,
         current_user["id"]
     )
