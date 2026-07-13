@@ -4,7 +4,7 @@ import models.role
 import models.user
 
 from routers.auth import router as auth_router
-
+from routers.dashboard import router as dashboard_router
 app = FastAPI()
 
 
@@ -26,3 +26,4 @@ def about():
 
 
 app.include_router(auth_router)
+app.include_router(dashboard_router)
