@@ -10,32 +10,51 @@ function Login() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
+    try {
+      const response = await api.post("/users/login", {
+        email,
+        password,
+      });
 
-    const response = await api.post("/users/login", {
-      email,
-      password,
-    });
+      // Store user information
+      localStorage.setItem("token", response.data.access_token);
+      localStorage.setItem("role", response.data.role);
+      localStorage.setItem("email", email);
 
-    localStorage.setItem("token", response.data.access_token);
-    localStorage.setItem("role", response.data.role);
+      // Redirect based on role
+      switch (response.data.role) {
+        case "Learner":
+          navigate("/learner");
+          break;
 
-    navigate("/learner");
+        case "Debate Coach":
+          navigate("/coach");
+          break;
 
-  } catch (error) {
-    console.log("ERROR", error);
-  }
-};
+        case "Educator":
+          navigate("/educator");
+          break;
 
+        case "Administrator":
+          navigate("/admin");
+          break;
+
+        default:
+          navigate("/");
+      }
+    } catch (error) {
+      console.error(error);
+
+      alert("Invalid email or password.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-
       {/* Left Section */}
       <div className="hidden lg:flex w-1/2 bg-green-700 text-white flex-col justify-center px-16">
-
         <h1 className="text-5xl font-bold mb-5">
           AI Debate Coach
         </h1>
@@ -46,13 +65,14 @@ function Login() {
         </p>
 
         <div className="space-y-8">
-
           <div className="flex items-center gap-4">
             <FaBrain size={30} />
+
             <div>
               <h3 className="font-semibold text-xl">
                 AI Argument Analysis
               </h3>
+
               <p className="text-green-100">
                 Analyze claims and reasoning instantly.
               </p>
@@ -61,10 +81,12 @@ function Login() {
 
           <div className="flex items-center gap-4">
             <FaComments size={30} />
+
             <div>
               <h3 className="font-semibold text-xl">
                 Debate Simulation
               </h3>
+
               <p className="text-green-100">
                 Practice against an intelligent AI opponent.
               </p>
@@ -73,25 +95,23 @@ function Login() {
 
           <div className="flex items-center gap-4">
             <FaChartLine size={30} />
+
             <div>
               <h3 className="font-semibold text-xl">
                 Performance Analytics
               </h3>
+
               <p className="text-green-100">
                 Track your improvement after every debate.
               </p>
             </div>
           </div>
-
         </div>
-
       </div>
 
       {/* Right Section */}
       <div className="flex flex-1 items-center justify-center p-8">
-
         <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-10">
-
           <h2 className="text-4xl font-bold text-gray-800">
             Welcome Back
           </h2>
@@ -101,9 +121,10 @@ function Login() {
           </p>
 
           <form onSubmit={handleLogin} className="space-y-5">
-
             <div>
-              <label className="font-medium">Email</label>
+              <label className="font-medium">
+                Email
+              </label>
 
               <input
                 type="email"
@@ -116,7 +137,9 @@ function Login() {
             </div>
 
             <div>
-              <label className="font-medium">Password</label>
+              <label className="font-medium">
+                Password
+              </label>
 
               <input
                 type="password"
@@ -134,7 +157,6 @@ function Login() {
             >
               Login
             </button>
-
           </form>
 
           <p className="text-center mt-8">
@@ -146,13 +168,9 @@ function Login() {
             >
               Sign Up
             </Link>
-
           </p>
-
         </div>
-
       </div>
-
     </div>
   );
 }

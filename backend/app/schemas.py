@@ -41,3 +41,37 @@ class DebateResponse(DebateCreate):
 
     class Config:
         from_attributes = True
+
+# ----------------------------
+# Milestone 2 - Argument Analysis
+# ----------------------------
+
+class FallacyRequest(BaseModel):
+    text: str
+
+
+class FallacyReport(BaseModel):
+    fallacy_detected: bool
+    fallacy_type: str
+    offending_text: str
+    explanation: str
+    correction_suggestion: str
+
+class CounterArgumentRequest(BaseModel):
+    text: str
+
+
+class CounterArgumentResponse(BaseModel):
+    counterargument: str
+    supporting_points: list[str]
+
+class FeedbackRequest(BaseModel):
+    text: str
+
+
+class FeedbackResponse(BaseModel):
+    clarity_score: int
+    logic_score: int
+    persuasiveness_score: int
+    grammar_score: int
+    feedback: list[str]

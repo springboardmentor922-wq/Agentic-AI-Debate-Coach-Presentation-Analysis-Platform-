@@ -65,3 +65,46 @@ def create_debate(db: Session, debate: schemas.DebateCreate, user_id: int):
     db.refresh(db_debate)
 
     return db_debate
+
+def get_profile(db: Session, user_id: int):
+    return db.query(models.Profile).filter(
+        models.Profile.user_id == user_id
+    ).first()
+
+
+def update_profile(db: Session, user_id: int, profile: schemas.ProfileCreate):
+
+    db_profile = get_profile(db, user_id)
+
+    if not db_profile:
+        return None
+
+    db_profile.college = profile.college
+    db_profile.department = profile.department
+    db_profile.year = profile.year
+    db_profile.language = profile.language
+    db_profile.experience = profile.experience
+
+    db.commit()
+    db.refresh(db_profile)
+
+    return db_profile
+
+def create_default_admin(db: Session):
+    admin = get_user_by_email(db, "admin@gmail.com")
+
+    if admin:
+        return admin
+
+    admin_user = models.User(
+        full_name="System Administrator",
+        email="admin@gmail.com",
+        password=hash_password("admin123"),
+        role="Administrator"
+    )
+
+    db.add(admin_user)
+    db.commit()
+    db.refresh(admin_user)
+
+    return admin_user

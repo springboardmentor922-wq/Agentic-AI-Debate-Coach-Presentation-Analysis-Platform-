@@ -117,7 +117,6 @@ function Signup() {
               <option>Learner</option>
               <option>Debate Coach</option>
               <option>Educator</option>
-              <option>Administrator</option>
             </select>
           </div>
 
