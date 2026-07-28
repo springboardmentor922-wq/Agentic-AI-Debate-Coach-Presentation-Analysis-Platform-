@@ -15,8 +15,8 @@ export default function DebateHistory() {
 
                 const data = await getSessions();
 
-                if (Array.isArray(data)) {
-                    setSessions(data);
+                if (data.sessions && Array.isArray(data.sessions)) {
+                    setSessions(data.sessions);
                 }
 
             } catch (error) {

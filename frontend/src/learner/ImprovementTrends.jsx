@@ -1,7 +1,63 @@
+import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { getSessions } from "../services/sessionService";
+
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
+} from "recharts";
 
 export default function ImprovementTrends() {
+
+    const [chartData, setChartData] = useState([]);
+    const [latestSession, setLatestSession] = useState(null);
+
+    useEffect(() => {
+
+        async function loadData() {
+
+            try {
+
+                const data = await getSessions();
+
+                if (data.sessions) {
+
+                    const completed = data.sessions.filter(
+                        session => session.status === "Completed"
+                    );
+
+                    const graph = completed.map((session, index) => ({
+                        debate: `D${index + 1}`,
+                        score: session.score || 0,
+                    }));
+
+                    setChartData(graph);
+
+                    if (completed.length > 0) {
+                        setLatestSession(completed[0]);
+                    }
+
+                }
+
+            } catch (error) {
+
+                console.error(error);
+
+            }
+
+        }
+
+        loadData();
+
+    }, []);
+
     return (
+
         <DashboardLayout>
 
             <h1>Improvement Trends</h1>
@@ -10,55 +66,37 @@ export default function ImprovementTrends() {
 
             <div
                 style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(220px,1fr))",
-                    gap: "20px"
+                    background: "white",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    boxShadow: "0 5px 15px rgba(0,0,0,.08)"
                 }}
             >
 
-                <div
-                    style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "10px",
-                        padding: "20px"
-                    }}
-                >
-                    <h3>Confidence</h3>
-                    <h2>⬆ +15%</h2>
-                </div>
+                <h2>Score Trend</h2>
 
-                <div
-                    style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "10px",
-                        padding: "20px"
-                    }}
-                >
-                    <h3>Speaking Skills</h3>
-                    <h2>⬆ +12%</h2>
-                </div>
+                <ResponsiveContainer width="100%" height={300}>
 
-                <div
-                    style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "10px",
-                        padding: "20px"
-                    }}
-                >
-                    <h3>Argument Quality</h3>
-                    <h2>⬆ +18%</h2>
-                </div>
+                    <LineChart data={chartData}>
 
-                <div
-                    style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "10px",
-                        padding: "20px"
-                    }}
-                >
-                    <h3>Rebuttal Skills</h3>
-                    <h2>⬆ +8%</h2>
-                </div>
+                        <CartesianGrid strokeDasharray="3 3" />
+
+                        <XAxis dataKey="debate" />
+
+                        <YAxis />
+
+                        <Tooltip />
+
+                        <Line
+                            type="monotone"
+                            dataKey="score"
+                            stroke="#2563eb"
+                            strokeWidth={3}
+                        />
+
+                    </LineChart>
+
+                </ResponsiveContainer>
 
             </div>
 
@@ -66,28 +104,92 @@ export default function ImprovementTrends() {
 
             <div
                 style={{
-                    border: "1px solid #ccc",
-                    borderRadius: "10px",
-                    padding: "20px"
+                    background: "white",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    boxShadow: "0 5px 15px rgba(0,0,0,.08)"
                 }}
             >
-                <h2>Trend Summary</h2>
 
-                <p>
-                    Your overall debate performance has shown steady improvement
-                    over recent sessions.
-                </p>
+                <h2>Latest Debate</h2>
 
-                <p>
-                    Your strongest improvement is in Argument Quality.
-                </p>
+                {
 
-                <p>
-                    Continue practicing rebuttal techniques to improve further.
-                </p>
+                    latestSession ? (
+
+                        <>
+
+                            <p>
+
+                                <strong>Title:</strong>
+
+                                {" "}
+
+                                {latestSession.title}
+
+                            </p>
+
+                            <p>
+
+                                <strong>Score:</strong>
+
+                                {" "}
+
+                                {latestSession.score}%
+
+                            </p>
+
+                            <p>
+
+                                <strong>Status:</strong>
+
+                                {" "}
+
+                                {latestSession.status}
+
+                            </p>
+
+                        </>
+
+                    ) : (
+
+                        <p>No completed debates yet.</p>
+
+                    )
+
+                }
+
+            </div>
+
+            <br />
+
+            <div
+                style={{
+                    background: "white",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    boxShadow: "0 5px 15px rgba(0,0,0,.08)"
+                }}
+            >
+
+                <h2>AI Suggestions</h2>
+
+                <ul>
+
+                    <li>Improve rebuttal quality.</li>
+
+                    <li>Use more supporting evidence.</li>
+
+                    <li>Maintain confidence while speaking.</li>
+
+                    <li>Reduce filler words.</li>
+
+                </ul>
 
             </div>
 
         </DashboardLayout>
+
     );
+
 }

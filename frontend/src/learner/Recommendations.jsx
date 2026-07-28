@@ -1,76 +1,91 @@
+import { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { getSessions } from "../services/sessionService";
 
 export default function Recommendations() {
+
+    const [stats, setStats] = useState({
+        average: 0,
+        total: 0,
+    });
+
+    useEffect(() => {
+
+        async function loadRecommendations() {
+
+            try {
+
+                const data = await getSessions();
+
+                if (data.sessions) {
+
+                    const scores = data.sessions.map(
+                        session => session.score || 0
+                    );
+
+                    const average =
+                        scores.length > 0
+                            ? (
+                                scores.reduce((a, b) => a + b, 0) /
+                                scores.length
+                            ).toFixed(1)
+                            : 0;
+
+                    setStats({
+                        average,
+                        total: data.sessions.length,
+                    });
+
+                }
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+            }
+
+        }
+
+        loadRecommendations();
+
+    }, []);
+
     return (
+
         <DashboardLayout>
 
-            <h1>Recommended Exercises</h1>
+            <h1>AI Recommendations</h1>
 
             <br />
 
             <div
                 style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(250px,1fr))",
-                    gap: "20px"
+                    background: "white",
+                    padding: "25px",
+                    borderRadius: "12px",
+                    boxShadow: "0 5px 15px rgba(0,0,0,.08)"
                 }}
             >
 
-                <div
-                    style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "10px",
-                        padding: "20px"
-                    }}
-                >
-                    <h3>🎤 Voice Modulation</h3>
+                <h2>🤖 Personalized Recommendations</h2>
 
-                    <p>Practice speaking with different tones and emphasis.</p>
+                <ul>
 
-                    <p><strong>Duration:</strong> 15 Minutes</p>
-                </div>
+                    <li>Improve rebuttal strength.</li>
 
-                <div
-                    style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "10px",
-                        padding: "20px"
-                    }}
-                >
-                    <h3>🧠 Rebuttal Practice</h3>
+                    <li>Support arguments with statistics.</li>
 
-                    <p>Respond to opposing arguments with strong evidence.</p>
+                    <li>Reduce filler words.</li>
 
-                    <p><strong>Duration:</strong> 20 Minutes</p>
-                </div>
+                    <li>Improve speaking confidence.</li>
 
-                <div
-                    style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "10px",
-                        padding: "20px"
-                    }}
-                >
-                    <h3>📚 Critical Thinking</h3>
+                    <li>Maintain eye contact.</li>
 
-                    <p>Analyze debate topics from multiple perspectives.</p>
+                    <li>Practice stronger conclusions.</li>
 
-                    <p><strong>Duration:</strong> 25 Minutes</p>
-                </div>
-
-                <div
-                    style={{
-                        border: "1px solid #ccc",
-                        borderRadius: "10px",
-                        padding: "20px"
-                    }}
-                >
-                    <h3>💬 Public Speaking</h3>
-
-                    <p>Improve confidence while presenting arguments.</p>
-
-                    <p><strong>Duration:</strong> 30 Minutes</p>
-                </div>
+                </ul>
 
             </div>
 
@@ -78,26 +93,66 @@ export default function Recommendations() {
 
             <div
                 style={{
-                    border: "1px solid #ccc",
-                    borderRadius: "10px",
-                    padding: "20px"
+                    background: "white",
+                    padding: "25px",
+                    borderRadius: "12px",
+                    boxShadow: "0 5px 15px rgba(0,0,0,.08)"
                 }}
             >
-                <h2>AI Recommendation</h2>
+
+                <h2>Performance Summary</h2>
 
                 <p>
-                    Based on your recent debate sessions, we recommend focusing on:
+
+                    <strong>Total Debates:</strong>
+
+                    {" "}
+
+                    {stats.total}
+
                 </p>
 
+                <p>
+
+                    <strong>Average Score:</strong>
+
+                    {" "}
+
+                    {stats.average}%
+
+                </p>
+
+            </div>
+
+            <br />
+
+            <div
+                style={{
+                    background: "white",
+                    padding: "25px",
+                    borderRadius: "12px",
+                    boxShadow: "0 5px 15px rgba(0,0,0,.08)"
+                }}
+            >
+
+                <h2>Recommended Practice</h2>
+
                 <ul>
-                    <li>Improving rebuttal techniques.</li>
-                    <li>Building stronger evidence-based arguments.</li>
-                    <li>Practicing voice modulation.</li>
-                    <li>Increasing confidence during presentations.</li>
+
+                    <li>📚 Rebuttal Practice</li>
+
+                    <li>🎤 Voice Modulation</li>
+
+                    <li>🧠 Critical Thinking Exercises</li>
+
+                    <li>📖 Evidence Building</li>
+
                 </ul>
 
             </div>
 
         </DashboardLayout>
+
     );
+
 }

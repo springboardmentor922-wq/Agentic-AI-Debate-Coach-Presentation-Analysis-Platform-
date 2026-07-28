@@ -1,3 +1,7 @@
+/* ===========================
+   Navbar
+=========================== */
+
 .navbar {
     position: fixed;
     top: 0;
@@ -12,7 +16,6 @@
     padding: 0 60px;
 
     background: rgba(255,255,255,0.98);
-
     backdrop-filter: blur(15px);
 
     box-shadow: 0 4px 15px rgba(0,0,0,0.12);
@@ -20,71 +23,140 @@
     z-index: 1000;
 }
 
+/* ===========================
+   Logo
+=========================== */
+
 .logo {
     display: flex;
     align-items: center;
     gap: 10px;
 
-    text-decoration: none;
-
     font-size: 28px;
     font-weight: 700;
 
-    color: #1e40af !important;
-
+    color: #1e40af;
     white-space: nowrap;
 }
 
 .logo:hover {
-    color: #2563eb !important;
+    color: #2563eb;
 }
+
+/* ===========================
+   Navigation Links
+=========================== */
 
 .nav-links {
     display: flex;
     align-items: center;
     gap: 35px;
+
+    list-style: none;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: #1f2937 !important;
+    color: #1f2937;
     font-size: 17px;
     font-weight: 600;
     transition: 0.3s;
 }
 
 .nav-links a:hover {
-    color: #2563eb !important;
+    color: #2563eb;
 }
+
+/* ===========================
+   Right Buttons
+=========================== */
 
 .nav-buttons {
     display: flex;
     gap: 15px;
 }
 
-.login-btn {
+/* Login Button */
+
+.nav-login-btn {
     padding: 10px 22px;
     border: 2px solid #2563eb;
     border-radius: 8px;
-    color: #2563eb !important;
+
+    background: white;
+    color: #2563eb;
+
     text-decoration: none;
     font-weight: 600;
+
+    transition: 0.3s;
 }
 
-.login-btn:hover {
+.nav-login-btn:hover {
     background: #2563eb;
-    color: white !important;
+    color: white;
 }
 
-.register-btn {
+/* Register Button */
+
+.nav-register-btn {
     padding: 10px 22px;
     border-radius: 8px;
+
     background: #2563eb;
-    color: white !important;
+    color: white;
+
     text-decoration: none;
     font-weight: 600;
+
+    transition: 0.3s;
 }
 
-.register-btn:hover {
+.nav-register-btn:hover {
     background: #1d4ed8;
+    color: white;
+}
+
+.user-info{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    margin-right:15px;
+}
+
+.username{
+    font-size:15px;
+    font-weight:700;
+    color:#1e40af;
+}
+
+.role{
+    font-size:13px;
+    color:#64748b;
+}
+
+.logout-btn{
+
+    padding:10px 22px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#ef4444;
+
+    color:white;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.logout-btn:hover{
+
+    background:#dc2626;
+
 }

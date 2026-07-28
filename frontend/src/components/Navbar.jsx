@@ -1,8 +1,27 @@
 import "./Navbar.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Navbar() {
+
+    const navigate = useNavigate();
+
+    const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+    const role = localStorage.getItem("role");
+
+    function handleLogout() {
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("username");
+        localStorage.removeItem("role");
+        localStorage.removeItem("remember");
+
+        navigate("/");
+
+    }
+
     return (
+
         <nav className="navbar">
 
             <div className="logo">
@@ -31,22 +50,54 @@ export default function Navbar() {
 
             <div className="nav-buttons">
 
-                <Link
-                    to="/login"
-                    className="login-btn"
-                >
-                    Login
-                </Link>
+                {!token ? (
 
-                <Link
-                    to="/register"
-                    className="register-btn"
-                >
-                    Create Account
-                </Link>
+                    <>
+                        <Link
+                            to="/login"
+                            className="nav-login-btn"
+                        >
+                            Login
+                        </Link>
+
+                        <Link
+                            to="/register"
+                            className="nav-register-btn"
+                        >
+                            Create Account
+                        </Link>
+                    </>
+
+                ) : (
+
+                    <>
+                        <div className="user-info">
+
+                            <span className="username">
+                                Welcome, {username}
+                            </span>
+
+                            <span className="role">
+                                {role}
+                            </span>
+
+                        </div>
+
+                        <button
+                            className="logout-btn"
+                            onClick={handleLogout}
+                        >
+                            Logout
+                        </button>
+
+                    </>
+
+                )}
 
             </div>
 
         </nav>
+
     );
+
 }
