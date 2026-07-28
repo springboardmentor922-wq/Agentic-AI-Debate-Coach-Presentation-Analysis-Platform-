@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database.database import engine, Base
 import app.database.models
 
-from app.routers import user, session
+from app.routers import user, session, dashboard
 
 Base.metadata.create_all(bind=engine)
 
@@ -23,6 +23,7 @@ app.add_middleware(
 
 app.include_router(user.router)
 app.include_router(session.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/")

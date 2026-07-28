@@ -8,6 +8,8 @@ from app.schemas.login import LoginRequest
 from app.utils.security import hash_password, verify_password
 from app.utils.jwt_handler import create_access_token
 from app.dependencies import get_current_user
+from app.roles import require_roles
+
 router = APIRouter()
 
 
@@ -28,10 +30,11 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     print("Length:", len(user.password))
 
     new_user = User(
-    username=user.username,
-    email=user.email,
-    password=hash_password(user.password)
-)
+        username=user.username,
+        email=user.email,
+        password=hash_password(user.password),
+        role=user.role
+    )
 
     db.add(new_user)
     db.commit()
@@ -41,6 +44,7 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         "message": "User registered successfully",
         "user_id": new_user.id
     }
+
 
 @router.post("/login")
 def login(user: LoginRequest, db: Session = Depends(get_db)):
@@ -60,18 +64,45 @@ def login(user: LoginRequest, db: Session = Depends(get_db)):
         )
 
     token = create_access_token(
-        {"sub": db_user.email}
+        {
+            "sub": db_user.email,
+            "role": db_user.role
+        }
     )
 
     return {
         "access_token": token,
-        "token_type": "bearer"
+        "token_type": "bearer",
+        "role": db_user.role,
+        "username": db_user.username
     }
+
 
 @router.get("/profile")
 def profile(current_user=Depends(get_current_user)):
     return {
         "id": current_user.id,
         "username": current_user.username,
-        "email": current_user.email
+        "email": current_user.email,
+        "role": current_user.role
     }
+
+
+# Admin only - Get all users
+@router.get("/users")
+def get_all_users(
+    db: Session = Depends(get_db),
+    current_user=Depends(require_roles("Admin"))
+):
+
+    users = db.query(User).all()
+
+    return [
+        {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "role": user.role
+        }
+        for user in users
+    ]

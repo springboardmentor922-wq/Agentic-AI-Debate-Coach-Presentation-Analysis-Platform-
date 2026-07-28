@@ -1,0 +1,167 @@
+/* =========================
+   Global
+========================= */
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    background: #0f172a;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+/* =========================
+   Landing Page
+========================= */
+
+.landing {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #312e81 100%);
+    color: white;
+}
+
+/* =========================
+   Hero Section
+========================= */
+
+.hero {
+    text-align: center;
+    padding: 170px 20px 80px;
+}
+
+.hero h1 {
+    font-size: 64px;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 25px;
+    letter-spacing: 1px;
+    text-shadow: 0px 5px 18px rgba(0, 0, 0, 0.45);
+}
+
+.hero p {
+    font-size: 22px;
+    max-width: 760px;
+    margin: auto;
+    color: #dbeafe;
+    line-height: 1.8;
+}
+
+/* =========================
+   Buttons
+========================= */
+
+.buttons {
+    margin-top: 45px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 15px 34px;
+    text-decoration: none;
+    border-radius: 10px;
+    margin: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.primary {
+    background: #2563eb;
+    color: white;
+    border: none;
+}
+
+.primary:hover {
+    background: #1d4ed8;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+}
+
+.secondary {
+    border: 2px solid white;
+    color: white;
+    background: transparent;
+}
+
+.secondary:hover {
+    background: white;
+    color: #1e3a8a;
+    transform: translateY(-3px);
+}
+
+/* =========================
+   Features
+========================= */
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 30px;
+    padding: 60px;
+    max-width: 1300px;
+    margin: auto;
+}
+
+.card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 35px 25px;
+    text-align: center;
+    transition: all 0.35s ease;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.card svg {
+    color: #60a5fa;
+    margin-bottom: 20px;
+}
+
+.card h3 {
+    margin: 15px 0;
+    font-size: 24px;
+    color: white;
+}
+
+.card p {
+    color: #d1d5db;
+    line-height: 1.7;
+    font-size: 16px;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    background: rgba(255, 255, 255, 0.14);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 768px) {
+
+    .hero {
+        padding: 140px 20px 60px;
+    }
+
+    .hero h1 {
+        font-size: 42px;
+    }
+
+    .hero p {
+        font-size: 18px;
+    }
+
+    .features {
+        padding: 30px 20px;
+    }
+
+    .btn {
+        display: block;
+        width: 220px;
+        margin: 15px auto;
+    }
+}

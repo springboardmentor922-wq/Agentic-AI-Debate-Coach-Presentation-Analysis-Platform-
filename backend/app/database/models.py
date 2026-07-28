@@ -11,15 +11,31 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     password = Column(String)
 
+    role = Column(String, default="Learner")
+
 
 class DebateSession(Base):
     __tablename__ = "debate_sessions"
 
     id = Column(Integer, primary_key=True, index=True)
+
     title = Column(String)
     topic = Column(String)
     position = Column(String)
+
+    status = Column(String, default="Upcoming")
+
+    score = Column(Integer, default=0)
+
+    duration = Column(Integer, default=0)
+
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow
+    )
 
     user_id = Column(Integer, ForeignKey("users.id"))
 

@@ -1,6 +1,9 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
+from typing import Optional
+
 
 class UserCreate(BaseModel):
     username: str
-    email: EmailStr
+    email: str
     password: str
+    role: Optional[str] = "Learner"

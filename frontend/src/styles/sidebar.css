@@ -1,0 +1,56 @@
+.sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: #0f172a;
+    color: white;
+    padding: 25px 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+}
+
+.logo {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: white;
+}
+
+.role {
+    text-align: center;
+    color: #cbd5e1;
+    margin-bottom: 35px;
+}
+
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    text-decoration: none;
+    color: #e2e8f0;
+
+    padding: 14px 16px;
+    border-radius: 10px;
+
+    transition: all 0.3s ease;
+}
+
+.sidebar nav a:hover {
+    background: #334155;
+    color: white;
+}
+
+.sidebar nav a.active {
+    background: #3b82f6;
+    color: white;
+    font-weight: bold;
+}
