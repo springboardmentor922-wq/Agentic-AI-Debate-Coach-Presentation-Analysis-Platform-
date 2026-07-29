@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.dark body {
+  background-image: radial-gradient(circle at 12% 0%, rgba(63, 169, 245, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 88% 15%, rgba(255, 122, 80, 0.1) 0%, transparent 42%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: 'Sora', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.font-data {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/70 dark:bg-white/[0.04] backdrop-blur-lg border border-black/5 dark:border-white/10 rounded-2xl shadow-glass;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-400 px-5 py-2.5 text-sm font-semibold text-white shadow-premium transition-all hover:bg-brand-500 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 dark:border-white/10 bg-white/60 dark:bg-white/5 px-5 py-2.5 text-sm font-semibold text-ink-900 dark:text-white backdrop-blur transition-all hover:-translate-y-0.5 active:translate-y-0;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-black/10 dark:border-white/10 bg-white/70 dark:bg-white/5 px-4 py-2.5 text-sm text-ink-900 dark:text-white placeholder:text-ink-900/40 dark:placeholder:text-white/30 outline-none transition focus:border-brand-400 focus:ring-2 focus:ring-brand-400/30;
+  }
+
+  /* Native <select> dropdown popups are painted by the OS/browser chrome,
+     not the page — they do NOT reliably inherit Tailwind's dark: text
+     color into the popup list the way the closed control does. Left
+     unstyled, dark mode produces white-on-white (or otherwise invisible)
+     option text in Chrome/Edge/Firefox. Force explicit, theme-independent
+     colors directly on <option> so the popup is always legible regardless
+     of the OS's own dark/light setting. */
+  select.input-field {
+    @apply appearance-none bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-position: right 0.9rem center;
+    background-size: 16px;
+    padding-right: 2.5rem;
+  }
+  select.input-field option {
+    background-color: #ffffff;
+    color: #0F1420; /* ink-900, matches tailwind.config.js */
+  }
+  .dark select.input-field option {
+    background-color: #171F30; /* ink-800 */
+    color: #ffffff;
+  }
+  select.input-field option:disabled {
+    color: #9ca3af;
+  }
+
+  .stat-card {
+    @apply glass-card relative overflow-hidden p-5 flex flex-col gap-1;
+  }
+
+  /* Tone accent bar along the top edge of a stat card — the app's
+     recurring "two sides of a debate" visual language: cool argon for
+     logic/analytical metrics, warm ember for persuasion/engagement ones. */
+  .stat-card::before {
+    content: '';
+    @apply absolute inset-x-0 top-0 h-[3px];
+    background: linear-gradient(90deg, theme('colors.brand.400'), theme('colors.accent.400'));
+  }
+
+  .stat-card[data-tone='cool']::before {
+    background: theme('colors.brand.400');
+  }
+  .stat-card[data-tone='warm']::before {
+    background: theme('colors.accent.400');
+  }
+  .stat-card[data-tone='verdict']::before {
+    background: theme('colors.verdict.400');
+  }
+  .stat-card[data-tone='alert']::before {
+    background: theme('colors.alert.400');
+  }
+
+  .page-fade {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Signature element: Argument Pulse — an animated dual-tone waveform
+     symbolizing the AI actively listening/analyzing speech, and the two
+     opposing sides of a debate meeting in the middle. */
+  .pulse-bars {
+    @apply flex items-end gap-[3px];
+    height: 28px;
+  }
+  .pulse-bars span {
+    @apply w-[3px] rounded-full;
+    background: linear-gradient(180deg, theme('colors.brand.400'), theme('colors.accent.400'));
+    animation: pulseBar 1.2s ease-in-out infinite;
+    transform-origin: bottom;
+  }
+}

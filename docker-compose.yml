@@ -1,0 +1,63 @@
+version: "3.9"
+
+# Full local deployment: MongoDB + FastAPI backend + Vite/React frontend
+# (served via nginx). All three ports are exposed to the host so this also
+# works as a quick way to demo the platform without a cloud Mongo cluster.
+#
+# Usage:
+#   1. cp backend/.env.example backend/.env   (fill in real API keys — the
+#      platform still runs and produces real, deterministic output with
+#      zero keys configured, per the LLM fallback architecture)
+#   2. docker compose up --build
+#   3. Frontend: http://localhost:5173   Backend docs: http://localhost:8000/docs
+#
+# For cloud deployment, point MONGO_URI at an Atlas cluster instead of the
+# bundled `mongo` service and remove the mongo service + its depends_on.
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      # Overrides whatever MONGO_URI is set to in .env so this always talks
+      # to the bundled mongo service by default — comment this out (and set
+      # MONGO_URI in backend/.env to an Atlas URI) for cloud deployment.
+      MONGO_URI: mongodb://mongo:27017
+    ports:
+      - "8000:8000"
+    volumes:
+      - upload_data:/app/uploads
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8000/api/v1
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
+  upload_data:
