@@ -1,0 +1,68 @@
+/* =====================================================
+   Educator Dashboard
+   Uses the common dashboard design system
+===================================================== */
+
+/* Reuse all dashboard styles */
+
+@import "./LearnerDashboard.css";
+
+
+/* =====================================================
+   Educator Specific Styles
+===================================================== */
+
+.status-success{
+
+    background:#DCFCE7;
+
+    color:#15803D;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+    font-size:12px;
+
+    font-weight:600;
+}
+
+.status-warning{
+
+    background:#FEF3C7;
+
+    color:#B45309;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+    font-size:12px;
+
+    font-weight:600;
+}
+
+.recommendation-list{
+
+    list-style:none;
+
+    padding:0;
+
+    margin-top:10px;
+}
+
+.recommendation-list li{
+
+    padding:12px 0;
+
+    border-bottom:1px solid #E5E7EB;
+
+    font-size:14px;
+
+    color:#475569;
+}
+
+.recommendation-list li:last-child{
+
+    border-bottom:none;
+}

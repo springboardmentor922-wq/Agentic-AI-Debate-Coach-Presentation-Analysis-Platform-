@@ -1,0 +1,79 @@
+/*
+=========================================================
+Breadcrumb
+=========================================================
+*/
+
+.breadcrumb{
+
+    display:flex;
+
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    gap:10px;
+
+    margin-bottom:18px;
+
+    font-size:14px;
+
+}
+
+.breadcrumb-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    color:#64748b;
+
+    text-decoration:none;
+
+    transition:.25s;
+
+}
+
+.breadcrumb-item:hover{
+
+    color:#2563eb;
+
+}
+
+.breadcrumb-item.active{
+
+    color:#0f172a;
+
+    font-weight:600;
+
+    cursor:default;
+
+}
+
+.breadcrumb-separator{
+
+    color:#cbd5e1;
+
+    font-size:12px;
+
+}
+
+.home{
+
+    font-weight:600;
+
+}
+
+@media(max-width:768px){
+
+    .breadcrumb{
+
+        font-size:13px;
+
+        gap:8px;
+
+    }
+
+}

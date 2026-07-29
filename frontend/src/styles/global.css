@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import "./variables.css";
+
+/* ======================================================
+   Global Styles
+====================================================== */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+
+    font-family:var(--font-family);
+
+    background:var(--background);
+
+    color:var(--text-primary);
+
+    min-height:100vh;
+}
+
+#root{
+    min-height:100vh;
+}
+
+/* ======================================================
+   Links
+====================================================== */
+
+a{
+
+    text-decoration:none;
+
+    color:inherit;
+}
+
+/* ======================================================
+   Images
+====================================================== */
+
+img{
+
+    max-width:100%;
+
+    display:block;
+}
+
+/* ======================================================
+   Lists
+====================================================== */
+
+ul{
+
+    list-style:none;
+}
+
+/* ======================================================
+   Buttons
+====================================================== */
+
+button{
+
+    cursor:pointer;
+
+    border:none;
+
+    outline:none;
+
+    font-family:inherit;
+}
+
+/* ======================================================
+   Inputs
+====================================================== */
+
+input,
+select,
+textarea{
+
+    width:100%;
+
+    padding:12px 14px;
+
+    border:1px solid var(--border);
+
+    border-radius:10px;
+
+    font-size:15px;
+
+    outline:none;
+
+    transition:.3s;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+
+    border-color:var(--primary);
+}
+
+/* ======================================================
+   Headings
+====================================================== */
+
+h1{
+
+    font-size:34px;
+
+    font-weight:700;
+}
+
+h2{
+
+    font-size:28px;
+
+    font-weight:600;
+}
+
+h3{
+
+    font-size:22px;
+
+    font-weight:600;
+}
+
+p{
+
+    color:var(--text-secondary);
+
+    line-height:1.6;
+}

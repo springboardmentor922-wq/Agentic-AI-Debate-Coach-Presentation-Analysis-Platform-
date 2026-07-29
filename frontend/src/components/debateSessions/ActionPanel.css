@@ -1,0 +1,137 @@
+/*
+=========================================================
+Action Panel
+=========================================================
+*/
+
+.action-panel{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.action-panel-header{
+
+    margin-bottom:22px;
+
+}
+
+.action-panel-header h2{
+
+    margin:0;
+
+    color:#0f172a;
+
+}
+
+.action-panel-header p{
+
+    margin-top:8px;
+
+    color:#64748b;
+
+}
+
+.action-buttons{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:16px;
+
+}
+
+.action-buttons button{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:14px 22px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.primary-btn{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+}
+
+.secondary-btn{
+
+    background:#64748b;
+
+    color:#ffffff;
+
+}
+
+.success-btn{
+
+    background:#16a34a;
+
+    color:#ffffff;
+
+}
+
+.warning-btn{
+
+    background:#f59e0b;
+
+    color:#ffffff;
+
+}
+
+.danger-btn{
+
+    background:#dc2626;
+
+    color:#ffffff;
+
+}
+
+.action-buttons button:hover{
+
+    transform:translateY(-2px);
+
+    opacity:.92;
+
+}
+
+@media(max-width:768px){
+
+    .action-buttons{
+
+        flex-direction:column;
+
+    }
+
+    .action-buttons button{
+
+        width:100%;
+
+        justify-content:center;
+
+    }
+
+}

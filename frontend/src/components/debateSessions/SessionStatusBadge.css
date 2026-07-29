@@ -1,0 +1,71 @@
+.session-status-badge{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:8px 16px;
+
+    border-radius:30px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    letter-spacing:.3px;
+
+    transition:.3s;
+
+}
+
+/* Scheduled */
+
+.status-scheduled{
+
+    background:#dbeafe;
+
+    color:#2563eb;
+
+}
+
+/* Active */
+
+.status-active{
+
+    background:#dcfce7;
+
+    color:#16a34a;
+
+}
+
+/* Completed */
+
+.status-completed{
+
+    background:#ede9fe;
+
+    color:#7c3aed;
+
+}
+
+/* Cancelled */
+
+.status-cancelled{
+
+    background:#fee2e2;
+
+    color:#dc2626;
+
+}
+
+/* Default */
+
+.status-default{
+
+    background:#e5e7eb;
+
+    color:#475569;
+
+}

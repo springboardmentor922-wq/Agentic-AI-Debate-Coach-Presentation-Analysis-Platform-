@@ -1,0 +1,191 @@
+/*
+=========================================================
+Round Progress
+=========================================================
+*/
+
+.round-progress{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:22px;
+
+}
+
+.round-progress-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    gap:20px;
+
+    flex-wrap:wrap;
+
+}
+
+.round-progress-header h2{
+
+    margin:0;
+
+    color:#0f172a;
+
+}
+
+.round-progress-header p{
+
+    margin-top:6px;
+
+    color:#64748b;
+
+}
+
+.progress-counter{
+
+    background:#eff6ff;
+
+    color:#2563eb;
+
+    padding:10px 16px;
+
+    border-radius:10px;
+
+    font-weight:600;
+
+}
+
+.round-progress-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:16px;
+
+}
+
+.progress-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    padding:18px;
+
+    border-radius:12px;
+
+    border:1px solid #e2e8f0;
+
+    transition:.25s;
+
+}
+
+.progress-item:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.progress-icon{
+
+    font-size:24px;
+
+}
+
+.progress-content{
+
+    flex:1;
+
+}
+
+.progress-content h3{
+
+    margin:0;
+
+    color:#0f172a;
+
+    font-size:17px;
+
+}
+
+.progress-content p{
+
+    margin-top:6px;
+
+    color:#64748b;
+
+    font-size:14px;
+
+}
+
+.progress-duration{
+
+    font-weight:600;
+
+    color:#334155;
+
+}
+
+.completed{
+
+    color:#16a34a;
+
+}
+
+.active{
+
+    color:#2563eb;
+
+}
+
+.pending{
+
+    color:#94a3b8;
+
+}
+
+.progress-item.completed{
+
+    background:#f0fdf4;
+
+}
+
+.progress-item.active{
+
+    background:#eff6ff;
+
+    border-color:#2563eb;
+
+}
+
+.progress-item.pending{
+
+    background:#ffffff;
+
+}
+
+@media(max-width:768px){
+
+    .progress-item{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+}

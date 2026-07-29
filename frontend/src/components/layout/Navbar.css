@@ -1,0 +1,341 @@
+/* ==========================================================
+   NAVBAR
+========================================================== */
+
+.navbar {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 260px;
+
+    right: 0;
+
+    height: 75px;
+
+    background: #FFFFFF;
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 0 32px;
+
+    border-bottom: 1px solid #E2E8F0;
+
+    box-shadow: 0 4px 12px rgba(15,23,42,.06);
+
+    z-index: 999;
+
+}
+
+/* ==========================================================
+   LEFT
+========================================================== */
+
+.navbar-left {
+
+    display: flex;
+
+    align-items: center;
+
+}
+
+.search-box {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    width: 320px;
+
+    background: #F1F5F9;
+
+    padding: 12px 16px;
+
+    border-radius: 12px;
+
+    transition: .3s;
+
+}
+
+.search-box:hover {
+
+    background: #E2E8F0;
+
+}
+
+.search-box svg {
+
+    color: #64748B;
+
+    font-size: 15px;
+
+}
+
+.search-box input {
+
+    width: 100%;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    color: #1E293B;
+
+    font-size: 15px;
+
+}
+
+.search-box input::placeholder {
+
+    color: #94A3B8;
+
+}
+
+/* ==========================================================
+   RIGHT
+========================================================== */
+
+.navbar-right {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+}
+
+/* ==========================================================
+   DATE
+========================================================== */
+
+.current-date {
+
+    font-size: 14px;
+
+    color: #64748B;
+
+    font-weight: 500;
+
+}
+
+/* ==========================================================
+   ICON BUTTONS
+========================================================== */
+
+.icon-btn {
+
+    width: 42px;
+
+    height: 42px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #F1F5F9;
+
+    color: #475569;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    cursor: pointer;
+
+    transition: .3s;
+
+}
+
+.icon-btn svg {
+
+    font-size: 17px;
+
+}
+
+.icon-btn:hover {
+
+    background: #2563EB;
+
+    color: white;
+
+    transform: translateY(-2px);
+
+}
+
+/* ==========================================================
+   PROFILE
+========================================================== */
+
+.profile-box {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding-left: 10px;
+
+}
+
+.navbar-avatar{
+
+    width:42px;
+
+    height:42px;
+
+    min-width:42px;
+
+    border-radius:50%;
+
+    background:linear-gradient(135deg,#2563EB,#1D4ED8);
+
+    color:#fff;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:17px;
+
+    font-weight:700;
+
+    box-shadow:0 4px 12px rgba(37,99,235,.25);
+
+    user-select:none;
+
+}
+
+.profile-info {
+
+    display: flex;
+
+    flex-direction: column;
+
+}
+
+.profile-info h4 {
+
+    margin: 0;
+
+    color: #1E293B;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+}
+
+.profile-info span {
+
+    font-size: 13px;
+
+    color: #64748B;
+
+}
+
+/* ==========================================================
+   LOGOUT
+========================================================== */
+
+.logout-icon {
+
+    width: 42px;
+
+    height: 42px;
+
+    border: none;
+
+    border-radius: 50%;
+
+    background: #FEE2E2;
+
+    color: #DC2626;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    cursor: pointer;
+
+    transition: .3s;
+
+}
+
+.logout-icon:hover {
+
+    background: #DC2626;
+
+    color: white;
+
+    transform: translateY(-2px);
+
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media(max-width:992px){
+
+    .navbar{
+
+        left:90px;
+
+        padding:0 20px;
+
+    }
+
+    .search-box{
+
+        width:220px;
+
+    }
+
+    .current-date{
+
+        display:none;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .navbar{
+
+        left:0;
+
+        padding:0 16px;
+
+    }
+
+    .search-box{
+
+        width:170px;
+
+    }
+
+    .profile-info{
+
+        display:none;
+
+    }
+
+}

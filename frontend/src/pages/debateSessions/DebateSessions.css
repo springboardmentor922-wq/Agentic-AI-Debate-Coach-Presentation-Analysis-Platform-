@@ -1,0 +1,480 @@
+/*
+=========================================================
+Debate Sessions Page
+
+Professional UI
+
+=========================================================
+*/
+
+.debate-sessions-page{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:28px;
+
+    padding:30px;
+
+    min-height:100vh;
+
+    background:#f8fafc;
+
+}
+
+/* =====================================================
+   Session Grid
+===================================================== */
+
+.sessions-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(360px,1fr));
+
+    gap:24px;
+
+    align-items:start;
+
+}
+
+/* =====================================================
+   Loading State
+===================================================== */
+
+.sessions-loading{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:80px 20px;
+
+    text-align:center;
+
+    font-size:18px;
+
+    font-weight:600;
+
+    color:#2563eb;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+/* =====================================================
+   Empty State
+===================================================== */
+
+.sessions-empty{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:80px 20px;
+
+    text-align:center;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.sessions-empty h2{
+
+    margin-bottom:14px;
+
+    color:#0f172a;
+
+    font-size:28px;
+
+}
+
+.sessions-empty p{
+
+    color:#64748b;
+
+    font-size:16px;
+
+}
+
+/* =====================================================
+   Pagination
+===================================================== */
+
+.sessions-pagination{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:14px;
+
+    margin-top:20px;
+
+}
+
+.sessions-pagination button{
+
+    border:none;
+
+    outline:none;
+
+    cursor:pointer;
+
+    padding:12px 22px;
+
+    border-radius:10px;
+
+    background:#ffffff;
+
+    color:#334155;
+
+    font-weight:600;
+
+    box-shadow:0 4px 10px rgba(0,0,0,.08);
+
+    transition:.25s;
+
+}
+
+.sessions-pagination button:hover{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+}
+
+.sessions-pagination button.active{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+}
+
+/* =====================================================
+   Responsive
+===================================================== */
+
+@media(max-width:1024px){
+
+    .debate-sessions-page{
+
+        padding:24px;
+
+    }
+
+    .sessions-grid{
+
+        grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .debate-sessions-page{
+
+        padding:20px;
+
+    }
+
+    .sessions-grid{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .sessions-pagination{
+
+        flex-wrap:wrap;
+
+    }
+
+}
+
+@media(max-width:480px){
+
+    .debate-sessions-page{
+
+        padding:16px;
+
+    }
+
+    .sessions-loading,
+
+    .sessions-empty{
+
+        padding:50px 16px;
+
+    }
+
+    .sessions-empty h2{
+
+        font-size:22px;
+
+    }
+
+    .sessions-pagination button{
+
+        width:100%;
+
+    }
+
+}
+
+.selected-topic-banner{
+
+    background:#dbeafe;
+
+    border-left:6px solid #2563eb;
+
+    padding:20px;
+
+    border-radius:14px;
+
+    margin-bottom:20px;
+
+}
+
+.selected-topic-banner h3{
+
+    margin:0;
+
+    color:#1d4ed8;
+
+}
+
+.selected-topic-banner p{
+
+    margin:8px 0;
+
+    color:#334155;
+
+}
+
+.selected-topic-banner small{
+
+    color:#64748b;
+
+}
+
+.debate-format-section{
+
+    margin:25px 0;
+
+}
+
+.format-grid{
+
+    display:flex;
+
+    gap:15px;
+
+    flex-wrap:wrap;
+
+}
+
+.format-card{
+
+    padding:15px 25px;
+
+    border-radius:10px;
+
+    border:1px solid #ddd;
+
+    background:white;
+
+    cursor:pointer;
+
+    transition:.3s;
+
+}
+
+.format-card.active{
+
+    background:#2563eb;
+
+    color:white;
+
+}
+
+/* ===========================
+   Selected Topic Card
+=========================== */
+
+.selected-topic-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    background: linear-gradient(135deg, #ffffff, #f8fbff);
+    border: 1px solid #e6eef8;
+    border-radius: 18px;
+    padding: 24px;
+    margin: 24px 0;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.selected-topic-left {
+    flex: 2;
+}
+
+.topic-label {
+    display: inline-block;
+    background: #2563eb;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.selected-topic-left h2 {
+    margin: 0;
+    color: #1e293b;
+}
+
+.selected-topic-left p {
+    margin-top: 12px;
+    color: #64748b;
+    line-height: 1.7;
+}
+
+.selected-topic-right {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 220px;
+}
+
+.topic-info {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 14px;
+}
+
+.topic-info span {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+}
+
+.topic-info strong {
+    color: #0f172a;
+    font-size: 15px;
+}
+
+/* ===========================
+   Sessions
+=========================== */
+
+.sessions-section {
+    margin-top: 30px;
+}
+
+.sessions-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.sessions-top h2 {
+    margin: 0;
+    color: #1e293b;
+}
+
+.session-count {
+    background: #eff6ff;
+    color: #2563eb;
+    padding: 8px 16px;
+    border-radius: 25px;
+    font-weight: 600;
+}
+
+.sessions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+/* ===========================
+   Empty State
+=========================== */
+
+.empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 60px 20px;
+    border: 2px dashed #dbeafe;
+    border-radius: 16px;
+    background: #f8fbff;
+}
+
+.empty-state h3 {
+    margin-bottom: 12px;
+    color: #1e293b;
+}
+
+.empty-state p {
+    color: #64748b;
+}
+
+/* ===========================
+   Pagination
+=========================== */
+
+.pagination-wrapper {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.pagination-btn {
+    border: none;
+    background: white;
+    border: 1px solid #dbe2ef;
+    padding: 10px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: .25s;
+}
+
+.pagination-btn:hover {
+    background: #2563eb;
+    color: white;
+}
+
+.pagination-btn.active {
+    background: #2563eb;
+    color: white;
+}
+
+/* ===========================
+   Responsive
+=========================== */
+
+@media (max-width:768px) {
+
+    .selected-topic-card {
+        flex-direction: column;
+    }
+
+    .selected-topic-right {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .sessions-grid {
+        grid-template-columns: 1fr;
+    }
+
+}

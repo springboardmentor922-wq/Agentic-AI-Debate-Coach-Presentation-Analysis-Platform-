@@ -1,0 +1,281 @@
+/* ==========================================================
+   Register Page
+========================================================== */
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    background: #f8fafc;
+}
+
+/* ==========================================================
+   Left Section
+========================================================== */
+
+.auth-left {
+    flex: 1;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px;
+    text-align: center;
+}
+
+.hero-image {
+    width: 80%;
+    max-width: 420px;
+    margin-bottom: 40px;
+}
+
+.auth-left h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.auth-left p {
+    max-width: 450px;
+    line-height: 1.8;
+    font-size: 1.05rem;
+    opacity: .95;
+}
+
+/* ==========================================================
+   Right Section
+========================================================== */
+
+.auth-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 520px;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 40px;
+    box-shadow: 0 15px 40px rgba(0,0,0,.08);
+}
+
+.auth-card h2 {
+    font-size: 2rem;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+
+.auth-card p {
+    color: #64748b;
+    margin-bottom: 28px;
+}
+
+/* ==========================================================
+   Alerts
+========================================================== */
+
+.success-box,
+.error-box {
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: .95rem;
+}
+
+.success-box {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+}
+
+.error-box {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+
+/* ==========================================================
+   Form
+========================================================== */
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 8px;
+    margin-top: 16px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    outline: none;
+    font-size: 15px;
+    transition: .3s;
+    background: white;
+}
+
+input:focus,
+select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* ==========================================================
+   Password
+========================================================== */
+
+.password-wrapper {
+    position: relative;
+}
+
+.password-wrapper span {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+    user-select: none;
+}
+
+/* ==========================================================
+   Checkbox
+========================================================== */
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 22px;
+    margin-bottom: 20px;
+}
+
+.checkbox-row input {
+    width: auto;
+}
+
+.checkbox-row span {
+    font-size: .95rem;
+    color: #475569;
+}
+
+/* ==========================================================
+   Buttons
+========================================================== */
+
+.primary-btn {
+    width: 100%;
+    padding: 15px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .3s;
+}
+
+.primary-btn:hover {
+    background: #1d4ed8;
+}
+
+.primary-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+/* ==========================================================
+   Divider
+========================================================== */
+
+.divider {
+    margin: 28px 0 18px;
+    text-align: center;
+    color: #64748b;
+}
+
+/* ==========================================================
+   Login Button
+========================================================== */
+
+.secondary-btn {
+    display: block;
+    text-align: center;
+    text-decoration: none;
+    background: #10b981;
+    color: white;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: .3s;
+}
+
+.secondary-btn:hover {
+    background: #059669;
+}
+
+/* ==========================================================
+   Footer
+========================================================== */
+
+.security-text {
+    text-align: center;
+    color: #64748b;
+    font-size: .9rem;
+    margin-top: 30px;
+    line-height: 1.6;
+}
+
+/* ==========================================================
+   Responsive
+========================================================== */
+
+@media (max-width: 992px) {
+
+    .auth-container {
+        flex-direction: column;
+    }
+
+    .auth-left {
+        display: none;
+    }
+
+    .auth-right {
+        padding: 25px;
+    }
+
+    .auth-card {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+
+    .auth-card {
+        padding: 28px;
+    }
+
+    .auth-card h2 {
+        font-size: 1.8rem;
+    }
+
+    .primary-btn,
+    .secondary-btn {
+        padding: 13px;
+    }
+}
