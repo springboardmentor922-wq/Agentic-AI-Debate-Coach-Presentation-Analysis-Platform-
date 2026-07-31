@@ -27,3 +27,12 @@ def dashboard_stats(db: Session = Depends(get_db)):
         "total_educators": total_educators,
         "total_admins": total_admins
     }
+@router.get("/learner")
+def learner_dashboard():
+
+    return {
+        "total_debates": 0,
+        "average_score": 0,
+        "fallacies_found": 0,
+        "ai_feedback": "Ready"
+    }
