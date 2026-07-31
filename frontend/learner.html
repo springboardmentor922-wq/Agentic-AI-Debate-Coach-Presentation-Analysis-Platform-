@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Debate Coach - Learner Dashboard</title>
+
+<link rel="stylesheet" href="learner.css">
+<link rel="stylesheet" href="chatbot.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+        <h2>🎤 Learner Panel</h2>
+
+        <ul class="menu">
+
+            <li onclick="showDashboard()">
+                Dashboard
+            </li>
+
+            <li onclick="showAiCoachStudio()" class="highlight-menu">
+                🤖 AI Debate Coach
+            </li>
+
+            <li onclick="showHistory()">
+                My History
+            </li>
+
+            <li onclick="showTasks()">
+                My Tasks
+            </li>
+
+            <li onclick="showFeedbacks()">
+                My Feedback
+            </li>
+
+        </ul>
+
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- Top Bar -->
+        <div class="top-bar">
+
+            <div id="profileBtn" class="profile-btn">
+                👤 Profile
+            </div>
+
+        </div>
+
+        <!-- Profile Popup -->
+        <div id="profilePopup" class="profile-popup">
+
+            <h3 id="username">User</h3>
+
+            <p id="email">email@gmail.com</p>
+
+            <p id="role">Learner</p>
+
+            <button id="logoutBtn">
+                Logout
+            </button>
+
+        </div>
+
+        <!-- ================= DASHBOARD ================= -->
+
+<div id="dashboardSection">
+
+    <div class="debate-form">
+
+        <h1>🎤 AI Debate Coach</h1>
+
+        <input
+            type="text"
+            id="topic"
+            placeholder="Enter Debate Topic">
+
+        <select id="duration">
+
+            <option value="">
+                Select Duration
+            </option>
+
+            <option value="60">1 Minute</option>
+            <option value="120">2 Minutes</option>
+            <option value="300">5 Minutes</option>
+            <option value="600">10 Minutes</option>
+
+        </select>
+
+        <select id="debateType">
+
+            <option value="">
+                Select Debate Type
+            </option>
+
+            <option value="one_to_one">
+                One-on-One Debate
+            </option>
+
+            <option value="ai_simulation">
+                AI Debate Simulation
+            </option>
+
+            <option value="oxford">
+                Oxford Debate
+            </option>
+
+            <option value="public_forum">
+                Public Forum Debate
+            </option>
+
+            <option value="policy">
+                Policy Debate
+            </option>
+
+            <option value="parliamentary">
+                Parliamentary Debate
+            </option>
+
+        </select>
+
+        <button
+            id="startBtn"
+            onclick="startDebate()">
+
+            Start Debate
+
+        </button>
+
+        <div id="debateSection">
+
+            <h2 id="selectedTopic"></h2>
+
+            <div class="mic-container">
+
+                <img
+                    src="mic.jpg"
+                    id="recordBtn"
+                    class="mic-btn"
+                    alt="Microphone">
+
+                <div id="timer">
+                    00:00
+                </div>
+
+            </div>
+
+            <button id="submitBtn" type="button">
+                Submit Debate
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= LOADING SCREEN ================= -->
+
+<div
+    id="loadingScreen"
+    style="display:none;">
+
+    <div class="loading-box">
+
+        <h1>
+             AI is Analyzing Your Debate...
+        </h1>
+
+        <p>
+            Please wait while transcript,
+            scores, fallacies and suggestions
+            are generated.
+        </p>
+
+    </div>
+
+</div>
+
+<!-- ================= RESULTS ================= -->
+
+<div
+    id="resultSection"
+    style="display:none;">
+
+    <h1> Debate Analysis Result</h1>
+
+    <h2> Transcript</h2>
+
+    <div
+        id="transcriptBox"
+        class="result-box">
+    </div>
+
+    <h2> AI Opponent Response</h2>
+
+    <div
+        id="aiResponseBox"
+        class="result-box">
+    </div>
+
+    <h2> Performance Analysis</h2>
+
+    <div
+        id="analysisBox"
+        class="analysis-grid">
+    </div>
+
+    <h2> Fallacy Detection</h2>
+
+    <div
+        id="fallacyBox"
+        class="result-box">
+    </div>
+
+    <h2> Suggestions</h2>
+
+    <div
+        id="suggestionBox"
+        class="result-box">
+    </div>
+
+    <button
+        id="doneBtn"
+        onclick="finishDebate()">
+
+        Done
+
+    </button>
+
+</div>
+
+<!-- ================= AI DEBATE COACH STUDIO ================= -->
+<div id="aiCoachStudioSection" style="display:none;">
+    <div class="studio-header">
+        <h1>AI Debate Coach <span class="online-badge">● Online</span></h1>
+        <p>Your personal AI coach to improve your arguments, critical thinking and communication.</p>
+        <button class="new-chat-btn" onclick="startNewAiCoachSession()">+ New Chat</button>
+    </div>
+
+    <div class="studio-layout">
+        <!-- Main Chat Area -->
+        <div class="studio-chat">
+            <div id="studioChatBody" class="studio-chat-body">
+                <div class="studio-msg ai">
+                    <strong>AI Debate Coach</strong> <span class="badge">AI Coach</span>
+                    <p>I'm here to help you become a better debater and speaker. Ask me anything about arguments, strategies, or get feedback on your performance.</p>
+                </div>
+            </div>
+            
+            <div class="studio-chat-input-area">
+                <input type="text" id="studioChatInput" placeholder="Type your message...">
+                <button class="mic-btn" title="Voice Input">🎤</button>
+                <button class="send-btn" onclick="sendStudioMessage()">➔</button>
+            </div>
+        </div>
+
+        <!-- Right Side Panel -->
+        <div class="studio-sidebar">
+            <div class="studio-card">
+                <h3>Current Session</h3>
+                <p><strong>Topic:</strong> <span id="studioTopic">Select a topic</span></p>
+                <p><strong>Side:</strong> <span id="studioSide">Proposition</span></p>
+                <p><strong>Time Elapsed:</strong> <span id="studioTimer">00:00:00</span></p>
+                <button class="end-session-btn" onclick="endAiCoachSession()">End Session</button>
+            </div>
+
+            <div class="studio-card">
+                <h3>AI Feedback Overview</h3>
+                <div class="score-grid">
+                    <div class="score-item">
+                        <div class="score-val text-success">85<span>/100</span></div>
+                        <div>Argument Quality</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-val text-info">78<span>/100</span></div>
+                        <div>Evidence Strength</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-val text-warning">82<span>/100</span></div>
+                        <div>Logical Consistency</div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-val text-primary">88<span>/100</span></div>
+                        <div>Persuasiveness</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="studio-card">
+                <h3>Suggested Next Steps</h3>
+                <ul class="check-list">
+                    <li>✅ Add more empirical data</li>
+                    <li>✅ Address counterarguments</li>
+                    <li>✅ Strengthen address of rebuttals</li>
+                </ul>
+                <a href="#" class="view-full-feedback">View Full Feedback →</a>
+            </div>
+
+            <div class="studio-card">
+                <h3>Popular Tools</h3>
+                <ul class="tools-list">
+                    <li>🛡️ <strong>Argument Analyzer</strong> <br><span>Analyze the strength of your argument</span></li>
+                    <li>🔍 <strong>Fallacy Detector</strong> <br><span>Detect logical fallacies in real-time</span></li>
+                    <li>⚡ <strong>Counterargument Generator</strong> <br><span>Get AI-generated counterarguments</span></li>
+                    <li>🎤 <strong>Presentation Analyzer</strong> <br><span>Improve your delivery & clarity</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= HISTORY ================= -->
+
+<div id="historySection" style="display:none;">
+
+    <h1>My Debate History</h1>
+
+    <div id="historyContainer"></div>
+
+    <div id="historyDetails" style="display:none;">
+
+        <button
+            id="backHistoryBtn"
+            style="display:none"
+            onclick="backToHistory()">
+
+            ← Back
+
+        </button>
+
+        <h2> Transcript</h2>
+        <div id="historyTranscript" class="result-box"></div>
+
+        <h2> AI Response</h2>
+        <div id="historyAiResponse" class="result-box"></div>
+
+        <h2> Analysis</h2>
+        <div id="historyAnalysis" class="analysis-grid"></div>
+
+        <h2> Fallacies</h2>
+        <div id="historyFallacies" class="result-box"></div>
+
+        <h2> Suggestions</h2>
+        <div id="historySuggestions" class="result-box"></div>
+
+    </div>
+
+</div>
+
+<!-- ================= TASKS ================= -->
+
+<div id="tasksSection" style="display:none;">
+
+    <h1>My Tasks</h1>
+
+    <div id="tasksContainer"></div>
+
+</div>
+
+<!-- ================= FEEDBACK ================= -->
+
+<div id="feedbackSection" style="display:none;">
+
+    <h1>My Feedback</h1>
+
+    <div id="feedbackContainer"></div>
+
+</div>
+
+    </div>
+
+</div>
+
+<script src="learner.js"></script>
+<script src="chatbot.js"></script>
+
+</body>
+</html>

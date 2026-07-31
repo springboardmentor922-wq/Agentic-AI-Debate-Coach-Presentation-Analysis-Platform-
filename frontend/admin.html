@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="chatbot.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+
+    <div class="sidebar">
+
+        <h2>Admin Panel</h2>
+
+        <ul>
+            <li onclick="showDashboard()">Dashboard</li>
+            <li onclick="showCreateUser()">Create User</li>
+            <li onclick="logout()">Logout</li>
+        </ul>
+
+    </div>
+
+    <!-- Main Content -->
+
+    <div class="main-content">
+
+        <!-- Profile -->
+
+        <div class="profile">
+
+            <div>
+                <h3 id="adminName">Admin</h3>
+                <p id="adminRole">Administrator</p>
+            </div>
+
+        </div>
+
+        <!-- Dashboard -->
+
+        <div id="dashboardSection">
+
+            <h1>Dashboard Statistics</h1>
+
+            <div class="cards">
+
+                <div class="card" onclick="loadAllUsers()">
+                    <h3>Total Users</h3>
+                    <p id="totalUsers">0</p>
+                </div>
+
+                <div class="card" onclick="loadDebates()">
+                    <h3>Total Debates</h3>
+                    <p id="totalDebates">0</p>
+                </div>
+
+                <div class="card" onclick="loadRoleUsers('Learner')">
+                    <h3>Learners</h3>
+                    <p id="learners">0</p>
+                </div>
+
+                <div class="card" onclick="loadRoleUsers('Educator')">
+                    <h3>Educators</h3>
+                    <p id="educators">0</p>
+                </div>
+
+                <div class="card" onclick="loadRoleUsers('Debate Coach')">
+                    <h3>Coaches</h3>
+                    <p id="coaches">0</p>
+                </div>
+
+                <div class="card" onclick="loadRoleUsers('Admin')">
+                    <h3>Admins</h3>
+                    <p id="admins">0</p>
+                </div>
+
+            </div>
+
+            <!-- User Lists -->
+
+            <div id="roleUsersSection" style="display:none; margin-top:30px;">
+
+                <h2 id="roleTitle"></h2>
+
+                <div id="roleUsersContainer">
+
+                </div>
+
+            </div>
+
+            <!-- User Profile -->
+
+            <div id="userProfileSection"
+                 style="display:none; margin-top:30px;">
+
+                <h2>User Profile</h2>
+
+                <div id="userProfile">
+
+                </div>
+
+            </div>
+
+            <!-- Feedback -->
+
+           <div id="feedbackSection"
+     style="display:none; margin-top:30px;">
+
+    <h2>Send Feedback</h2>
+
+    <input
+        type="hidden"
+        id="feedbackUsername">
+
+    <textarea
+        id="feedbackText"
+        placeholder="Enter feedback"
+        rows="5"
+        style="width:100%;padding:15px;">
+    </textarea>
+
+    <br><br>
+
+    <button onclick="sendFeedback()">
+        Send Feedback
+    </button>
+
+</div>
+
+        </div>
+
+        <!-- Create User -->
+
+        <div id="createUserSection" style="display:none;">
+
+            <h1>Create User</h1>
+
+            <form id="createUserForm">
+
+                <input
+                    type="text"
+                    id="fullname"
+                    placeholder="Full Name"
+                    required>
+
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Email"
+                    required>
+
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Username"
+                    required>
+
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Password"
+                    required>
+
+                <select id="role">
+
+                    <option value="Learner">Learner</option>
+
+                    <option value="Educator">Educator</option>
+
+                    <option value="Debate Coach">
+                        Debate Coach
+                    </option>
+
+                    <option value="Admin">Admin</option>
+
+                </select>
+
+                <button type="submit">
+                    Create User
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="admin.js"></script>
+<script src="chatbot.js"></script>
+
+</body>
+</html>

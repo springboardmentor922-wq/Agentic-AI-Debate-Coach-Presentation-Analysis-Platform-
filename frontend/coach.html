@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Debate Coach Dashboard</title>
+
+<link rel="stylesheet" href="coach.css">
+<link rel="stylesheet" href="chatbot.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+        <div class="sidebar-header">
+            <h2>🧠 Debate Coach</h2>
+            <span class="subtitle">AI Presentation Analysis</span>
+        </div>
+        <div class="sidebar-scroll">
+            <div class="menu-section">OVERVIEW</div>
+            <ul class="menu">
+                <li onclick="showDashboard()" class="active">🏠 Dashboard</li>
+            </ul>
+
+            <div class="menu-section">EVALUATION</div>
+            <ul class="menu">
+                <li onclick="showDebates()">📝 Review Debates</li>
+                <li>✅ Evaluation Queue</li>
+                <li>📚 Feedback History</li>
+            </ul>
+
+            <div class="menu-section">TASKS</div>
+            <ul class="menu">
+                <li>📋 Assign Tasks</li>
+                <li>📊 Task Status</li>
+            </ul>
+
+            <div class="menu-section">OTHER</div>
+            <ul class="menu">
+                <li>⚙️ Settings</li>
+                <li>❓ Help & Support</li>
+                <li onclick="logout()">🚪 Logout</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+
+        <!-- Profile -->
+        <div class="profile">
+
+            <div>
+
+                <h3 id="coachName">
+                    Coach
+                </h3>
+
+                <p id="coachRole">
+                    Debate Coach
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- Dashboard Section -->
+        <div id="dashboardSection">
+
+            <div class="dashboard-header-text">
+                <h1>Coach Dashboard</h1>
+                <p>Welcome back, Coach! Manage evaluations and track learner progress.</p>
+            </div>
+
+            <div class="kpi-cards">
+                <div class="kpi-card purple" onclick="showLearners()">
+                    <div class="kpi-icon">👥</div>
+                    <div class="kpi-info">
+                        <span>Total Learners</span>
+                        <strong id="totalLearners">45</strong>
+                        <small>↑ 5 this month</small>
+                    </div>
+                </div>
+                <div class="kpi-card orange" onclick="showPendingReviews()">
+                    <div class="kpi-icon">⏳</div>
+                    <div class="kpi-info">
+                        <span>Pending Reviews</span>
+                        <strong id="pendingReviews">12</strong>
+                        <small>Requires attention</small>
+                    </div>
+                </div>
+                <div class="kpi-card green" onclick="showCompletedReviews()">
+                    <div class="kpi-icon">✅</div>
+                    <div class="kpi-info">
+                        <span>Completed Reviews</span>
+                        <strong id="completedReviews">104</strong>
+                        <small>Great work!</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid top-grid">
+                <div class="dashboard-box needs-review-box">
+                    <div class="box-header">
+                        <h3>Evaluation Queue</h3>
+                    </div>
+                    <ul class="review-list">
+                        <li>🎥 Debate Recordings to Evaluate <span class="count">7</span></li>
+                        <li>🎤 Presentations to Review <span class="count">3</span></li>
+                        <li>📋 Assignments to Grade <span class="count">2</span></li>
+                    </ul>
+                    <a href="#" class="view-all text-success" onclick="showDebates()">Start Evaluating →</a>
+                </div>
+
+                <div class="dashboard-box recent-activities-box">
+                    <div class="box-header">
+                        <h3>Recent Feedback Sent</h3>
+                    </div>
+                    <ul class="activity-list">
+                        <li><span class="dot green"></span> <div><strong>Feedback given to John</strong> <br><small>Rebuttal Strategy • 2 hrs ago</small></div></li>
+                        <li><span class="dot blue"></span> <div><strong>Feedback given to Sarah</strong> <br><small>Opening Statements • 5 hrs ago</small></div></li>
+                        <li><span class="dot purple"></span> <div><strong>Feedback given to Mike</strong> <br><small>Fallacy Detection • 1 day ago</small></div></li>
+                    </ul>
+                    <a href="#" class="view-all">View history →</a>
+                </div>
+            </div>
+
+            <!-- Dynamic Dashboard Results -->
+            <div
+                id="dashboardResultSection"
+                style="display:none; margin-top:20px;">
+
+            </div>
+
+        </div>
+
+        <!-- Pending Debates -->
+        <div
+            id="debatesSection"
+            style="display:none;">
+
+            <h1>
+                Review Debates
+            </h1>
+
+            <div id="debatesContainer">
+
+            </div>
+
+        </div>
+
+        <!-- Review Section -->
+        <div
+            id="reviewSection"
+            style="display:none;">
+
+            <h1>
+                Debate Review
+            </h1>
+
+            <div id="debateDetails">
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="coach.js"></script>
+<script src="chatbot.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register - AI Debate Coach</title>
+
+<link rel="stylesheet" href="register.css">
+
+<style>
+#message{
+    text-align:center;
+    margin-bottom:15px;
+    font-weight:bold;
+    color:#ff6b6b;
+}
+</style>
+
+</head>
+<body>
+
+<div class="login-box">
+
+    <div class="logo">
+        🎤 AI Debate Coach
+    </div>
+
+    <h2>Create Account</h2>
+
+    <form id="registerForm">
+
+        <div id="message"></div>
+
+        <div class="input-group">
+            <label>Full Name</label>
+            <input type="text" id="fullname" placeholder="Enter Full Name" required>
+        </div>
+
+        <div class="input-group">
+            <label>Email</label>
+            <input type="email" id="email" placeholder="Enter Email" required>
+        </div>
+
+        <div class="input-group">
+            <label>User ID</label>
+            <input type="text" id="username" placeholder="Enter Username" required>
+        </div>
+
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Enter Password" required>
+        </div>
+
+        <div class="input-group">
+            <label>Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="Confirm Password" required>
+        </div>
+
+        <button type="submit">
+            Register
+        </button>
+
+        <div class="register">
+            Already have an account?
+            <a href="login.html">Login Here</a>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+document.getElementById("registerForm").addEventListener("submit", async function(e){
+
+    e.preventDefault();
+
+    const fullname = document.getElementById("fullname").value;
+    const email = document.getElementById("email").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    const message = document.getElementById("message");
+
+    if(password !== confirmPassword){
+        message.innerText = "Passwords do not match";
+        return;
+    }
+
+    try{
+
+        const response = await fetch("http://127.0.0.1:8000/register",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/json"
+            },
+
+            body:JSON.stringify({
+                fullname,
+                email,
+                username,
+                password
+            })
+
+        });
+
+        const data = await response.json();
+
+        if(data.success){
+
+            alert("Registration Successful");
+
+            window.location.href = "login.html";
+
+        }else{
+
+            message.innerText = data.message;
+
+        }
+
+    }catch(error){
+
+        message.innerText = "Unable to connect to backend server";
+
+        console.error(error);
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

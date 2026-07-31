@@ -1,0 +1,167 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(135deg,#0f172a,#1e293b,#0f172a);
+    overflow:hidden;
+}
+
+/* Animated Background */
+
+body::before{
+    content:'';
+    position:absolute;
+    width:500px;
+    height:500px;
+    background:#3b82f6;
+    border-radius:50%;
+    top:-150px;
+    left:-150px;
+    filter:blur(150px);
+    animation:move1 10s infinite alternate;
+}
+
+body::after{
+    content:'';
+    position:absolute;
+    width:500px;
+    height:500px;
+    background:#8b5cf6;
+    border-radius:50%;
+    bottom:-150px;
+    right:-150px;
+    filter:blur(150px);
+    animation:move2 10s infinite alternate;
+}
+
+@keyframes move1{
+    from{
+        transform:translate(0,0);
+    }
+    to{
+        transform:translate(150px,100px);
+    }
+}
+
+@keyframes move2{
+    from{
+        transform:translate(0,0);
+    }
+    to{
+        transform:translate(-150px,-100px);
+    }
+}
+
+/* Login/Register Card */
+
+.login-box{
+    width:400px;
+    max-height:90vh;
+    overflow-y:auto;
+    padding:40px;
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(15px);
+    border-radius:25px;
+    box-shadow:0 15px 35px rgba(0,0,0,0.3);
+    z-index:1;
+}
+
+.logo{
+    text-align:center;
+    color:#93c5fd;
+    font-size:22px;
+    font-weight:bold;
+    margin-bottom:15px;
+}
+
+.login-box h2{
+    text-align:center;
+    color:white;
+    margin-bottom:25px;
+}
+
+.input-group{
+    margin-bottom:18px;
+}
+
+.input-group label{
+    display:block;
+    margin-bottom:8px;
+    color:white;
+}
+
+.input-group input,
+.input-group select{
+    width:100%;
+    padding:12px;
+    border:none;
+    outline:none;
+    border-radius:10px;
+    background:rgba(255,255,255,0.15);
+    color:white;
+    font-size:15px;
+}
+
+.input-group input::placeholder{
+    color:#ddd;
+}
+
+.input-group select option{
+    color:black;
+}
+
+button{
+    width:100%;
+    padding:13px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+.register{
+    text-align:center;
+    margin-top:20px;
+    color:white;
+}
+
+.register a{
+    color:#60a5fa;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.register a:hover{
+    text-decoration:underline;
+}
+
+/* Scrollbar */
+
+.login-box::-webkit-scrollbar{
+    width:6px;
+}
+
+.login-box::-webkit-scrollbar-thumb{
+    background:#3b82f6;
+    border-radius:10px;
+}
+
+.login-box::-webkit-scrollbar-track{
+    background:transparent;
+}

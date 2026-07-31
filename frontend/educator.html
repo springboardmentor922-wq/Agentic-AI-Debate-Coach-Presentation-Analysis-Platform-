@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Educator Dashboard</title>
+
+<link rel="stylesheet" href="educator.css">
+<link rel="stylesheet" href="chatbot.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+
+    <div class="sidebar">
+
+        <div class="sidebar-header">
+            <h2>🧠 Debate Coach</h2>
+            <span class="subtitle">AI Presentation Analysis</span>
+        </div>
+        <div class="sidebar-scroll">
+            <div class="menu-section">OVERVIEW</div>
+            <ul class="menu">
+                <li onclick="showDashboard()" class="active">🏠 Dashboard</li>
+            </ul>
+
+            <div class="menu-section">TRACKING</div>
+            <ul class="menu">
+                <li>📚 My Classes</li>
+                <li onclick="showLearners()">👥 Learners</li>
+                <li>🎙️ Debate Sessions</li>
+                <li onclick="showAssignTask()">📋 Assignments</li>
+                <li>✅ Evaluation Queue</li>
+            </ul>
+
+            <div class="menu-section">ANALYTICS</div>
+            <ul class="menu">
+                <li>📊 Class Analytics</li>
+                <li onclick="showReports()">📈 Performance Reports</li>
+                <li>🎥 Presentation Reports</li>
+                <li>🎯 Skill Gap Analysis</li>
+            </ul>
+
+            <div class="menu-section">CONTENT & TOOLS</div>
+            <ul class="menu">
+                <li>💡 Practice Topics</li>
+                <li>⚖️ Debate Formats</li>
+                <li>📋 Rubrics & Criteria</li>
+                <li>📚 Resource Library</li>
+            </ul>
+
+            <div class="menu-section">COMMUNICATION</div>
+            <ul class="menu">
+                <li>📢 Announcements</li>
+                <li>💬 Messages <span class="badge">3</span></li>
+            </ul>
+
+            <div class="menu-section">OTHER</div>
+            <ul class="menu">
+                <li>⚙️ Settings</li>
+                <li>❓ Help & Support</li>
+                <li onclick="logout()">🚪 Logout</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <!-- Main Content -->
+
+    <div class="main-content">
+
+        <!-- Profile -->
+
+        <div class="profile">
+
+            <div>
+
+                <h3 id="educatorName">
+                    Educator
+                </h3>
+
+                <p id="educatorRole">
+                    Educator
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- Dashboard -->
+
+        <div id="dashboardSection">
+
+            <div class="dashboard-header-text">
+                <h1>Educator Dashboard</h1>
+                <p>Welcome back, Educator! Monitor your learners, review performance, and guide them to excel.</p>
+            </div>
+
+            <div class="kpi-cards">
+                <div class="kpi-card purple" onclick="showLearners()">
+                    <div class="kpi-icon">👥</div>
+                    <div class="kpi-info">
+                        <span>Total Learners</span>
+                        <strong id="totalLearners">128</strong>
+                        <small>↑ 12 this month</small>
+                    </div>
+                </div>
+                <div class="kpi-card green">
+                    <div class="kpi-icon">📚</div>
+                    <div class="kpi-info">
+                        <span>Active Classes</span>
+                        <strong>8</strong>
+                        <small>View all classes →</small>
+                    </div>
+                </div>
+                <div class="kpi-card blue" onclick="showTasks()">
+                    <div class="kpi-icon">🎙️</div>
+                    <div class="kpi-info">
+                        <span>Debates Conducted</span>
+                        <strong id="totalTasks">36</strong>
+                        <small>↑ 8 this month</small>
+                    </div>
+                </div>
+                <div class="kpi-card orange">
+                    <div class="kpi-icon">📈</div>
+                    <div class="kpi-info">
+                        <span>Avg. Class Score</span>
+                        <strong>72.4 <small>/100</small></strong>
+                        <small>+2.4 from last month</small>
+                    </div>
+                </div>
+                <div class="kpi-card violet">
+                    <div class="kpi-icon">🏆</div>
+                    <div class="kpi-info">
+                        <span>Top Performer</span>
+                        <strong>Riya Patel</strong>
+                        <small>91.3 / 100</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid top-grid">
+                <div class="dashboard-box line-chart-box">
+                    <div class="box-header">
+                        <h3>Class Performance Overview</h3>
+                        <select><option>Last 4 Weeks</option></select>
+                    </div>
+                    <!-- Placeholder for Chart.js -->
+                    <div class="chart-placeholder placeholder-line"></div>
+                </div>
+                
+                <div class="dashboard-box recent-activities-box">
+                    <div class="box-header">
+                        <h3>Recent Activities</h3>
+                    </div>
+                    <ul class="activity-list">
+                        <li><span class="dot blue"></span> <div><strong>Debate completed</strong>: "Should social media..." <br><small>Class B • 2 hrs ago</small></div></li>
+                        <li><span class="dot green"></span> <div><strong>Presentation analyzed</strong>: Renewable Energy <br><small>Class A • 5 hrs ago</small></div></li>
+                        <li><span class="dot purple"></span> <div><strong>New assignment</strong>: Intro To Debate <br><small>Class C • 1 day ago</small></div></li>
+                    </ul>
+                    <a href="#" class="view-all">View all activities →</a>
+                </div>
+
+                <div class="dashboard-box donut-chart-box">
+                    <div class="box-header">
+                        <h3>Class Performance Distribution</h3>
+                    </div>
+                    <!-- Placeholder for Donut Chart -->
+                    <div class="chart-placeholder placeholder-donut">
+                        <div class="donut-circle">
+                            <span>128<br><small>Learners</small></span>
+                        </div>
+                    </div>
+                    <div class="donut-legend">
+                        <div><span class="dot green"></span> Excellent (85-100)</div>
+                        <div><span class="dot blue"></span> Good (70-84)</div>
+                        <div><span class="dot yellow"></span> Average (50-69)</div>
+                        <div><span class="dot red"></span> Needs Imp. (<50)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid bottom-grid">
+                <div class="dashboard-box needs-review-box">
+                    <div class="box-header">
+                        <h3>Needs Your Review</h3>
+                    </div>
+                    <ul class="review-list">
+                        <li>🎥 Debate Recordings to Evaluate <span class="count">6</span></li>
+                        <li>🎤 Presentations to Review <span class="count">4</span></li>
+                        <li>📋 Assignments to Grade <span class="count">2</span></li>
+                    </ul>
+                    <a href="#" class="view-all text-success">Go to Evaluation Queue →</a>
+                </div>
+
+                <div class="dashboard-box skill-gap-box">
+                    <div class="box-header">
+                        <h3>Skill Gap Summary (All Classes)</h3>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-label">Argument Quality <span>62%</span></div>
+                        <div class="bar-bg"><div class="bar-fill" style="width: 62%;"></div></div>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-label">Evidence Usage <span>45%</span></div>
+                        <div class="bar-bg"><div class="bar-fill" style="width: 45%;"></div></div>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-label">Logical Consistency <span>78%</span></div>
+                        <div class="bar-bg"><div class="bar-fill" style="width: 78%;"></div></div>
+                    </div>
+                    <div class="skill-bar">
+                        <div class="skill-label">Rebuttal Effectiveness <span>35%</span></div>
+                        <div class="bar-bg"><div class="bar-fill text-danger" style="width: 35%;"></div></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Dashboard Result Section -->
+
+        <div
+            id="resultSection"
+            style="display:none;">
+        </div>
+
+        <!-- Assign Task -->
+
+<div
+    id="assignTaskSection"
+    style="display:none;">
+
+    <h1>Assign Task</h1>
+
+    <form id="taskForm">
+
+        <!-- Learner -->
+
+        <select
+            id="learnerSelect"
+            required>
+
+            <option value="">
+                Select Learner
+            </option>
+
+        </select>
+
+        <!-- Topic -->
+
+        <input
+            type="text"
+            id="topic"
+            placeholder="Debate Topic"
+            required>
+
+        <!-- Duration -->
+
+        <select
+            id="duration"
+            required>
+
+            <option value="">
+                Select Duration
+            </option>
+
+            <option value="60">
+                1 Minute
+            </option>
+
+            <option value="120">
+                2 Minutes
+            </option>
+
+            <option value="300">
+                5 Minutes
+            </option>
+
+            <option value="600">
+                10 Minutes
+            </option>
+
+        </select>
+
+        <!-- Debate Type -->
+
+        <select
+            id="debateType"
+            required>
+
+            <option value="">
+                Select Debate Type
+            </option>
+
+            <option value="one_to_one">
+                One-on-One Debate
+            </option>
+
+            <option value="ai_simulation">
+                AI Debate Simulation
+            </option>
+
+            <option value="oxford">
+                Oxford Debate
+            </option>
+
+            <option value="public_forum">
+                Public Forum Debate
+            </option>
+
+            <option value="policy">
+                Policy Debate
+            </option>
+
+            <option value="parliamentary">
+                Parliamentary Debate
+            </option>
+
+        </select>
+
+        <button type="submit">
+            Assign Task
+        </button>
+
+    </form>
+
+</div>
+        <!-- Learner Profile -->
+
+        <div
+            id="learnerProfileSection"
+            style="display:none;">
+
+            <h2>Learner Profile</h2>
+
+            <div id="learnerProfile">
+
+            </div>
+
+        </div>
+
+        <!-- Reports -->
+
+        <div
+            id="reportsSection"
+            style="display:none;">
+
+            <h1>Reports</h1>
+
+            <div id="reportsContainer">
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="educator.js"></script>
+<script src="chatbot.js"></script>
+
+</body>
+</html>
