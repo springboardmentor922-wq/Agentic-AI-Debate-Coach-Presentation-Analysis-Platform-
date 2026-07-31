@@ -16,14 +16,14 @@ export const EducatorDashboardView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* Educator Welcome Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border border-sky-400/30">
         <div className="space-y-1">
-          <span className="text-indigo-400 font-bold text-xs uppercase tracking-wider">Educator Command Center</span>
-          <h2 className="text-2xl font-bold tracking-tight">Welcome, Dr. Ananya Sharma 🎓</h2>
-          <p className="text-slate-300 text-xs">Managing 8 debate classes, 128 registered learners, and AI skill assessment models</p>
+          <span className="text-white bg-white/20 px-2.5 py-0.5 rounded-full border border-white/30 font-bold text-xs uppercase tracking-wider shadow-xs">Educator Command Center</span>
+          <h2 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">Welcome, Dr. Ananya Sharma 🎓</h2>
+          <p className="text-sky-100 text-xs font-medium">Managing 8 debate classes, 128 registered learners, and AI skill assessment models</p>
         </div>
 
-        <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 text-xs font-bold text-indigo-200">
+        <div className="bg-white/15 backdrop-blur-md px-4 py-2 rounded-xl border border-white/30 text-xs font-bold text-white shadow-md">
           Academic Term: Spring 2025
         </div>
       </div>

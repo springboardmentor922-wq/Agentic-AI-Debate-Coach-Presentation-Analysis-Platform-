@@ -5,14 +5,14 @@ import { MOCK_COACH_DATA } from '../../data/mockData';
 export const CoachDashboardView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border border-sky-400/30">
         <div className="space-y-1">
-          <span className="text-indigo-400 font-bold text-xs uppercase tracking-wider">Coach Portal</span>
-          <h2 className="text-2xl font-bold tracking-tight">Welcome, Coach Arjun Mehta 🎯</h2>
-          <p className="text-slate-300 text-xs">Guiding 48 active debate mentees with AI-powered telemetry and performance auditing</p>
+          <span className="text-white bg-white/20 px-2.5 py-0.5 rounded-full border border-white/30 font-bold text-xs uppercase tracking-wider shadow-xs">Coach Portal</span>
+          <h2 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">Welcome, Coach Arjun Mehta 🎯</h2>
+          <p className="text-sky-100 text-xs font-medium">Guiding 48 active debate mentees with AI-powered telemetry and performance auditing</p>
         </div>
 
-        <div className="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md">
+        <div className="bg-white/15 backdrop-blur-md text-white font-bold px-4 py-2 rounded-xl text-xs border border-white/30 shadow-md">
           Top Performer: {MOCK_COACH_DATA.topPerformer}
         </div>
       </div>

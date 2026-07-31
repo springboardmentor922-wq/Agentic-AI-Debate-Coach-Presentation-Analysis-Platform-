@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Search, Bell, CheckCircle2, ChevronDown, Menu, UserPlus, LogOut, UserCheck, Shield, Sparkles } from 'lucide-react';
+import { Search, Bell, CheckCircle2, ChevronDown, Menu, UserPlus, LogOut, UserCheck, Shield, Sparkles, Sun, Moon } from 'lucide-react';
 import { UserRole, UserProfile } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
 
 interface HeaderProps {
   currentRole: UserRole;
@@ -27,6 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
   existingUsers = [],
   onSelectUser
 }) => {
+  const { toggleTheme, isDark } = useTheme();
   const [showRoleMenu, setShowRoleMenu] = useState(false);
   const [showNotifPopover, setShowNotifPopover] = useState(false);
   const [showUserPopover, setShowUserPopover] = useState(false);
@@ -75,23 +77,50 @@ export const Header: React.FC<HeaderProps> = ({
         />
       </div>
 
-      {/* Right Actions: Role Switcher, Notifications, Profile */}
+      {/* Right Actions: Theme Toggle, Role Switcher, Notifications, Profile */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Light / Dark Sky Mood Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          id="theme-toggle-btn"
+          className={`p-2 rounded-lg transition-all shadow-sm border ${
+            isDark
+              ? 'bg-slate-800/90 hover:bg-slate-700 text-amber-300 border-slate-700'
+              : 'bg-sky-100 hover:bg-sky-200 text-sky-900 border-sky-300'
+          }`}
+          aria-label={isDark ? "Switch to Light Sky Mood" : "Switch to Dark Mood"}
+          title={isDark ? "Switch to Light Sky Mood" : "Switch to Dark Mood"}
+        >
+          {isDark ? (
+            <Sun className="w-4 h-4 text-amber-400 shrink-0" />
+          ) : (
+            <Moon className="w-4 h-4 text-indigo-600 shrink-0" />
+          )}
+        </button>
+
         {/* Role Switcher Menu */}
         <div className="relative">
           <button
             onClick={() => setShowRoleMenu(!showRoleMenu)}
-            className="flex items-center gap-1.5 sm:gap-2 bg-slate-800/90 hover:bg-slate-700 text-slate-200 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border border-slate-700"
+            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-colors border shadow-xs ${
+              isDark
+                ? 'bg-slate-800/90 hover:bg-slate-700 text-slate-200 border-slate-700'
+                : 'bg-sky-50 hover:bg-sky-100 text-slate-800 border-sky-300'
+            }`}
             title="Switch Dashboard Perspective"
           >
-            <span className="text-slate-400 hidden md:inline">Perspective:</span>
-            <span className="font-semibold text-indigo-400 capitalize">{currentRole}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            <span className={isDark ? "text-slate-400 hidden md:inline" : "text-slate-600 hidden md:inline"}>Perspective:</span>
+            <span className={`font-bold capitalize ${isDark ? "text-indigo-400" : "text-sky-800"}`}>{currentRole}</span>
+            <ChevronDown className={`w-3.5 h-3.5 ${isDark ? "text-slate-400" : "text-slate-600"}`} />
           </button>
 
           {showRoleMenu && (
-            <div className="absolute right-0 mt-2 w-56 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-              <div className="px-3 py-1.5 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            <div className={`absolute right-0 mt-2 w-56 rounded-xl shadow-2xl border py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${
+              isDark ? 'bg-slate-800 border-slate-700 text-slate-200' : 'bg-white border-sky-300 text-slate-800'
+            }`}>
+              <div className={`px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider ${
+                isDark ? 'text-slate-400' : 'text-slate-500'
+              }`}>
                 Switch View Role
               </div>
               {(['learner', 'coach', 'educator', 'admin'] as UserRole[]).map((r) => (
@@ -101,12 +130,14 @@ export const Header: React.FC<HeaderProps> = ({
                     onRoleChange(r);
                     setShowRoleMenu(false);
                   }}
-                  className={`w-full px-3 py-2 text-left text-xs font-medium flex items-center justify-between hover:bg-indigo-600/30 hover:text-indigo-300 transition-colors ${
-                    currentRole === r ? 'bg-indigo-600/20 text-indigo-400 font-semibold' : 'text-slate-200'
+                  className={`w-full px-3 py-2 text-left text-xs font-medium flex items-center justify-between transition-colors ${
+                    isDark
+                      ? (currentRole === r ? 'bg-indigo-600/20 text-indigo-400 font-semibold' : 'text-slate-200 hover:bg-indigo-600/30 hover:text-indigo-300')
+                      : (currentRole === r ? 'bg-sky-100 text-sky-900 font-bold' : 'text-slate-700 hover:bg-sky-50 hover:text-sky-900')
                   }`}
                 >
                   <span className="capitalize">{r} Dashboard</span>
-                  {currentRole === r && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400" />}
+                  {currentRole === r && <CheckCircle2 className={`w-3.5 h-3.5 ${isDark ? 'text-indigo-400' : 'text-sky-600'}`} />}
                 </button>
               ))}
             </div>

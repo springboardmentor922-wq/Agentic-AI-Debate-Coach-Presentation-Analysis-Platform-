@@ -1,11 +1,461 @@
 @import "tailwindcss";
+html.dark,
+html.dark * {
+  color-scheme: dark;
+}
 
 @layer base {
   body {
     background-color: #0F172A;
     color: #f8fafc;
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
+}
+
+/* ==========================================================================
+   LIGHT SKY MOOD THEME OVERRIDES (html.light)
+   ========================================================================== */
+
+/* Global Light Sky Canvas */
+html.light body,
+html.light main,
+html.light .bg-\[\#0F172A\] {
+  background-color: #e0f2fe !important; /* Soft Vibrant Sky Blue */
+  color: #0f172a !important;
+}
+
+/* Header Navigation Bar */
+html.light header,
+html.light header.bg-\[\#1E293B\] {
+  background-color: #ffffff !important;
+  border-color: #7dd3fc !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 16px -3px rgba(2, 132, 199, 0.12) !important;
+}
+
+/* Sidebar Navigation Drawer */
+html.light aside,
+html.light aside.bg-\[\#1E293B\]\/90,
+html.light aside.bg-\[\#1E293B\] {
+  background-color: #f0f9ff !important;
+  border-color: #7dd3fc !important;
+  color: #1e293b !important;
+}
+
+/* General Cards & Containers */
+html.light .bg-\[\#1E293B\],
+html.light .bg-slate-800,
+html.light .bg-slate-900,
+html.light .bg-slate-950 {
+  background-color: #ffffff !important;
+  border-color: #bae6fd !important;
+  color: #1e293b !important;
+  box-shadow: 0 4px 20px -2px rgba(2, 132, 199, 0.09), 0 2px 6px -2px rgba(2, 132, 199, 0.04) !important;
+}
+
+/* Outer Card Title Headings */
+html.light h1, html.light h2, html.light h3, html.light h4, html.light h5, html.light h6 {
+  color: #0f172a !important;
+}
+
+/* Sub-card & Item Containers inside white cards (Light Mode) */
+html.light .bg-slate-800\/30,
+html.light .bg-slate-800\/40,
+html.light .bg-slate-800\/50,
+html.light .bg-slate-800\/60,
+html.light .bg-slate-800\/70,
+html.light .bg-slate-800\/80,
+html.light .bg-slate-800\/90,
+html.light .bg-slate-900\/30,
+html.light .bg-slate-900\/40,
+html.light .bg-slate-900\/50,
+html.light .bg-slate-900\/60,
+html.light .bg-slate-900\/70,
+html.light .bg-slate-900\/80,
+html.light .bg-slate-900\/90,
+html.light .bg-slate-950\/30,
+html.light .bg-slate-950\/40,
+html.light .bg-slate-950\/50,
+html.light .bg-slate-950\/60,
+html.light .bg-slate-950\/70,
+html.light .bg-slate-950\/80,
+html.light .bg-slate-950\/90 {
+  background-color: #f0f9ff !important;
+  border-color: #7dd3fc !important;
+  color: #0f172a !important;
+}
+
+/* Ensure text inside sub-cards has high contrast in Light Mode */
+html.light .bg-slate-800\/30 .text-white,
+html.light .bg-slate-800\/40 .text-white,
+html.light .bg-slate-800\/50 .text-white,
+html.light .bg-slate-800\/60 .text-white,
+html.light .bg-slate-800\/70 .text-white,
+html.light .bg-slate-800\/80 .text-white,
+html.light .bg-slate-800\/90 .text-white,
+html.light .bg-slate-900\/30 .text-white,
+html.light .bg-slate-900\/40 .text-white,
+html.light .bg-slate-900\/50 .text-white,
+html.light .bg-slate-900\/60 .text-white,
+html.light .bg-slate-900\/70 .text-white,
+html.light .bg-slate-900\/80 .text-white,
+html.light .bg-slate-900\/90 .text-white,
+html.light .bg-slate-950\/30 .text-white,
+html.light .bg-slate-950\/40 .text-white,
+html.light .bg-slate-950\/50 .text-white,
+html.light .bg-slate-950\/60 .text-white,
+html.light .bg-slate-950\/70 .text-white,
+html.light .bg-slate-950\/80 .text-white,
+html.light .bg-\[\#1E293B\] .text-white,
+html.light .bg-\[\#0F172A\] .text-white {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+html.light .bg-slate-800\/30 .text-slate-100,
+html.light .bg-slate-800\/50 .text-slate-100,
+html.light .bg-slate-800\/80 .text-slate-100,
+html.light .bg-slate-900\/50 .text-slate-100,
+html.light .bg-slate-900\/60 .text-slate-100,
+html.light .bg-slate-900\/80 .text-slate-100,
+html.light .bg-slate-950\/80 .text-slate-100 {
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#1E293B\] .text-white,
+html.light .bg-\[\#0F172A\] .text-white {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+html.light .bg-slate-800\/30 .text-slate-400,
+html.light .bg-slate-800\/50 .text-slate-400,
+html.light .bg-slate-800\/80 .text-slate-400,
+html.light .bg-slate-900\/50 .text-slate-400,
+html.light .bg-slate-900\/60 .text-slate-400,
+html.light .bg-slate-900\/80 .text-slate-400,
+html.light .bg-slate-950\/80 .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .bg-slate-800\/30 .text-slate-500,
+html.light .bg-slate-800\/50 .text-slate-500,
+html.light .bg-slate-800\/80 .text-slate-500,
+html.light .bg-slate-900\/50 .text-slate-500,
+html.light .bg-slate-900\/60 .text-slate-500,
+html.light .bg-slate-900\/80 .text-slate-500,
+html.light .bg-slate-950\/80 .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Borders */
+html.light .border-slate-800,
+html.light .border-slate-700,
+html.light .border-slate-700\/80,
+html.light .border-slate-700\/60,
+html.light .border-slate-700\/50,
+html.light .border-slate-800\/80,
+html.light .border-slate-800\/60,
+html.light .border-indigo-500\/30,
+html.light .border-indigo-500\/20 {
+  border-color: #bae6fd !important;
+}
+
+/* Text Readability Adjustments */
+html.light .text-slate-100,
+html.light .text-slate-200 {
+  color: #0f172a !important;
+}
+
+html.light .text-slate-300 {
+  color: #334155 !important;
+}
+
+html.light .text-slate-400 {
+  color: #475569 !important;
+}
+
+html.light .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Vibrant Accent Text Colors in Light Mode */
+html.light .text-indigo-400,
+html.light .text-indigo-300 {
+  color: #4f46e5 !important;
+}
+
+html.light .text-blue-400 {
+  color: #2563eb !important;
+}
+
+html.light .text-emerald-400 {
+  color: #059669 !important;
+}
+
+html.light .text-amber-400,
+html.light .text-amber-300 {
+  color: #d97706 !important;
+}
+
+html.light .text-yellow-400 {
+  color: #ca8a04 !important;
+}
+
+html.light .text-rose-400 {
+  color: #e11d48 !important;
+}
+
+html.light .text-cyan-300,
+html.light .text-cyan-400 {
+  color: #0284c7 !important;
+}
+
+/* ==========================================================================
+   FEATURED HERO BANNERS (Light Sky Mode)
+   ========================================================================== */
+html.light .from-slate-900.via-indigo-950,
+html.light .from-indigo-950.via-slate-900,
+html.light .from-slate-900.to-indigo-950 {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #4338ca 100%) !important;
+  color: #ffffff !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.35) !important;
+}
+
+/* Hero Banner Headings & Descriptions */
+html.light .from-slate-900.via-indigo-950 h2,
+html.light .from-indigo-950.via-slate-900 h2,
+html.light .from-slate-900.to-indigo-950 h2 {
+  color: #ffffff !important;
+}
+
+html.light .from-slate-900.via-indigo-950 p.text-slate-300,
+html.light .from-indigo-950.via-slate-900 p.text-slate-300 {
+  color: #e0f2fe !important;
+}
+
+html.light .from-slate-900.via-indigo-950 p.text-slate-400,
+html.light .from-indigo-950.via-slate-900 p.text-slate-400 {
+  color: #bae6fd !important;
+}
+
+/* Secondary Action Buttons on Hero Banners */
+html.light .from-slate-900.via-indigo-950 button.bg-slate-800,
+html.light .from-indigo-950.via-slate-900 button.bg-slate-800 {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+html.light .from-slate-900.via-indigo-950 button.bg-slate-800 *,
+html.light .from-indigo-950.via-slate-900 button.bg-slate-800 * {
+  color: #ffffff !important;
+}
+
+html.light .from-slate-900.via-indigo-950 button.bg-slate-800:hover,
+html.light .from-indigo-950.via-slate-900 button.bg-slate-800:hover {
+  background-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+/* Hero Banner stats right box */
+html.light .from-indigo-950.via-slate-900 .bg-slate-900\/80,
+html.light .from-slate-900.via-indigo-950 .bg-slate-900\/80 {
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+html.light .from-indigo-950.via-slate-900 .bg-slate-900\/80 p.text-slate-400,
+html.light .from-slate-900.via-indigo-950 .bg-slate-900\/80 p.text-slate-400 {
+  color: #64748b !important;
+}
+
+/* Rhetoric Crown Box in Badges Banner */
+html.light .w-full.h-full.bg-slate-950 {
+  background-color: #0f172a !important;
+}
+
+html.light .w-full.h-full.bg-slate-950 * {
+  color: #fbbf24 !important;
+}
+
+/* ==========================================================================
+   VIBRANT BADGES SHOWCASE CARDS (Light Sky Mode)
+   ========================================================================== */
+
+/* GOLD BADGE CARD */
+html.light .bg-gradient-to-b.from-amber-500\/20,
+html.light .bg-gradient-to-b.from-amber-900\/40 {
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 100%) !important;
+  border: 2px solid #f59e0b !important;
+  box-shadow: 0 8px 20px -4px rgba(245, 158, 11, 0.2) !important;
+}
+
+html.light .bg-gradient-to-b.from-amber-500\/20 .w-14.h-14,
+html.light .bg-gradient-to-b.from-amber-900\/40 .w-14.h-14 {
+  background-color: #fef3c7 !important;
+  color: #d97706 !important;
+  border: 2px solid #fde047 !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25) !important;
+}
+
+/* SILVER BADGE CARD */
+html.light .bg-gradient-to-b.from-slate-700\/40 {
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%) !important;
+  border: 2px solid #94a3b8 !important;
+  box-shadow: 0 8px 20px -4px rgba(100, 116, 139, 0.18) !important;
+}
+
+html.light .bg-gradient-to-b.from-slate-700\/40 .w-14.h-14 {
+  background-color: #e2e8f0 !important;
+  color: #334155 !important;
+  border: 2px solid #cbd5e1 !important;
+  box-shadow: 0 4px 14px rgba(100, 116, 139, 0.2) !important;
+}
+
+/* PLATINUM BADGE CARD */
+html.light .bg-gradient-to-b.from-cyan-500\/20 {
+  background: linear-gradient(180deg, #ecfeff 0%, #ffffff 100%) !important;
+  border: 2px solid #06b6d4 !important;
+  box-shadow: 0 8px 20px -4px rgba(6, 182, 212, 0.2) !important;
+}
+
+html.light .bg-gradient-to-b.from-cyan-500\/20 .w-14.h-14 {
+  background-color: #cffafe !important;
+  color: #0891b2 !important;
+  border: 2px solid #67e8f9 !important;
+  box-shadow: 0 4px 14px rgba(6, 182, 212, 0.25) !important;
+}
+
+/* DIAMOND BADGE CARD */
+html.light .bg-gradient-to-b.from-indigo-500\/20 {
+  background: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%) !important;
+  border: 2px solid #6366f1 !important;
+  box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.2) !important;
+}
+
+html.light .bg-gradient-to-b.from-indigo-500\/20 .w-14.h-14 {
+  background-color: #e0e7ff !important;
+  color: #4338ca !important;
+  border: 2px solid #a5b4fc !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.25) !important;
+}
+
+/* Badge card Tier Pills (GOLD, SILVER, PLATINUM, DIAMOND) in Light Mode */
+html.light span.uppercase {
+  font-weight: 800 !important;
+}
+
+html.light .text-yellow-400.bg-slate-950\/80,
+html.light .text-amber-400.bg-slate-950\/80 {
+  background-color: #f59e0b !important;
+  color: #ffffff !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3) !important;
+}
+
+html.light .text-slate-200.bg-slate-950\/80 {
+  background-color: #64748b !important;
+  color: #ffffff !important;
+  border-color: #475569 !important;
+  box-shadow: 0 2px 6px rgba(100, 116, 139, 0.3) !important;
+}
+
+html.light .text-cyan-300.bg-slate-950\/80 {
+  background-color: #0891b2 !important;
+  color: #ffffff !important;
+  border-color: #0e7490 !important;
+  box-shadow: 0 2px 6px rgba(8, 145, 178, 0.3) !important;
+}
+
+html.light .text-indigo-300.bg-slate-950\/80 {
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+  border-color: #4338ca !important;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3) !important;
+}
+
+/* XP Badge Pills (+250 XP, +300 XP, etc.) in Light Mode */
+html.light .text-amber-400.bg-amber-950\/40 {
+  background-color: #fef3c7 !important;
+  color: #b45309 !important;
+  border: 1px solid #fde047 !important;
+  font-weight: 800 !important;
+}
+
+/* Badge card text headings */
+html.light .bg-gradient-to-b h4.text-white {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+
+html.light .bg-gradient-to-b p.text-slate-400 {
+  color: #475569 !important;
+}
+
+/* Locked badge overlay */
+html.light .bg-slate-900\/80.rounded-full.text-slate-500 {
+  background-color: #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+/* ==========================================================================
+   BUTTONS & TABS (Light Sky Mode)
+   ========================================================================== */
+
+/* Active Primary Buttons & Active Filter Tabs */
+html.light button.bg-indigo-600,
+html.light .bg-indigo-600 {
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3) !important;
+}
+
+html.light button.bg-indigo-600 *,
+html.light .bg-indigo-600 * {
+  color: #ffffff !important;
+}
+
+/* Inactive Filter Tabs */
+html.light button.bg-slate-800\/80,
+html.light button.bg-slate-800 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #bae6fd !important;
+  font-weight: 600 !important;
+}
+
+html.light button.bg-slate-800\/80:hover,
+html.light button.bg-slate-800:hover {
+  background-color: #e0f2fe !important;
+  color: #0284c7 !important;
+  border-color: #38bdf8 !important;
+}
+
+/* Form Inputs */
+html.light input[type="text"],
+html.light input[type="search"],
+html.light input[type="email"],
+html.light input[type="password"],
+html.light textarea,
+html.light select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #7dd3fc !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Chatbot Floating Window */
+html.light .bg-slate-900\/95 {
+  background-color: #ffffff !important;
+  border-color: #7dd3fc !important;
+  color: #0f172a !important;
 }
 
 /* Custom Sleek Scrollbar */
@@ -14,10 +464,12 @@
   height: 6px;
 }
 
+html.dark ::-webkit-scrollbar-track,
 ::-webkit-scrollbar-track {
   background: #0f172a;
 }
 
+html.dark ::-webkit-scrollbar-thumb,
 ::-webkit-scrollbar-thumb {
   background: #334155;
   border-radius: 9999px;
@@ -25,4 +477,17 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
+}
+
+html.light ::-webkit-scrollbar-track {
+  background: #e0f2fe;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #38bdf8;
+  border-radius: 9999px;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #0284c7;
 }

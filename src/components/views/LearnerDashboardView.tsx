@@ -37,41 +37,43 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({ onNa
   return (
     <div className="space-y-6 pb-12">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 border border-slate-800 relative overflow-hidden">
-        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 rounded-2xl p-6 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 border border-sky-400/30 relative overflow-hidden">
+        <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="space-y-2 z-10">
           <div className="flex items-center gap-2">
-            <span className="text-emerald-400 font-mono text-xs font-bold uppercase tracking-wider">Active Learner Session</span>
+            <span className="text-white bg-white/20 px-2.5 py-0.5 rounded-full border border-white/30 font-mono text-xs font-bold uppercase tracking-wider shadow-xs">
+              Active Learner Session
+            </span>
           </div>
-          <h2 className="text-2xl font-bold tracking-tight">Welcome back, Alex Chen! 👋</h2>
-          <p className="text-slate-300 text-xs max-w-xl">
+          <h2 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">Welcome back, Alex Chen! 👋</h2>
+          <p className="text-sky-100 text-xs max-w-xl font-medium">
             Keep practicing, keep improving. You're on the path to becoming an elite debater and persuasive speaker!
           </p>
           <div className="flex items-center gap-3 pt-2">
             <button
               onClick={() => onNavigate('ai-simulation')}
-              className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all"
+              className="bg-white hover:bg-sky-50 text-indigo-700 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-black/10 transition-all"
             >
-              <Zap className="w-4 h-4 text-white" /> Start AI Debate Arena
+              <Zap className="w-4 h-4 text-indigo-600" /> Start AI Debate Arena
             </button>
             <button
               onClick={() => onNavigate('presentation-analysis')}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-4 py-2 rounded-xl text-xs border border-slate-700 flex items-center gap-2 transition-colors"
+              className="bg-white/15 hover:bg-white/25 text-white font-semibold px-4 py-2 rounded-xl text-xs border border-white/30 flex items-center gap-2 transition-colors"
             >
-              <Mic className="w-4 h-4 text-indigo-400" /> Practice Speech Quality
+              <Mic className="w-4 h-4 text-sky-200" /> Practice Speech Quality
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-4 bg-slate-900/80 backdrop-blur-md p-4 rounded-xl border border-slate-800 shrink-0 z-10">
+        <div className="flex items-center gap-4 bg-black/20 backdrop-blur-md p-4 rounded-xl border border-white/20 shrink-0 z-10 text-white">
           <div className="text-center">
-            <p className="text-[10px] text-slate-400 font-mono">Agentic Pipeline</p>
+            <p className="text-[10px] text-sky-200 font-mono">Agentic Pipeline</p>
             <p className="text-xs font-bold text-white">8 Active Agents</p>
           </div>
-          <div className="h-8 w-px bg-slate-800" />
+          <div className="h-8 w-px bg-white/20" />
           <div className="text-center">
-            <p className="text-[10px] text-slate-400 font-mono">Referee Logic</p>
-            <p className="text-xs font-bold text-emerald-400">0.0 Temp Strict</p>
+            <p className="text-[10px] text-sky-200 font-mono">Referee Logic</p>
+            <p className="text-xs font-bold text-emerald-300">0.0 Temp Strict</p>
           </div>
         </div>
       </div>
@@ -188,32 +190,32 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({ onNa
           </div>
 
           <div className="space-y-3">
-            <div className="p-3.5 bg-slate-900/80 rounded-xl border border-slate-700 flex items-start justify-between">
+            <div className="p-3.5 bg-sky-50/90 dark:bg-slate-900/80 rounded-xl border border-sky-300 dark:border-slate-700 flex items-start justify-between shadow-xs">
               <div className="space-y-1">
-                <span className="text-[10px] font-bold text-indigo-300 bg-indigo-500/20 px-2 py-0.5 rounded-full border border-indigo-500/30">
+                <span className="text-[10px] font-extrabold text-indigo-800 bg-indigo-100 dark:text-indigo-300 dark:bg-indigo-500/20 px-2.5 py-0.5 rounded-full border border-indigo-300 dark:border-indigo-500/30">
                   In 2 days
                 </span>
-                <p className="font-bold text-white text-xs mt-1">Policy Debate Practice</p>
-                <p className="text-[11px] text-slate-400">Topic: Should social media be regulated?</p>
-                <p className="text-[10px] text-slate-500 flex items-center gap-1 font-mono">
+                <p className="font-bold text-slate-900 dark:text-white text-xs mt-1">Policy Debate Practice</p>
+                <p className="text-[11px] font-medium text-slate-700 dark:text-slate-400">Topic: Should social media be regulated?</p>
+                <p className="text-[10px] text-slate-600 dark:text-slate-500 flex items-center gap-1 font-mono">
                   <Calendar className="w-3 h-3" /> 24 May 2025 • 6:00 PM
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-indigo-400 shrink-0 mt-2" />
+              <ChevronRight className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-2" />
             </div>
 
-            <div className="p-3.5 bg-slate-900/60 rounded-xl border border-slate-700/60 flex items-start justify-between">
+            <div className="p-3.5 bg-sky-50/90 dark:bg-slate-900/60 rounded-xl border border-sky-300 dark:border-slate-700/60 flex items-start justify-between shadow-xs">
               <div className="space-y-1">
-                <span className="text-[10px] font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-extrabold text-slate-800 bg-slate-200 dark:text-slate-300 dark:bg-slate-800 px-2.5 py-0.5 rounded-full border border-slate-300 dark:border-slate-700">
                   In 4 days
                 </span>
-                <p className="font-bold text-white text-xs mt-1">AI Debate Arena</p>
-                <p className="text-[11px] text-slate-400">Difficulty: Intermediate</p>
-                <p className="text-[10px] text-slate-500 flex items-center gap-1 font-mono">
+                <p className="font-bold text-slate-900 dark:text-white text-xs mt-1">AI Debate Arena</p>
+                <p className="text-[11px] font-medium text-slate-700 dark:text-slate-400">Difficulty: Intermediate</p>
+                <p className="text-[10px] text-slate-600 dark:text-slate-500 flex items-center gap-1 font-mono">
                   <Calendar className="w-3 h-3" /> 26 May 2025 • 7:00 PM
                 </p>
               </div>
-              <ChevronRight className="w-4 h-4 text-slate-500 shrink-0 mt-2" />
+              <ChevronRight className="w-4 h-4 text-slate-600 dark:text-slate-500 shrink-0 mt-2" />
             </div>
           </div>
         </div>

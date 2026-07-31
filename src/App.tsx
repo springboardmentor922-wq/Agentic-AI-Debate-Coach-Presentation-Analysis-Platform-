@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserRole, UserProfile } from './types';
+import { useTheme } from './context/ThemeContext';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { FloatingAIChatbot } from './components/chatbot/FloatingAIChatbot';
@@ -33,6 +34,7 @@ const DEFAULT_PROFILES: UserProfile[] = [
 ];
 
 export function App() {
+  const { isDark } = useTheme();
   const [userProfiles, setUserProfiles] = useState<UserProfile[]>(() => {
     try {
       const saved = localStorage.getItem('ai_debate_coach_custom_users');
@@ -196,7 +198,9 @@ export function App() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0F172A] font-sans antialiased text-slate-200 overflow-hidden">
+    <div className={`flex h-screen font-sans antialiased overflow-hidden transition-colors duration-250 ${
+      isDark ? 'bg-[#0F172A] text-slate-200' : 'bg-[#e0f2fe] text-slate-800'
+    }`}>
       {/* Navigation Sidebar */}
       <Sidebar
         activeTab={activeTab}
@@ -223,7 +227,9 @@ export function App() {
         />
 
         {/* Scrollable View Content */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-8 bg-[#0F172A]">
+        <main className={`flex-1 overflow-y-auto p-3 sm:p-5 md:p-8 transition-colors duration-250 ${
+          isDark ? 'bg-[#0F172A]' : 'bg-[#e0f2fe]'
+        }`}>
           <div className="max-w-7xl mx-auto">
             {renderActiveView()}
           </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile, UserRole } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
 import {
   User,
   Settings,
@@ -22,7 +23,9 @@ import {
   Trash2,
   AlertTriangle,
   X,
-  Trophy
+  Trophy,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { BadgesShowcase } from '../badges/BadgesShowcase';
 
@@ -50,6 +53,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onOpenAuthModal,
   onDeleteAccount
 }) => {
+  const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<'profile' | 'badges' | 'preferences' | 'security'>('profile');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -344,6 +348,53 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
 
           <div className="space-y-4 text-xs">
+            {/* Theme Mood Selection (Light Sky vs Dark) */}
+            <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-3">
+              <div>
+                <p className="font-bold text-white flex items-center gap-2">
+                  <Sun className="w-4 h-4 text-amber-400" /> Platform Theme Mood
+                </p>
+                <p className="text-slate-400 text-[11px]">Choose between the Serene Light Sky theme and the Midnight Dark theme.</p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setTheme('light')}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-3 ${
+                    theme === 'light'
+                      ? 'bg-sky-100 border-sky-400 text-sky-950 font-bold shadow-md'
+                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-sky-400 text-white flex items-center justify-center shrink-0 shadow-xs">
+                    <Sun className="w-5 h-5 text-amber-200" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold">Light Sky Mood</p>
+                    <p className="text-[10px] text-sky-800/80">Soft sky backdrop & crisp light components</p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setTheme('dark')}
+                  className={`p-3 rounded-xl border text-left transition-all flex items-center gap-3 ${
+                    theme === 'dark'
+                      ? 'bg-indigo-950/80 border-indigo-500 text-white font-bold shadow-md'
+                      : 'bg-slate-800 hover:bg-slate-700 border-slate-700 text-slate-300'
+                  }`}
+                >
+                  <div className="w-8 h-8 rounded-lg bg-slate-900 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/30">
+                    <Moon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold">Dark Mood</p>
+                    <p className="text-[10px] text-slate-400">Deep midnight slate & luminous contrast</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             {/* Referee Strictness */}
             <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 space-y-2">
               <div className="flex items-center justify-between">

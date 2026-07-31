@@ -5,16 +5,16 @@ import { MOCK_ADMIN_DATA } from '../../data/mockData';
 export const AdminDashboardView: React.FC = () => {
   return (
     <div className="space-y-6 pb-12">
-      <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-blue-700 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border border-sky-400/30">
         <div className="space-y-1">
-          <span className="text-emerald-400 font-bold text-xs uppercase tracking-wider flex items-center gap-1">
-            <ShieldCheck className="w-4 h-4" /> System Administrator
+          <span className="text-white bg-white/20 px-2.5 py-0.5 rounded-full border border-white/30 font-bold text-xs uppercase tracking-wider flex items-center gap-1 shadow-xs">
+            <ShieldCheck className="w-4 h-4 text-emerald-300" /> System Administrator
           </span>
-          <h2 className="text-2xl font-bold tracking-tight">Platform Operations & Telemetry ⚙️</h2>
-          <p className="text-slate-300 text-xs">Monitoring 8 AI Agents, Gemini API quotas, database synchronization, and user activity</p>
+          <h2 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">Platform Operations & Telemetry ⚙️</h2>
+          <p className="text-sky-100 text-xs font-medium">Monitoring 8 AI Agents, Gemini API quotas, database synchronization, and user activity</p>
         </div>
 
-        <div className="bg-emerald-500/20 text-emerald-300 font-bold px-4 py-2 rounded-xl text-xs border border-emerald-500/30">
+        <div className="bg-emerald-400/20 text-emerald-100 font-bold px-4 py-2 rounded-xl text-xs border border-emerald-300/40 shadow-md">
           Platform Status: 100% Operational
         </div>
       </div>
