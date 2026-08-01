@@ -9,6 +9,7 @@ below for exactly what's real vs. still in progress — this README is kept
 in sync with the actual code, not aspirational.
 
 ## Stack
+
 - **Backend:** Python, FastAPI, MongoDB (Motor async driver), JWT auth,
   LangChain + OpenAI/Anthropic with a deterministic rule-based fallback,
   faster-whisper (local) + OpenAI Whisper for transcription, ReportLab for
@@ -26,18 +27,21 @@ real, non-empty, evidence-grounded output even with zero API keys
 configured. This is true throughout, not just for a demo path.
 
 ### Milestone 1 — Auth & Platform Foundation
+
 User registration with email OTP verification, JWT access+refresh tokens,
 4 roles (`learner`, `debate_coach`, `educator`, `administrator`) each with
 their own dashboard, server-side role enforcement (`require_roles`
 dependency, not just hidden UI), profile management, debate session CRUD.
 
 ### Milestone 2 — Argument Analysis & Fallacy Detection
+
 Argument Analysis Engine (claims/evidence/clarity/relevance/logical
 consistency scoring), Logical Fallacy Detection Engine (8 fallacy types with
 explanation + correction), an AI Opponent that generates rebuttals routed by
 debate format, all LLM-backed with strict Pydantic-schema structured output.
 
 ### Milestone 3 — AI Debate Simulation, Presentation Analysis, Coaching
+
 - Live AI debate sessions (multi-turn, per-format opponent behavior)
 - Audio/video upload pipeline: **asynchronous** — upload returns a job id
   immediately (`202`), a background task runs transcription → argument
@@ -58,6 +62,7 @@ debate format, all LLM-backed with strict Pydantic-schema structured output.
   the database
 
 ### Milestone 4 — Reports, Skill Gap Analysis, Messaging, Deployment
+
 - **Reports**: PDF generation (ReportLab) including learner name/email,
   coach/educator names, session ID, per-scorer score breakdown (AI/coach/
   educator), all 5 argument sub-scores, detected fallacies, presentation
@@ -77,6 +82,7 @@ debate format, all LLM-backed with strict Pydantic-schema structured output.
   `backend/tests/README.md`)
 
 ### Known gaps (being tracked, not hidden)
+
 - Messaging is REST/polling, not WebSocket — no live push yet
 - No frontend automated tests yet
 - Docker images are written but **not yet verified against a real Docker
@@ -85,6 +91,7 @@ debate format, all LLM-backed with strict Pydantic-schema structured output.
   drill-down UI yet
 
 ## Project layout
+
 ```
 backend/
   app/
@@ -115,16 +122,19 @@ docker-compose.yml
 ## Running locally
 
 ### Option A — Docker (recommended for a full demo)
+
 ```bash
 cp backend/.env.example backend/.env   # fill in real keys if you have them —
                                         # the platform still works with none, via the deterministic fallback
 docker compose up --build
 ```
+
 Frontend: http://localhost:5173 · Backend docs: http://localhost:8000/docs
 
 ### Option B — Run each service directly
 
 **Backend**
+
 ```bash
 cd backend
 python -m venv venv && source venv/bin/activate
@@ -134,6 +144,7 @@ uvicorn app.main:app --reload
 ```
 
 **Frontend**
+
 ```bash
 cd frontend
 npm install
@@ -142,14 +153,17 @@ npm run dev
 ```
 
 ### Running tests
+
 ```bash
 cd backend
 pip install -r requirements-dev.txt
 pytest
 ```
+
 No real MongoDB or API keys required — see `backend/tests/README.md`.
 
 ## Security notes
+
 - No secrets are committed. `.env` is gitignored in both apps; only
   `.env.example` ships.
 - Passwords hashed with bcrypt; JWT access (short-lived) + refresh tokens.

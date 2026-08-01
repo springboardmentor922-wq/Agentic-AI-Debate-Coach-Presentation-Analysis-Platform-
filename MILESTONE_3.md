@@ -3,11 +3,13 @@
 Existing Milestone 1 & 2 code (auth, roles, profiles, session CRUD, argument
 analysis, fallacy detection) was **not modified** except for two small,
 additive changes needed for integration:
+
 - `agents/chatbot_engine.py`: added `ai_personality` parameter + prompt
   rules (backward compatible — defaults to "intermediate").
 - `core/database.py` / `core/config.py`: added new collections/settings only.
 
 ## New backend modules
+
 - `services/topics_service.py` — curated topics seeded into MongoDB (`debate_topics`)
 - `services/whisper_service.py` — OpenAI Whisper transcription
 - `services/media_service.py` — upload validation + ffmpeg video→audio extraction
@@ -25,6 +27,7 @@ additive changes needed for integration:
   shadows the more specific literal routes in `debate_live.py`.
 
 ## New frontend
+
 - `pages/learner/Sessions.jsx` — AI personality selector, MediaRecorder mic
   capture (record/pause/resume/stop → `/debate/transcribe` → `/debate/live`),
   Finish Debate button (`/debate/finish`).
@@ -39,6 +42,7 @@ additive changes needed for integration:
   count, wired into `TopNav.jsx` for every role.
 
 ## Requires configuration to run live
+
 - `OPENAI_API_KEY` in `backend/.env` — required for Whisper transcription,
   AI opponent turns, counterargument/coaching/learning-plan generation, and
   presentation scoring. Without it these endpoints return a clear 503
@@ -48,6 +52,7 @@ additive changes needed for integration:
   `RUN apt-get update && apt-get install -y ffmpeg`.
 
 ## Not yet wired to real data (unchanged from before, out of Milestone 3 scope)
+
 - `data/mockLearner.js` practice exercises, quizzes, and learning materials
   lists on the Learning Hub page remain illustrative content — the spec's
   Part 8 (Personalized Learning Plan) and Part 7 (Coaching) are the two

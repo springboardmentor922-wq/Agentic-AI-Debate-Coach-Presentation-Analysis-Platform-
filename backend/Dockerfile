@@ -5,8 +5,8 @@ FROM python:3.11-slim
 # accepts audio). Without this, the /debate/upload-video pipeline fails
 # at the extract_audio() step with a 503.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+          ffmpeg \
+          && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
