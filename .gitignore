@@ -1,0 +1,13 @@
+backend/.env
+.env
+*.env
+__pycache__/
+*.pyc
+venv/
+.venv/
+node_modules/
+*.db
+*.sqbpro
+recordings/
+*.webm
+backend/server_backup.py
