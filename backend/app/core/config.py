@@ -55,6 +55,11 @@ class Settings:
         os.getenv("LLM_MAX_TOKENS", 1024)
     )
 
+    GROQ_API_KEY: str = ""
+
+    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+
+    LLM_PROVIDER: str = "groq"
 
 # Create a global settings object
 settings = Settings()

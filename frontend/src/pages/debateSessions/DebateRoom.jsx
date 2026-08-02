@@ -206,10 +206,13 @@ const [transcript, setTranscript] = useState("");
 
     console.log("STEP 1: handleSpeechSubmit called");
 
-    if (!uploadedAudio && !uploadedVideo) {
-        console.log("STEP 2: No media selected");
-        return;
-    }
+    if (!speech.trim() && !uploadedAudio && !uploadedVideo) {
+
+    alert("Please type your speech or upload audio/video.");
+
+    return;
+
+}
 
     try {
         const mediaFile = uploadedAudio || uploadedVideo;
@@ -218,6 +221,7 @@ const [transcript, setTranscript] = useState("");
 
         const response = await analyzeDebate(
             session.id,
+            speech,
             mediaFile
         );
 
@@ -256,7 +260,8 @@ const handleAnalyzeDebate = async () => {
         console.log("Calling backend...");
         const response = await analyzeDebate(
             session.id,
-            mediaFile
+            speech,
+            uploadedAudio || uploadedVideo
         );
 
         console.log(response);

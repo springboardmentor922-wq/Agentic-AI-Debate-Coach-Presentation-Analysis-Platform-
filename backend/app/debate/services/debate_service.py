@@ -49,42 +49,40 @@ class DebateService:
     async def process_debate(
         self,
         session_id: int,
-        media_file: UploadFile,
+        speech_text: str | None = None,
+        media_file: UploadFile | None = None,
     ) -> DebateAnalysisResponse:
         """
         Process a complete debate submission.
 
-        Workflow:
-            Audio/Video
-                ↓
-            Speech-to-Text
-                ↓
-            Argument Analysis
-                ↓
-            Logical Fallacy Detection
-                ↓
-            Return Combined Result
-
-        Args:
-            session_id:
-                Debate session identifier.
-
-            audio_file:
-                Uploaded live recording, audio file,
-                or video file.
-
-        Returns:
-            Complete debate analysis response.
+        Supports:
+            • Typed speech
+            • Uploaded audio
+            • Uploaded video
         """
 
-        # -------------------------------------------------
-        # Step 1
-        # Speech-to-Text
-        # -------------------------------------------------
+    # -------------------------------------------------
+    # Step 1
+    # Get Transcript
+    # -------------------------------------------------
 
-        transcript = await speech_service.transcribe_audio(
-            media_file
-        )
+        if speech_text:
+
+            transcript = speech_text
+
+            input_type = "text"
+
+            media_filename = None
+
+        else:
+
+            transcript = await speech_service.transcribe_audio(
+                media_file
+            )
+
+            input_type = "media_upload"
+
+            media_filename = media_file.filename
 
         # -------------------------------------------------
         # Step 2
@@ -108,17 +106,17 @@ class DebateService:
             )
         )
 
-       # -------------------------------------------------
+        # -------------------------------------------------
         # Step 4
-        # Save Debate Analysis to MongoDB
+        # Save to MongoDB
         # -------------------------------------------------
 
         report_id = debate_repository.save_debate_analysis(
             session_id=session_id,
-            user_id=0,                      # Temporary
-            topic_id=0,                     # Temporary
-            input_type="media_upload",
-            media_filename=media_file.filename,
+            user_id=0,
+            topic_id=0,
+            input_type=input_type,
+            media_filename=media_filename,
             transcript={
                 "transcript": transcript
             },
@@ -128,22 +126,22 @@ class DebateService:
 
         # -------------------------------------------------
         # Step 5
-        # Return Combined Response
+        # Return Response
         # -------------------------------------------------
 
         return DebateAnalysisResponse(
-        success=True,
-        message="Debate processed successfully.",
-        data=DebateAnalysisData(
-            session_id=session_id,
-            transcript=DebateTranscription(
-                transcript=transcript,
+            success=True,
+            message="Debate processed successfully.",
+            data=DebateAnalysisData(
+                session_id=session_id,
+                transcript=DebateTranscription(
+                    transcript=transcript,
+                ),
+                argument_analysis=argument_analysis,
+                logical_fallacy_analysis=logical_fallacy_analysis,
             ),
-            argument_analysis=argument_analysis,
-            logical_fallacy_analysis=logical_fallacy_analysis,
-        ),
-    )
-
+        )
+    
 
 # Singleton service instance
 debate_service = DebateService()

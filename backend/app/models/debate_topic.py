@@ -33,7 +33,7 @@ class DebateTopic(Base):
 
     title = Column(String(255), nullable=False)
 
-    description = Column(Text)
+
 
     category = Column(String(100))
 
@@ -57,6 +57,11 @@ class DebateTopic(Base):
     learning_goal = Column(
         String(255),
         nullable=True
+    )
+
+    debate_format = Column(
+        String(100),
+        nullable=False
     )
 
     is_system_generated = Column(

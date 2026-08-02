@@ -50,11 +50,13 @@ class DebateTopicService:
 
             title=topic_data.title,
 
-            description=topic_data.description,
+        
 
             category=topic_data.category,
 
             difficulty_level=topic_data.difficulty_level,
+
+            debate_format=topic_data.debate_format,
 
             topic_type=topic_data.topic_type,
 

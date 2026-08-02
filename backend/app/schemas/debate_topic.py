@@ -36,11 +36,7 @@ class CreateDebateTopicRequest(BaseModel):
         max_length=255
     )
 
-    description: Optional[str] = Field(
-        default=None,
-        max_length=1000
-    )
-
+   
     category: str = Field(
         ...,
         max_length=100
@@ -49,6 +45,11 @@ class CreateDebateTopicRequest(BaseModel):
     difficulty_level: str = Field(
         ...,
         max_length=30
+    )
+
+    debate_format: str = Field(
+        ...,
+        max_length=100
     )
 
 
@@ -75,10 +76,7 @@ class UpdateDebateTopicRequest(BaseModel):
         max_length=255
     )
 
-    description: Optional[str] = Field(
-        default=None,
-        max_length=1000
-    )
+   
 
     category: Optional[str] = Field(
         default=None,
@@ -88,6 +86,11 @@ class UpdateDebateTopicRequest(BaseModel):
     difficulty_level: Optional[str] = Field(
         default=None,
         max_length=30
+    )
+
+    debate_format: Optional[str] = Field(
+        default=None,
+        max_length=100
     )
 
     is_active: Optional[bool] = None
@@ -106,11 +109,13 @@ class DebateTopicResponse(BaseModel):
 
     title: str
 
-    description: Optional[str]
+    
 
     category: Optional[str]
 
     difficulty_level: Optional[str]
+
+    debate_format: str
 
     is_active: bool
 

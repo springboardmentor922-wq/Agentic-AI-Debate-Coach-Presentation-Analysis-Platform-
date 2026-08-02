@@ -49,7 +49,10 @@ router = APIRouter(
 )
 async def analyze_debate(
     session_id: int = Form(...),
-    media_file: UploadFile = File(...),
+
+    speech_text: str | None = Form(None),
+
+    media_file: UploadFile | None = File(None),
 ):
     """
     Analyze a complete debate submission.
@@ -59,11 +62,16 @@ async def analyze_debate(
         • Uploaded audio
         • Uploaded video
     """
-
+    if not speech_text and media_file is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Please provide either speech text or an audio/video file."
+        )
     try:
 
         result = await debate_service.process_debate(
             session_id=session_id,
+            speech_text=speech_text,
             media_file=media_file,
         )
 
@@ -78,3 +86,6 @@ async def analyze_debate(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Debate processing failed: {str(exc)}",
         )
+
+
+    
