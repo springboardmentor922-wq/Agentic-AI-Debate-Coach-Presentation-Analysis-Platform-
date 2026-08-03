@@ -9,6 +9,7 @@ function Sidebar({ user }) {
     const scrollPositionRef = useRef(0);
 
     const learnerLinks = [
+
         {
             section: "LEARN",
             links: [
@@ -21,13 +22,16 @@ function Sidebar({ user }) {
                 { path: "/counterargument", icon: "◌", label: "Counterargument Generator" }
             ]
         },
+
         {
             section: "ANALYZE",
             links: [
-                { path: "/presentation-analysis", icon: "▧", label: "Presentation Analysis" },
+                { path: "/presentation-upload", icon: "🎤", label: "Presentation Upload" },
+                { path: "/presentation-analysis", icon: "📊", label: "Presentation Analysis" },
                 { path: "/analytics", icon: "▥", label: "Performance Scores" }
             ]
         },
+
         {
             section: "IMPROVE",
             links: [
@@ -35,6 +39,7 @@ function Sidebar({ user }) {
                 { path: "/recommendations", icon: "☆", label: "Recommended For You" }
             ]
         },
+
         {
             section: "RESOURCES",
             links: [
@@ -42,6 +47,7 @@ function Sidebar({ user }) {
                 { path: "/notes", icon: "▧", label: "My Notes" }
             ]
         },
+
         {
             section: "OTHER",
             links: [
@@ -49,6 +55,7 @@ function Sidebar({ user }) {
                 { path: "/profile", icon: "⚙", label: "Settings" }
             ]
         }
+
     ];
 
     const coachLinks = [

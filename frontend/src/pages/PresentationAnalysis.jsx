@@ -1,207 +1,217 @@
-import { useState } from "react";
 import AppShell from "../layouts/AppShell";
 
 function PresentationAnalysis() {
-    const [file, setFile] = useState(null);
 
-    function handleAnalyze() {
-        if (!file) {
-            alert("Please select a presentation file first.");
-            return;
-        }
+    const data = JSON.parse(
+        localStorage.getItem("presentation_result")
+    );
 
-        alert(
-            "Presentation selected successfully. AI presentation analysis will be connected in Milestone 3."
+    if (!data) {
+
+        return (
+
+            <AppShell>
+
+                <h1>Presentation Analysis</h1>
+
+                <br />
+
+                <div className="panel">
+
+                    <h2>No Presentation Analysis Found</h2>
+
+                    <p>
+
+                        Analyze a presentation first.
+
+                    </p>
+
+                </div>
+
+            </AppShell>
+
         );
+
     }
 
     return (
+
         <AppShell>
 
             <div className="page-header">
+
                 <div>
+
                     <h1>🎤 Presentation Analysis</h1>
 
                     <p>
-                        Upload a presentation or speech recording to receive
-                        AI-powered communication feedback.
+
+                        AI-powered communication analysis.
+
                     </p>
+
                 </div>
+
             </div>
 
             <div
                 style={{
                     display: "grid",
                     gridTemplateColumns: "2fr 1fr",
-                    gap: "25px",
+                    gap: "24px",
                     marginTop: "30px"
                 }}
             >
 
                 <div className="panel">
 
-                    <h2>Upload Presentation</h2>
+                    <h2>Overall Score</h2>
 
-                    <p style={{ color: "#9ca3af" }}>
-                        Analyze clarity, confidence, engagement, pace and
-                        presentation quality.
+                    <h1
+                        style={{
+                            color: "#8b5cf6",
+                            fontSize: "48px"
+                        }}
+                    >
+                        {data.overall_score}/100
+                    </h1>
+
+                    <hr />
+
+                    <br />
+
+                    <p>
+
+                        <strong>Clarity:</strong>
+
+                        {" "}
+
+                        {data.clarity}%
+
                     </p>
 
-                    <div
-                        style={{
-                            marginTop: "25px",
-                            padding: "45px",
-                            border: "2px dashed #374151",
-                            borderRadius: "16px",
-                            textAlign: "center"
-                        }}
-                    >
+                    <br />
 
-                        <div
-                            style={{
-                                fontSize: "45px",
-                                marginBottom: "15px"
-                            }}
-                        >
-                            📁
-                        </div>
+                    <progress
+                        value={data.clarity}
+                        max="100"
+                        style={{ width: "100%" }}
+                    />
 
-                        <h3>Select your presentation</h3>
+                    <br /><br />
 
-                        <p style={{ color: "#9ca3af" }}>
-                            Upload a video, audio or presentation file.
-                        </p>
+                    <p>
 
-                        <input
-                            type="file"
-                            accept=".mp4,.mov,.avi,.mp3,.wav,.ppt,.pptx,.pdf"
-                            onChange={(e) =>
-                                setFile(e.target.files[0])
-                            }
-                            style={{
-                                marginTop: "20px"
-                            }}
-                        />
+                        <strong>Confidence:</strong>
 
-                        {file && (
-                            <p
-                                style={{
-                                    marginTop: "18px",
-                                    color: "#a78bfa"
-                                }}
-                            >
-                                Selected: {file.name}
-                            </p>
-                        )}
+                        {" "}
 
-                    </div>
+                        {data.confidence}%
 
-                    <button
-                        onClick={handleAnalyze}
-                        style={{
-                            marginTop: "25px"
-                        }}
-                    >
-                        ✦ Analyze Presentation
-                    </button>
+                    </p>
+
+                    <br />
+
+                    <progress
+                        value={data.confidence}
+                        max="100"
+                        style={{ width: "100%" }}
+                    />
+
+                    <br /><br />
+
+                    <p>
+
+                        <strong>Speaking Speed:</strong>
+
+                        {" "}
+
+                        {data.speaking_speed}
+
+                    </p>
 
                 </div>
 
                 <div className="panel">
 
-                    <h2>AI Analysis</h2>
+                    <h2>AI Coach</h2>
 
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: "20px",
-                            marginTop: "25px"
-                        }}
-                    >
+                    <p>
 
-                        <AnalysisItem
-                            icon="🗣"
-                            title="Clarity"
-                            description="Speech clarity and explanation quality."
-                        />
+                        {data.feedback}
 
-                        <AnalysisItem
-                            icon="🎯"
-                            title="Confidence"
-                            description="Confidence and speaking consistency."
-                        />
-
-                        <AnalysisItem
-                            icon="⚡"
-                            title="Engagement"
-                            description="Audience engagement and delivery."
-                        />
-
-                        <AnalysisItem
-                            icon="⏱"
-                            title="Pace"
-                            description="Speaking speed and pauses."
-                        />
-
-                        <AnalysisItem
-                            icon="💬"
-                            title="Filler Words"
-                            description="Detect unnecessary filler words."
-                        />
-
-                    </div>
+                    </p>
 
                 </div>
 
             </div>
 
-        </AppShell>
-    );
-}
-
-function AnalysisItem({ icon, title, description }) {
-    return (
-        <div
-            style={{
-                display: "flex",
-                gap: "15px",
-                alignItems: "center",
-                paddingBottom: "18px",
-                borderBottom: "1px solid #374151"
-            }}
-        >
+            <br />
 
             <div
                 style={{
-                    width: "45px",
-                    height: "45px",
-                    borderRadius: "12px",
-                    background: "#7c3aed22",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "20px"
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "24px"
                 }}
             >
-                {icon}
+
+                <div className="panel">
+
+                    <h2>💪 Strengths</h2>
+
+                    <ul>
+
+                        {data.strengths.map((item, index) => (
+
+                            <li key={index}>{item}</li>
+
+                        ))}
+
+                    </ul>
+
+                </div>
+
+                <div className="panel">
+
+                    <h2>⚠ Weaknesses</h2>
+
+                    <ul>
+
+                        {data.weaknesses.map((item, index) => (
+
+                            <li key={index}>{item}</li>
+
+                        ))}
+
+                    </ul>
+
+                </div>
+
             </div>
 
-            <div>
-                <strong>{title}</strong>
+            <br />
 
-                <p
-                    style={{
-                        color: "#9ca3af",
-                        margin: "4px 0 0"
-                    }}
-                >
-                    {description}
-                </p>
+            <div className="panel">
+
+                <h2>Detected Filler Words</h2>
+
+                <ul>
+
+                    {data.filler_words.map((item, index) => (
+
+                        <li key={index}>{item}</li>
+
+                    ))}
+
+                </ul>
+
             </div>
 
-        </div>
+        </AppShell>
+
     );
+
 }
 
 export default PresentationAnalysis;
