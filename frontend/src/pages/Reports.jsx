@@ -1,44 +1,67 @@
+import { useEffect, useState } from "react";
+
 import AppShell from "../layouts/AppShell";
+
+import { getSessions, debateWithAI } from "../services/sessionService";
 
 function Reports() {
 
-    const feedback = [
+    const [loading, setLoading] = useState(true);
 
-        {
-            title: "Argument Quality",
-            score: 84,
-            coach: "Strong claim. Add more evidence from credible sources."
-        },
+    const [report, setReport] = useState(null);
 
-        {
-            title: "Evidence Usage",
-            score: 76,
-            coach: "Use statistics or real-world examples to strengthen credibility."
-        },
+    useEffect(() => {
 
-        {
-            title: "Logical Consistency",
-            score: 88,
-            coach: "Reasoning is clear. Avoid making unsupported assumptions."
-        },
+        async function loadReport() {
 
-        {
-            title: "Rebuttal Effectiveness",
-            score: 71,
-            coach: "Respond directly to your opponent's strongest point before introducing new ideas."
+            try {
+
+                const sessions = await getSessions();
+
+                if (sessions.length === 0) {
+
+                    setLoading(false);
+
+                    return;
+
+                }
+
+                const latestSession = sessions[sessions.length - 1];
+
+                /*
+                    Generates a fresh AI report using your
+                    existing debate engine.
+                */
+
+                const response = await debateWithAI(
+
+                    latestSession.id,
+
+                    "Generate a performance report for my latest debate."
+
+                );
+
+                setReport(response);
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+            }
+
+            finally {
+
+                setLoading(false);
+
+            }
+
         }
 
-    ];
+        loadReport();
 
-    const tips = [
-
-        "Practice opening statements daily.",
-        "Avoid Strawman and Ad Hominem fallacies.",
-        "Use evidence before opinions.",
-        "Keep eye contact during presentations.",
-        "Slow down your speaking pace."
-
-    ];
+    }, []);
 
     return (
 
@@ -52,7 +75,7 @@ function Reports() {
 
                     <p>
 
-                        Personalized AI coaching based on your debate performances.
+                        AI-generated coaching report from your latest debate.
 
                     </p>
 
@@ -60,34 +83,64 @@ function Reports() {
 
             </div>
 
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "2fr 1fr",
-                    gap: "25px",
-                    marginTop: "30px"
-                }}
-            >
+            {
 
-                <div>
+                loading &&
 
-                    {feedback.map((item) => (
+                <div className="panel" style={{ marginTop: "30px" }}>
 
-                        <div
-                            key={item.title}
-                            className="panel"
-                            style={{ marginBottom: "20px" }}
-                        >
+                    <h2>Generating report...</h2>
 
-                            <h2>{item.title}</h2>
+                </div>
+
+            }
+
+            {
+
+                !loading && !report &&
+
+                <div className="panel" style={{ marginTop: "30px" }}>
+
+                    <h2>No debate report available.</h2>
+
+                    <p style={{ color: "#9ca3af" }}>
+
+                        Complete a debate session first.
+
+                    </p>
+
+                </div>
+
+            }
+
+            {
+
+                report &&
+
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "2fr 1fr",
+                        gap: "24px",
+                        marginTop: "30px"
+                    }}
+                >
+
+                    <div>
+
+                        <div className="panel">
+
+                            <h2>Overall Score</h2>
 
                             <h1
                                 style={{
                                     color: "#8b5cf6",
-                                    margin: "10px 0"
+                                    marginTop: "15px"
                                 }}
                             >
-                                {item.score}/100
+
+                                {report.feedback.score.score}/100
+
                             </h1>
 
                             <p
@@ -95,43 +148,137 @@ function Reports() {
                                     color: "#9ca3af"
                                 }}
                             >
-                                {item.coach}
+
+                                Grade :
+
+                                {" "}
+
+                                {report.feedback.score.grade}
+
                             </p>
 
                         </div>
 
-                    ))}
-
-                </div>
-
-                <div>
-
-                    <div className="panel">
-
-                        <h2>🎯 AI Coaching Tips</h2>
-
-                        <ul
-                            style={{
-                                marginTop: "20px",
-                                lineHeight: "2"
-                            }}
+                        <div
+                            className="panel"
+                            style={{ marginTop: "20px" }}
                         >
 
-                            {tips.map((tip) => (
+                            <h2>Strengths</h2>
 
-                                <li key={tip}>
-                                    {tip}
-                                </li>
+                            <ul
+                                style={{
+                                    lineHeight: "2",
+                                    marginTop: "15px"
+                                }}
+                            >
 
-                            ))}
+                                {
 
-                        </ul>
+                                    report.analysis.strengths.map(
+
+                                        (item, index) => (
+
+                                            <li key={index}>
+
+                                                {item}
+
+                                            </li>
+
+                                        )
+
+                                    )
+
+                                }
+
+                            </ul>
+
+                        </div>
+
+                        <div
+                            className="panel"
+                            style={{ marginTop: "20px" }}
+                        >
+
+                            <h2>Weaknesses</h2>
+
+                            <ul
+                                style={{
+                                    lineHeight: "2",
+                                    marginTop: "15px"
+                                }}
+                            >
+
+                                {
+
+                                    report.analysis.weaknesses.map(
+
+                                        (item, index) => (
+
+                                            <li key={index}>
+
+                                                {item}
+
+                                            </li>
+
+                                        )
+
+                                    )
+
+                                }
+
+                            </ul>
+
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <div className="panel">
+
+                            <h2>🎯 AI Coaching</h2>
+
+                            <p
+                                style={{
+                                    color: "#9ca3af",
+                                    lineHeight: "1.8",
+                                    marginTop: "20px"
+                                }}
+                            >
+
+                                {report.feedback.coaching}
+
+                            </p>
+
+                        </div>
+
+                        <div
+                            className="panel"
+                            style={{ marginTop: "20px" }}
+                        >
+
+                            <h2>⚔ Counterargument</h2>
+
+                            <p
+                                style={{
+                                    color: "#9ca3af",
+                                    lineHeight: "1.8",
+                                    marginTop: "20px"
+                                }}
+                            >
+
+                                {report.feedback.counterargument}
+
+                            </p>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+            }
 
         </AppShell>
 

@@ -1,66 +1,54 @@
+import { useEffect, useState } from "react";
 import AppShell from "../layouts/AppShell";
+
+import { getSessions } from "../services/sessionService";
+import { getRecommendations } from "../services/recommendationService";
 
 function Recommendations() {
 
-    const recommendations = [
+    const [loading, setLoading] = useState(true);
+    const [data, setData] = useState(null);
 
-        {
-            title: "Counterargument Drills",
-            level: "Intermediate",
-            category: "Practice",
-            description:
-                "Improve your rebuttal skills by responding to AI-generated opposing arguments."
-        },
+    useEffect(() => {
 
-        {
-            title: "Logical Fallacies 101",
-            level: "Beginner",
-            category: "Lesson",
-            description:
-                "Understand common logical fallacies with real debate examples."
-        },
+        async function loadRecommendations() {
 
-        {
-            title: "Evidence-Based Debating",
-            level: "Advanced",
-            category: "Course",
-            description:
-                "Learn how to support every claim with strong statistics and credible research."
-        },
+            try {
 
-        {
-            title: "Public Speaking Practice",
-            level: "Intermediate",
-            category: "Exercise",
-            description:
-                "Boost confidence, speaking pace and audience engagement."
-        },
+                const sessions = await getSessions();
 
-        {
-            title: "Opening Statement Workshop",
-            level: "Beginner",
-            category: "Workshop",
-            description:
-                "Master powerful introductions that grab attention within the first 30 seconds."
-        },
+                if (sessions.length === 0) {
 
-        {
-            title: "Cross Examination Practice",
-            level: "Advanced",
-            category: "Simulation",
-            description:
-                "Practice answering difficult questions under pressure using AI."
+                    setLoading(false);
+                    return;
+
+                }
+
+                const latestSession = sessions[sessions.length - 1];
+
+                const response = await getRecommendations(latestSession.id);
+
+                setData(response);
+
+            }
+
+            catch (error) {
+
+                console.error(error);
+
+            }
+
+            finally {
+
+                setLoading(false);
+
+            }
+
         }
 
-    ];
+        loadRecommendations();
 
-    const levelColor = {
-
-        Beginner: "#16a34a",
-        Intermediate: "#2563eb",
-        Advanced: "#dc2626"
-
-    };
+    }, []);
 
     return (
 
@@ -74,8 +62,7 @@ function Recommendations() {
 
                     <p>
 
-                        Personalized AI recommendations based on your
-                        debate performance and learning progress.
+                        Personalized AI recommendations generated from your latest debate.
 
                     </p>
 
@@ -83,95 +70,108 @@ function Recommendations() {
 
             </div>
 
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns:
-                        "repeat(auto-fit,minmax(340px,1fr))",
-                    gap: "22px",
-                    marginTop: "30px"
-                }}
-            >
+            {loading &&
 
-                {
+                <div className="panel" style={{ marginTop: "30px" }}>
 
-                    recommendations.map((item) => (
+                    <h2>Loading recommendations...</h2>
+                </div>
 
-                        <div
-                            key={item.title}
-                            className="panel"
+            }
+
+            {!loading && !data &&
+
+                <div className="panel" style={{ marginTop: "30px" }}>
+
+                    <h2>No recommendations available.</h2>
+
+                    <p style={{ color: "#9ca3af" }}>
+
+                        Complete a debate session to receive personalized AI recommendations.
+
+                    </p>
+
+                </div>
+
+            }
+
+            {!loading && data &&
+
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit,minmax(340px,1fr))",
+                        gap: "22px",
+                        marginTop: "30px"
+                    }}
+                >
+
+                    <div className="panel">
+
+                        <h2>💪 Strengths</h2>
+
+                        <ul style={{ lineHeight: "2", marginTop: "15px" }}>
+
+                            {data.strengths.map((item, index) => (
+
+                                <li key={index}>{item}</li>
+
+                            ))}
+
+                        </ul>
+
+                    </div>
+
+                    <div className="panel">
+
+                        <h2>⚠ Weaknesses</h2>
+
+                        <ul style={{ lineHeight: "2", marginTop: "15px" }}>
+
+                            {data.weaknesses.map((item, index) => (
+
+                                <li key={index}>{item}</li>
+
+                            ))}
+
+                        </ul>
+
+                    </div>
+
+                    <div className="panel">
+
+                        <h2>🤖 AI Recommendations</h2>
+
+                        <ul style={{ lineHeight: "2", marginTop: "15px" }}>
+
+                            {data.recommendations.map((item, index) => (
+
+                                <li key={index}>{item}</li>
+
+                            ))}
+
+                        </ul>
+
+                    </div>
+
+                    <div className="panel">
+
+                        <h2>🚀 Next Difficulty</h2>
+
+                        <h1
+                            style={{
+                                color: "#8b5cf6",
+                                marginTop: "20px"
+                            }}
                         >
+                            {data.next_difficulty}
+                        </h1>
 
-                            <div
-                                style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center"
-                                }}
-                            >
+                    </div>
 
-                                <span
-                                    style={{
-                                        color: "#a78bfa",
-                                        fontWeight: 700
-                                    }}
-                                >
-                                    {item.category}
-                                </span>
-
-                                <span
-                                    style={{
-                                        background:
-                                            levelColor[item.level],
-                                        color: "white",
-                                        padding: "5px 12px",
-                                        borderRadius: "20px",
-                                        fontSize: "12px"
-                                    }}
-                                >
-                                    {item.level}
-                                </span>
-
-                            </div>
-
-                            <h2
-                                style={{
-                                    marginTop: "18px"
-                                }}
-                            >
-                                {item.title}
-                            </h2>
-
-                            <p
-                                style={{
-                                    color: "#9ca3af",
-                                    lineHeight: "1.8",
-                                    marginTop: "10px"
-                                }}
-                            >
-                                {item.description}
-                            </p>
-
-                            <button
-                                style={{
-                                    marginTop: "22px"
-                                }}
-                                onClick={() =>
-                                    alert(
-                                        `${item.title} will become interactive in Milestone 3.`
-                                    )
-                                }
-                            >
-                                ▶ Start Practice
-                            </button>
-
-                        </div>
-
-                    ))
+                </div>
 
                 }
-
-            </div>
 
         </AppShell>
 
