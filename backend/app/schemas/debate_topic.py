@@ -66,17 +66,12 @@ class CreateDebateTopicRequest(BaseModel):
 # =========================================================
 
 class UpdateDebateTopicRequest(BaseModel):
-    """
-    Request schema for updating a debate topic.
-    """
 
     title: Optional[str] = Field(
         default=None,
-        min_length=5,
-        max_length=255
+        min_length=3,
+        max_length=150
     )
-
-   
 
     category: Optional[str] = Field(
         default=None,
@@ -93,8 +88,16 @@ class UpdateDebateTopicRequest(BaseModel):
         max_length=100
     )
 
-    is_active: Optional[bool] = None
+    estimated_duration: Optional[int] = None
 
+    learning_goal: Optional[str] = None
+
+    visibility: Optional[str] = Field(
+        default=None,
+        max_length=20
+    )
+
+    is_active: Optional[bool] = None
 
 # =========================================================
 # Debate Topic Response

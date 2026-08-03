@@ -13,6 +13,7 @@ import OfficialTopicsSection from "../../components/debateTopics/OfficialTopicsS
 import RecommendedTopics from "../../components/debateTopics/RecommendedTopics";
 import MainLayout from "../../components/layout/MainLayout";
 import debateTopicService from "../../services/debateTopicService";
+import DeleteTopicModal from "../../components/debateTopics/DeleteTopicModal";
 import { useNavigate } from "react-router-dom";
 import "./DebateTopics.css";
 
@@ -77,6 +78,7 @@ const normalizeTopic = (topic, currentUserId) => ({
     category: topic.category || "General",
     difficulty: normalizeDifficulty(topic.difficulty_level),
     estimated_duration: topic.estimated_duration || 20,
+    debate_format: topic.debate_format|| "Public Forum Debate",
     available_sessions: topic.available_sessions || 0,
     updated_at: formatDate(topic.updated_at || topic.created_at),
     topic_type: normalizeTopicType(topic, currentUserId),
@@ -91,6 +93,12 @@ const DebateTopics = () => {
     const { user, loading: authLoading } = useAuth();
 
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [modalMode, setModalMode] = useState("create");
+    const [selectedTopic, setSelectedTopic] = useState(null);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [topicToDelete, setTopicToDelete] = useState(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
     const [topics, setTopics] = useState([]);
     const [loading, setLoading] = useState(true);
     const [createLoading, setCreateLoading] = useState(false);
@@ -242,59 +250,132 @@ const DebateTopics = () => {
         }
     ]), [normalizedTopics.length, officialTopics.length, myTopics.length, recommendedTopics.length]);
 
-    const handleCreateTopic = async (data) => {
-        try {
-            setCreateLoading(true);
-            setError("");
+  const handleSubmitTopic = async (data) => {
+    try {
+        setCreateLoading(true);
+        setError("");
 
-            const createdTopic = await debateTopicService.createTopic({
+        if (modalMode === "create") {
+
+            await debateTopicService.createTopic({
                 ...data,
-                topic_type: data.topic_type || "CUSTOM"
+                topic_type: "CUSTOM",
             });
 
-            setTopics((previousTopics) => {
-                const withoutDuplicate = previousTopics.filter(
-                    (topic) => topic.id !== createdTopic.id
-                );
+            setSuccessMessage("Topic created successfully.");
 
-                return [createdTopic, ...withoutDuplicate];
-            });
+        } else {
 
-            setIsCreateModalOpen(false);
-            setSuccessMessage(`Topic "${createdTopic.title}" created successfully.`);
+            await debateTopicService.updateTopic(
+                selectedTopic.id,
+                data
+            );
 
-            await loadTopics({
-                showLoading: false,
-                suppressErrors: true
-            });
-        } catch (createError) {
-            console.error("Error creating debate topic:", createError);
-            setError("Unable to create the topic right now. Please try again.");
-        } finally {
-            setCreateLoading(false);
+            setSuccessMessage("Topic updated successfully.");
         }
-    };
 
+        setIsCreateModalOpen(false);
+
+        await loadTopics({
+            showLoading: false,
+            suppressErrors: true,
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        setError(
+            modalMode === "create"
+                ? "Unable to create topic."
+                : "Unable to update topic."
+        );
+
+    } finally {
+        setCreateLoading(false);
+    }
+};
+
+    const handleEditTopic = (topic) => {
+    setSelectedTopic(topic);
+    setModalMode("edit");
+    setIsCreateModalOpen(true);
+};
+
+const handleDeleteTopic = (topic) => {
+    setTopicToDelete(topic);
+    setShowDeleteModal(true);
+};
+
+const handleConfirmDelete = async () => {
+    if (!topicToDelete) return;
+
+    try {
+        setDeleteLoading(true);
+        setError("");
+
+        await debateTopicService.deleteTopic(topicToDelete.id);
+
+        setSuccessMessage("Topic deleted successfully.");
+
+        setShowDeleteModal(false);
+        setTopicToDelete(null);
+
+        await loadTopics({
+            showLoading: false,
+            suppressErrors: true,
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        setError("Unable to delete topic.");
+
+    } finally {
+        setDeleteLoading(false);
+    }
+};
     const handleViewDetails = (topic) => {
+    navigate(`/my-topics/${topic.id}`, {
+    state: {
+        selectedTopic: topic,
+        source: "my-topic",
+    },
+});
+};
+
+const handleJoinDebate = (topic) => {
+    navigate(`/my-topics/${topic.id}`, {
+    state: {
+        selectedTopic: topic,
+        source: "my-topic",
+    },
+});
+};
+
+const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setTopicToDelete(null);
+};
+   const handleSelectTopic = (topic) => {
     navigate(`/debate-sessions/topic/${topic.id}`, {
         state: {
             selectedTopic: topic,
+            source: "official-topic",
+            action: "select",
         },
     });
 };
-
-    const handleSelectTopic = (topic) => {
-    navigate(`/debate-sessions/topic/${topic.id}`, {
-        state: {
-            selectedTopic: topic,
-        },
-    });
-};
-
     return (
         <MainLayout>
             <div className="debate-topics-page">
-                <DebateTopicsHeader onCreateTopic={() => setIsCreateModalOpen(true)} />
+                <DebateTopicsHeader
+    onCreateTopic={() => {
+        setModalMode("create");
+        setSelectedTopic(null);
+        setIsCreateModalOpen(true);
+    }}
+/>
 
                 <div className="topics-stats-grid">
                     {statistics.map((stat) => (
@@ -356,9 +437,15 @@ const DebateTopics = () => {
                             <MyTopicsSection
                                 topics={myTopics}
                                 loading={loading}
-                                onCreateTopic={() => setIsCreateModalOpen(true)}
+                                onCreateTopic={() => {
+                                    setModalMode("create");
+                                    setSelectedTopic(null);
+                                    setIsCreateModalOpen(true);
+                                }}
                                 onViewDetails={handleViewDetails}
-                                onSelectTopic={handleSelectTopic}
+                                onJoinDebate={handleJoinDebate}
+                                onEditTopic={handleEditTopic}
+                                onDeleteTopic={handleDeleteTopic}
                             />
                         </div>
                     </>
@@ -370,11 +457,21 @@ const DebateTopics = () => {
                     </div>
                 )}
 
-                <CreateTopicModal
-                    isOpen={isCreateModalOpen}
-                    onClose={() => setIsCreateModalOpen(false)}
-                    onSubmit={handleCreateTopic}
-                    loading={createLoading}
+               <CreateTopicModal
+                        isOpen={isCreateModalOpen}
+                        mode={modalMode}
+                        topic={selectedTopic}
+                        onClose={() => setIsCreateModalOpen(false)}
+                        onSubmit={handleSubmitTopic}
+                        loading={createLoading}
+                    />
+
+                <DeleteTopicModal
+                    isOpen={showDeleteModal}
+                    topic={topicToDelete}
+                    loading={deleteLoading}
+                    onClose={handleCloseDeleteModal}
+                    onConfirm={handleConfirmDelete}
                 />
             </div>
         </MainLayout>

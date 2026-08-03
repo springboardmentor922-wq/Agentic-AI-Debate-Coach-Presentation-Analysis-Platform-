@@ -64,6 +64,7 @@ const RecommendedTopics = ({
               topic={topic}
               onViewDetails={onViewDetails}
               onSelectTopic={onSelectTopic}
+              showViewDetails={false}
             />
 
           ))}

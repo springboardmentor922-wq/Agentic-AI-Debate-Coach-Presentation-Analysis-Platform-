@@ -8,6 +8,9 @@ const MyTopicsSection = ({
   onViewDetails,
   onSelectTopic,
   onCreateTopic,
+  onEditTopic,
+  onDeleteTopic,
+  onJoinDebate,
 }) => {
   return (
     <section className="my-topics-section">
@@ -60,13 +63,20 @@ const MyTopicsSection = ({
         <div className="my-topics-grid">
 
           {topics.map((topic) => (
-
             <DebateTopicCard
-              key={topic.id}
-              topic={topic}
-              onViewDetails={onViewDetails}
-              onSelectTopic={onSelectTopic}
-            />
+    key={topic.id}
+    topic={topic}
+    onViewDetails={onViewDetails}
+    onSelectTopic={onJoinDebate}
+
+    selectButtonText="Join Debate"
+
+    showActions={true}
+
+    onEdit={onEditTopic}
+
+    onDelete={onDeleteTopic}
+/>
 
           ))}
 

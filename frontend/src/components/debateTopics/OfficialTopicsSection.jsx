@@ -43,6 +43,7 @@ const OfficialTopicsSection = ({
               key={topic.id}
               topic={topic}
               onViewDetails={onViewDetails}
+              showViewDetails={false}
               onSelectTopic={onSelectTopic}
             />
           ))}

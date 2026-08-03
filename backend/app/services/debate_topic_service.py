@@ -126,7 +126,8 @@ class DebateTopicService:
     def update_topic(
         db: Session,
         topic_id: int,
-        topic_data: UpdateDebateTopicRequest
+        topic_data: UpdateDebateTopicRequest,
+        current_user: User
     ):
 
         topic = (
@@ -137,6 +138,14 @@ class DebateTopicService:
 
         if topic is None:
             raise ValueError("Debate topic not found.")
+
+        # Official topics cannot be edited
+        if topic.topic_type.upper() == "OFFICIAL":
+            raise ValueError("Official topics cannot be edited.")
+
+        # Only the creator can edit the topic
+        if topic.created_by != current_user.id:
+            raise ValueError("You can edit only your own topics.")
 
         update_data = topic_data.model_dump(
             exclude_unset=True
@@ -159,7 +168,8 @@ class DebateTopicService:
     @staticmethod
     def delete_topic(
         db: Session,
-        topic_id: int
+        topic_id: int,
+        current_user: User,
     ):
 
         topic = (
@@ -170,6 +180,14 @@ class DebateTopicService:
 
         if topic is None:
             raise ValueError("Debate topic not found.")
+
+        # Official topics cannot be deleted
+        if topic.topic_type.upper() == "OFFICIAL":
+            raise ValueError("Official topics cannot be deleted.")
+
+        # Only creator can delete
+        if topic.created_by != current_user.id:
+            raise ValueError("You can delete only your own topics.")
 
         topic.is_active = False
 

@@ -153,6 +153,11 @@ const AppRoutes = () => {
             />
 
             <Route
+                path="/my-topics/:topicId"
+                element={<SessionDetails />}
+            />
+
+            <Route
 
                 path="/debate-room/:sessionId"
 

@@ -151,7 +151,8 @@ def update_topic(
     db: Session = Depends(get_db),
     current_user: User = Depends(
         require_any_role(
-            [
+            [   
+                "Learner",
                 "Debate Coach",
                 "Educator",
                 "Administrator"
@@ -165,7 +166,8 @@ def update_topic(
         return DebateTopicService.update_topic(
             db,
             topic_id,
-            topic_data
+            topic_data,
+            current_user
         )
 
     except ValueError as e:
@@ -187,7 +189,12 @@ def delete_topic(
     topic_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(
-        require_role("Administrator")
+        require_any_role([
+        "Learner",
+        "Debate Coach",
+        "Educator",
+        "Administrator"
+    ])
     )
 ):
 
@@ -195,7 +202,8 @@ def delete_topic(
 
         return DebateTopicService.delete_topic(
             db,
-            topic_id
+            topic_id,
+            current_user
         )
 
     except ValueError as e:

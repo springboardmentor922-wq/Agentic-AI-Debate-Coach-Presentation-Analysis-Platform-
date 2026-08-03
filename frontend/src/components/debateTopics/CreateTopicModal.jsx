@@ -12,18 +12,38 @@ const initialForm = {
 };
 
 const CreateTopicModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  loading = false,
+    isOpen,
+    mode = "create",
+    topic = null,
+    onClose,
+    onSubmit,
+    loading = false,
 }) => {
   const [formData, setFormData] = useState(initialForm);
 
-  useEffect(() => {
-    if (isOpen) {
-      setFormData(initialForm);
+ useEffect(() => {
+
+    if (!isOpen) return;
+
+    if (mode === "edit" && topic) {
+
+        setFormData({
+            title: topic.title || "",
+            category: topic.category || "Technology",
+            debate_format: topic.debate_format || "Public Forum Debate",
+            difficulty_level: topic.difficulty || topic.difficulty_level,
+            estimated_duration: topic.estimated_duration,
+            learning_goal: topic.learning_goal || "",
+            visibility: topic.visibility || "PUBLIC",
+        });
+
+    } else {
+
+        setFormData(initialForm);
+
     }
-  }, [isOpen]);
+
+}, [isOpen, mode, topic]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,7 +70,11 @@ const CreateTopicModal = ({
       <div className="create-topic-modal">
 
         <div className="modal-header">
-          <h2>Create Debate Topic</h2>
+          <h2>
+              {mode === "edit"
+                  ? "Edit Debate Topic"
+                  : "Create Debate Topic"}
+          </h2>
 
           <button
             className="close-btn"
@@ -218,18 +242,20 @@ const CreateTopicModal = ({
 
           </div>
 
-          {/* AI Topic Generator */}
-          <div className="future-ai-placeholder">
+          {/* AI Topic Generator - Only for Create */}
+          {mode === "create" && (
+            <div className="future-ai-placeholder">
 
-            ✨ AI Topic Generator
+              ✨ AI Topic Generator
 
-            <span>
-              Generate a debate topic automatically using AI
-              <br />
-              <small>(Milestone 3)</small>
-            </span>
+              <span>
+                Generate a debate topic automatically using AI
+                <br />
+                <small>(Milestone 3)</small>
+              </span>
 
-          </div>
+            </div>
+          )}
 
           {/* Buttons */}
           <div className="modal-actions">
@@ -243,11 +269,13 @@ const CreateTopicModal = ({
             </button>
 
             <button
-              type="submit"
-              className="save-btn"
-              disabled={loading}
+                type="submit"
+                className="save-btn"
+                disabled={loading}
             >
-              {loading ? "Creating..." : "Create Topic"}
+                {loading
+                    ? (mode === "edit" ? "Updating..." : "Creating...")
+                    : (mode === "edit" ? "Update Topic" : "Create Topic")}
             </button>
 
           </div>

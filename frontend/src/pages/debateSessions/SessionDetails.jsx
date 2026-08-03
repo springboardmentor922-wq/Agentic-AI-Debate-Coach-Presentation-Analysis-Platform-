@@ -93,10 +93,11 @@ const SessionDetails = () => {
     difficulty:
         selectedTopic?.difficulty_level ||
         "Beginner",
-
+    
     debate_format:
-        selectedSession?.debate_format ||
-        "Oxford Debate",
+    selectedSession?.debate_format ||
+    selectedTopic?.debate_format ||
+    "Oxford Debate",
 
     duration:
         selectedTopic?.estimated_duration
