@@ -1,0 +1,259 @@
+import React, { useEffect, useState } from "react";
+import Layout from "../components/Layout";
+import api from "../api/axios";
+import aiEngine from "../api/aiEngine";
+import VoiceRecorder from "../components/VoiceRecorder";
+import { getUser } from "../utils/useAuth";
+
+function DebateRoom() {
+  const user = getUser();
+  const role = user?.role?.toLowerCase();
+
+  const [topics, setTopics] = useState([]);
+  const [selectedTopic, setSelectedTopic] = useState("");
+  const [stance, setStance] = useState("");
+  const [inputMode, setInputMode] = useState("type"); // "type" | "record"
+
+  // ---- Typed-argument flow (unchanged) ----
+  const [argument, setArgument] = useState("");
+  const [lastResult, setLastResult] = useState(null);
+
+  // ---- Voice flow (records -> transcribes -> learner confirms -> analyzes) ----
+  const [debateFormat, setDebateFormat] = useState("One-on-One Debate");
+  const [voiceLoading, setVoiceLoading] = useState(false);
+  const [voiceResult, setVoiceResult] = useState(null);
+  const [history, setHistory] = useState([]); // [{ role, content }]
+  const [sessionId] = useState(() => `${user?.id || "guest"}-${Date.now()}`);
+
+  useEffect(() => {
+    api.get("/topics").then((res) => setTopics(res.data)).catch(() => {});
+  }, []);
+
+  // ==============================
+  // SAVE REAL DEBATE SESSION — same logic as the original Dashboard.js
+  // (Node backend, unchanged)
+  // ==============================
+  const handleGenerate = async () => {
+    if (!selectedTopic || !argument) {
+      alert("Please select a topic and write your argument");
+      return;
+    }
+
+    try {
+      const res = await api.post("/session", {
+        userId: user.id,
+        topic: selectedTopic,
+        stance: stance || "Not selected",
+        argument
+      });
+
+      alert("Session saved successfully");
+      setLastResult(res.data.session);
+      setArgument("");
+
+    } catch (error) {
+      console.log(error);
+      alert("Failed to save session");
+    }
+  };
+
+  // ==============================
+  // Called by VoiceRecorder only after the learner reviews/edits the
+  // transcript and taps "Confirm" — this is where analysis actually runs.
+  // ==============================
+  const handleConfirmedTranscript = async (transcriptText, durationSec) => {
+    setVoiceLoading(true);
+
+    try {
+      const form = new FormData();
+      form.append("session_id", sessionId);
+      form.append("debate_format", debateFormat);
+      form.append("duration_seconds", durationSec);
+      form.append("transcript", transcriptText);
+      form.append("history", JSON.stringify(history));
+
+      const res = await aiEngine.post("/api/v1/debate/turn", form, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      setVoiceResult(res.data);
+
+      // Keep the conversation going for the next turn
+      setHistory((prev) => [
+        ...prev,
+        { role: "user", content: res.data.user_transcript },
+        { role: "assistant", content: res.data.ai_rebuttal }
+      ]);
+
+    } catch (error) {
+      console.error(error);
+      alert(
+        "Could not reach the AI engine. Make sure the Python service is running on localhost:8000."
+      );
+    } finally {
+      setVoiceLoading(false);
+    }
+  };
+
+  if (role !== "learner") {
+    return (
+      <Layout>
+        <h2 className="text-2xl font-bold mb-4">Debate Room</h2>
+        <p className="text-gray-500">
+          The Debate Room is where Learners practice live. As a {user?.role}, you can review
+          learner sessions from your dashboard.
+        </p>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <h2 className="text-2xl font-bold mb-6">Debate Room</h2>
+
+      <div className="bg-[#1a1a2b] border border-white/5 rounded-2xl p-6 max-w-2xl">
+
+        <h3 className="font-semibold text-lg mb-2">Step 1: Select Topic</h3>
+        <select
+          className="w-full bg-[#0f0f1a] border border-white/10 rounded-lg px-4 py-3 mb-4"
+          value={selectedTopic}
+          onChange={(e) => setSelectedTopic(e.target.value)}
+        >
+          <option value="">Select a topic</option>
+          {topics.map((t) => (
+            <option key={t._id} value={t.title}>{t.title}</option>
+          ))}
+        </select>
+
+        <h3 className="font-semibold text-lg mb-2">Step 2: Choose Stance</h3>
+        <select
+          className="w-full bg-[#0f0f1a] border border-white/10 rounded-lg px-4 py-3 mb-4"
+          value={stance}
+          onChange={(e) => setStance(e.target.value)}
+        >
+          <option value="">Select stance</option>
+          <option value="For">For</option>
+          <option value="Against">Against</option>
+        </select>
+
+        {/* MODE TOGGLE */}
+        <h3 className="font-semibold text-lg mb-2">Step 3: Give Your Argument</h3>
+        <div className="flex gap-2 mb-4">
+          <button
+            type="button"
+            onClick={() => setInputMode("type")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              inputMode === "type" ? "bg-purple-600 text-white" : "bg-[#0f0f1a] text-gray-400 border border-white/10"
+            }`}
+          >
+            ⌨️ Type
+          </button>
+          <button
+            type="button"
+            onClick={() => setInputMode("record")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              inputMode === "record" ? "bg-purple-600 text-white" : "bg-[#0f0f1a] text-gray-400 border border-white/10"
+            }`}
+          >
+            🎙️ Record
+          </button>
+        </div>
+
+        {/* ---------- TYPE MODE (original flow, untouched) ---------- */}
+        {inputMode === "type" && (
+          <>
+            <textarea
+              placeholder="Write your argument..."
+              value={argument}
+              onChange={(e) => setArgument(e.target.value)}
+              className="w-full bg-[#0f0f1a] border border-white/10 rounded-lg px-4 py-3 mb-4 min-h-[120px]"
+            />
+
+            <button
+              onClick={handleGenerate}
+              className="w-full bg-purple-600 hover:bg-purple-700 transition text-white font-semibold py-3 rounded-lg"
+            >
+              Get AI Feedback
+            </button>
+
+            {lastResult && (
+              <div className="mt-6 bg-[#0f0f1a] rounded-lg p-4 text-sm">
+                <p className="font-semibold mb-2">AI Feedback</p>
+                <p className="text-gray-400 mb-3">{lastResult.feedback}</p>
+                <p>Communication: {lastResult.communicationScore}%</p>
+                <p>Argument: {lastResult.argumentScore}%</p>
+                <p>Confidence: {lastResult.confidenceScore}%</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* ---------- RECORD MODE (new — Python AI engine) ---------- */}
+        {inputMode === "record" && (
+          <>
+            <select
+              value={debateFormat}
+              onChange={(e) => setDebateFormat(e.target.value)}
+              className="w-full bg-[#0f0f1a] border border-white/10 rounded-lg px-4 py-3 mb-4"
+            >
+              <option>One-on-One Debate</option>
+              <option>Public Forum</option>
+              <option>Oxford Debate</option>
+              <option>Parliamentary Debate</option>
+            </select>
+
+            <VoiceRecorder
+              disabled={voiceLoading}
+              onConfirmed={handleConfirmedTranscript}
+            />
+
+            {voiceLoading && (
+              <p className="text-gray-400 text-sm mb-4">Analyzing your argument...</p>
+            )}
+
+            {voiceResult && (
+              <div className="mt-2 space-y-4">
+
+                <div className="bg-[#0f0f1a] rounded-lg p-4 text-sm">
+                  <p className="font-semibold mb-2 text-gray-300">Your Transcript</p>
+                  <p className="text-gray-400">{voiceResult.user_transcript}</p>
+                </div>
+
+                <div className="bg-[#0f0f1a] rounded-lg p-4 text-sm">
+                  <p className="font-semibold mb-2 text-gray-300">🎭 AI Opponent's Rebuttal</p>
+                  <p className="text-gray-400">{voiceResult.ai_rebuttal}</p>
+                </div>
+
+                <div className="bg-[#0f0f1a] rounded-lg p-4 text-sm">
+                  <p className="font-semibold mb-2 text-gray-300">📊 Presentation</p>
+                  <p>Pace: {voiceResult.presentation_metrics.words_per_minute} WPM ({voiceResult.presentation_metrics.pace_status})</p>
+                  <p>Filler words: {voiceResult.presentation_metrics.filler_word_count}</p>
+                </div>
+
+                <div className="bg-[#0f0f1a] rounded-lg p-4 text-sm">
+                  <p className="font-semibold mb-2 text-gray-300">⚖️ Logic Check</p>
+                  {voiceResult.fallacy_metrics.fallacy_detected ? (
+                    <>
+                      <p className="text-red-400 font-medium mb-1">
+                        {voiceResult.fallacy_metrics.fallacy_type} detected
+                      </p>
+                      <p className="text-gray-400 mb-1">"{voiceResult.fallacy_metrics.offending_text}"</p>
+                      <p className="text-gray-400 mb-1">{voiceResult.fallacy_metrics.explanation}</p>
+                      <p className="text-purple-300">{voiceResult.fallacy_metrics.correction_suggestion}</p>
+                    </>
+                  ) : (
+                    <p className="text-green-400">No logical fallacies detected — solid reasoning.</p>
+                  )}
+                </div>
+
+              </div>
+            )}
+          </>
+        )}
+
+      </div>
+    </Layout>
+  );
+}
+
+export default DebateRoom;

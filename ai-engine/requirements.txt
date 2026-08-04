@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pydantic
+langchain
+langchain-google-genai
+langgraph
+motor
+psycopg2-binary
+python-dotenv
+python-multipart
+faster-whisper
