@@ -3,7 +3,8 @@ import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/common/Card";
 import Spinner from "../../components/common/Spinner";
 import { getEducatorDashboard } from "../../services/dashboardService";
-
+import TopicPopularityChart from "../../components/charts/TopicPopularityChart";
+import PerformanceOverviewChart from "../../components/charts/PerformanceOverviewChart";
 function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
 
@@ -30,53 +31,81 @@ function Dashboard() {
 
   return (
     <DashboardLayout>
+
       <h1 className="text-3xl font-bold mb-6">
         Educator Dashboard
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card
-          title="Total Students"
-          value={dashboardData.total_students}
-        />
+      {/* Top Cards */}
 
-        <Card
-          title="Total Coaches"
-          value={dashboardData.total_coaches}
-        />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+        <Card title="Total Students" value={dashboardData.total_students} />
+        <Card title="Total Coaches" value={dashboardData.total_coaches} />
+        <Card title="Total Debates" value={dashboardData.total_debates} />
+        <Card title="Success Rate" value="89%" />
+        <Card title="Active Courses" value="12" />
+        <Card title="Top Topic" value="AI Ethics" />
 
-        <Card
-          title="Total Debates"
-          value={dashboardData.total_debates}
-        />
-        </div>
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-  <div className="bg-white rounded-xl shadow p-6">
-    <h2 className="text-xl font-bold mb-4">
-      Popular Debate Topics
-    </h2>
-
-    <ul className="space-y-3">
-      <li>🤖 Should AI Replace Teachers?</li>
-      <li>📱 Social Media and Education</li>
-      <li>🌐 Online Learning vs Classroom Learning</li>
-    </ul>
-  </div>
-
-  <div className="bg-white rounded-xl shadow p-6">
-    <h2 className="text-xl font-bold mb-4">
-      Performance Overview
-    </h2>
-
-    <ul className="space-y-3">
-      <li>Logic Score: 78%</li>
-      <li>Clarity Score: 82%</li>
-      <li>Evidence Score: 71%</li>
-      <li>Persuasiveness: 80%</li>
-    </ul>
-  </div>
       </div>
+
+      {/* Curriculum Insights */}
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <div className="bg-white rounded-xl shadow p-6">
+
+          <h2 className="text-xl font-bold mb-4">
+            📚 Curriculum Insights
+          </h2>
+
+          <ul className="space-y-3">
+            <li>📌 AI topics are the most popular.</li>
+            <li>📌 Students perform best in Public Forum debates.</li>
+            <li>📌 Evidence-based arguments need improvement.</li>
+            <li>📌 Debate participation is increasing.</li>
+          </ul>
+
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-6">
+
+          <h2 className="text-xl font-bold mb-4">
+            🎓 Educator Recommendations
+          </h2>
+
+          <ul className="space-y-3">
+            <li>✅ Encourage use of statistics.</li>
+            <li>✅ Focus on rebuttal practice.</li>
+            <li>✅ Improve argument structure.</li>
+            <li>✅ Conduct weekly debate sessions.</li>
+          </ul>
+
+        </div>
+
+      </div>
+
+      {/* Popular Topics */}
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-bold mb-4">
+            📚 Topic Popularity
+          </h2>
+
+          <TopicPopularityChart />
+        </div>
+
+        <div className="bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-bold mb-4">
+            📈 Performance Overview
+          </h2>
+
+          <PerformanceOverviewChart />
+        </div>
+
+      </div>
+
     </DashboardLayout>
   );
 }
