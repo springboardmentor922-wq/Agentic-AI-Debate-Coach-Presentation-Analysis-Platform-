@@ -6,34 +6,83 @@ function PresentationUpload() {
 
     const [transcript, setTranscript] = useState("");
     const [loading, setLoading] = useState(false);
+    const [recording, setRecording] = useState(false);
+
+    function startRecording() {
+
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+
+            alert("Speech Recognition is not supported in this browser.");
+
+            return;
+
+        }
+
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+        recognition.continuous = false;
+
+        setRecording(true);
+
+        recognition.start();
+
+        recognition.onresult = (event) => {
+
+            const text = event.results[0][0].transcript;
+
+            setTranscript((prev) =>
+                prev
+                    ? prev + " " + text
+                    : text
+            );
+
+        };
+
+        recognition.onend = () => {
+
+            setRecording(false);
+
+        };
+
+    }
 
     async function submit() {
 
         if (!transcript.trim()) {
-            alert("Enter a transcript.");
+
+            alert("Speak or paste your presentation first.");
+
             return;
+
         }
 
         try {
 
             setLoading(true);
 
-            const result = await analyzePresentation(
-                transcript
-            );
+            const result = await analyzePresentation(transcript);
 
             localStorage.setItem(
                 "presentation_result",
                 JSON.stringify(result)
             );
 
-            window.location.href = "/presentation-analysis";
+            window.location.href =
+                "/presentation-analysis";
 
         }
 
-        catch {
+        catch (error) {
 
-            alert("Analysis failed.");
+            console.error(error);
+
+            alert("Presentation analysis failed.");
 
         }
 
@@ -49,39 +98,68 @@ function PresentationUpload() {
 
         <AppShell>
 
-            <h1>Presentation Upload</h1>
+            <div className="page-header">
 
-            <br />
+                <div>
 
-            <textarea
+                    <h1>🎤 Presentation Upload</h1>
 
-                rows={15}
+                    <p>
 
-                value={transcript}
+                        Speak into your microphone or paste your presentation transcript.
 
-                onChange={(e) => setTranscript(e.target.value)}
+                    </p>
 
-                placeholder="Paste your presentation transcript here..."
+                </div>
 
-                style={{
-                    width: "100%",
-                    padding: "15px"
-                }}
+            </div>
 
-            />
-
-            <br /><br />
-
-            <button
-                onClick={submit}
-                disabled={loading}
+            <div
+                className="panel"
+                style={{ marginTop: "30px" }}
             >
 
-                {loading
-                    ? "Analyzing..."
-                    : "Analyze Presentation"}
+                <textarea
+                    rows={15}
+                    value={transcript}
+                    onChange={(e) =>
+                        setTranscript(e.target.value)
+                    }
+                    placeholder="Paste your transcript or use the microphone..."
+                    style={{
+                        width: "100%",
+                        padding: "15px"
+                    }}
+                />
 
-            </button>
+                <br />
+                <br />
+
+                <button
+                    onClick={startRecording}
+                    disabled={recording}
+                >
+
+                    {recording
+                        ? "🎙 Listening..."
+                        : "🎙 Record"}
+
+                </button>
+
+                {" "}
+
+                <button
+                    onClick={submit}
+                    disabled={loading}
+                >
+
+                    {loading
+                        ? "Analyzing..."
+                        : "Analyze Presentation"}
+
+                </button>
+
+            </div>
 
         </AppShell>
 

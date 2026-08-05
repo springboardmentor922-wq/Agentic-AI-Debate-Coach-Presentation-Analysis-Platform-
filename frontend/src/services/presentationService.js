@@ -1,105 +1,35 @@
-import { useEffect, useState } from "react";
+import api from "./api";
 
-import AppShell from "../layouts/AppShell";
+export const analyzePresentation = async (transcript) => {
 
-import {
-    getPresentationHistory
-} from "../services/presentationService";
-
-function PresentationHistory() {
-
-    const [history, setHistory] = useState([]);
-
-    useEffect(() => {
-
-        load();
-
-    }, []);
-
-    async function load() {
-
-        const data = await getPresentationHistory();
-
-        setHistory(data);
-
-    }
-
-    return (
-
-        <AppShell>
-
-            <h1>Presentation History</h1>
-
-            <br />
-
-            {
-
-                history.length === 0 &&
-
-                <p>No presentations analyzed.</p>
-
-            }
-
-            {
-
-                history.map((item, index) => (
-
-                    <div
-                        key={index}
-                        className="panel"
-                        style={{ marginBottom: "20px" }}
-                    >
-
-                        <h2>
-
-                            Score
-
-                            {" "}
-
-                            {item.overall_score}/100
-
-                        </h2>
-
-                        <p>
-
-                            Confidence :
-
-                            {" "}
-
-                            {item.confidence}
-
-                        </p>
-
-                        <p>
-
-                            Clarity :
-
-                            {" "}
-
-                            {item.clarity}
-
-                        </p>
-
-                        <p>
-
-                            Speed :
-
-                            {" "}
-
-                            {item.speaking_speed}
-
-                        </p>
-
-                    </div>
-
-                ))
-
-            }
-
-        </AppShell>
-
+    const response = await api.post(
+        "/presentation/analyze",
+        {
+            transcript
+        }
     );
 
-}
+    return response.data;
 
-export default PresentationHistory;
+};
+
+export const getPresentationHistory = async () => {
+
+    const response = await api.get(
+        "/presentation/history"
+    );
+
+    return response.data;
+
+};
+
+export const getLatestPresentation = async () => {
+
+    const history = await getPresentationHistory();
+
+    if (history.length === 0)
+        return null;
+
+    return history[history.length - 1];
+
+};

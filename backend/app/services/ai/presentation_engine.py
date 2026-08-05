@@ -7,38 +7,39 @@ class PresentationEngine:
         self.gemini = GeminiService()
 
     async def analyze(self, transcript: str):
+
         prompt = f"""
-You are an AI Presentation Coach.
+You are an expert AI Presentation Coach.
 
 Analyze the presentation transcript.
 
 Evaluate:
 
-- clarity
-- confidence
-- speaking speed
-- filler words
-- body language (estimate from transcript)
-- audience engagement
-- strengths
-- weaknesses
-- overall coaching feedback
+- Clarity (0-100)
+- Confidence (0-100)
+- Speaking Speed
+- Filler Words
+- Audience Engagement
+- Strengths
+- Weaknesses
+- Coaching Feedback
+- Overall Score
 
 Transcript:
 
 {transcript}
 
-Return ONLY JSON.
+Return ONLY valid JSON.
 
 {{
 "clarity":90,
-"confidence":84,
+"confidence":86,
 "speaking_speed":"Good",
-"filler_words":["um"],
-"strengths":["..."],
-"weaknesses":["..."],
-"feedback":"...",
-"overall_score":86
+"filler_words":["um","uh"],
+"strengths":["Clear structure","Good confidence"],
+"weaknesses":["More evidence","Reduce filler words"],
+"feedback":"Excellent presentation. Improve evidence and reduce filler words.",
+"overall_score":88
 }}
 """
 

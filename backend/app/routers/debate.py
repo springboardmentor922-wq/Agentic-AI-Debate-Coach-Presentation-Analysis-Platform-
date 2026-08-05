@@ -1,38 +1,75 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
-from app.schemas.debate import DebateRequest, DebateResponse
-from app.services.ai.debate_engine import DebateEngine
-from app.models.debate_record import DebateRecord
 from app.database.connection import get_db
+from app.models.topic import DebateTopic
+from app.schemas.topic import TopicCreate
+from app.auth.dependencies import get_current_learner
 
 router = APIRouter(
-    prefix="/debate",
-    tags=["Debate"]
-) 
-
-engine = DebateEngine()
-from app.services.mongodb.transcript_service import TranscriptService
-
-transcript_service = TranscriptService()
+    prefix="/topics",
+    tags=["Debate Topics"]
+)
 
 
-@router.get("/{session_id}/transcript")
-async def get_transcript(session_id: int):
+@router.post("/", status_code=status.HTTP_201_CREATED)
+def create_topic(
+    topic: TopicCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_learner)
+):
 
-    history = await transcript_service.get_history(session_id)
+    existing = db.query(DebateTopic).filter(
+        DebateTopic.title == topic.title
+    ).first()
 
-    if not history:
+    if existing:
+
         raise HTTPException(
-            status_code=404,
-            detail="Transcript not found"
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Topic already exists."
         )
 
-    return history
+    new_topic = DebateTopic(
+        **topic.model_dump()
+    )
 
-@router.post(
-    "/analyze",
-    response_model=DebateResponse
-)
-async def analyze_argument(request: DebateRequest):
+    db.add(new_topic)
 
-    return await engine.evaluate(request.argument)
+    db.commit()
+
+    db.refresh(new_topic)
+
+    return new_topic
+
+
+@router.get("/")
+def get_topics(
+    db: Session = Depends(get_db)
+):
+
+    return db.query(
+        DebateTopic
+    ).all()
+
+
+@router.get("/{topic_id}")
+def get_topic(
+    topic_id: int,
+    db: Session = Depends(get_db)
+):
+
+    topic = db.query(
+        DebateTopic
+    ).filter(
+        DebateTopic.id == topic_id
+    ).first()
+
+    if topic is None:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Topic not found."
+        )
+
+    return topic

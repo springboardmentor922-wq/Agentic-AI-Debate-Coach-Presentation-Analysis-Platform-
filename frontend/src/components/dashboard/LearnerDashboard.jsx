@@ -182,7 +182,11 @@ function LearnerDashboard() {
                     icon="🔥"
                     subtitle="Keep it up!"
                 />
-
+                <StatCard
+                    title="Presentations Analyzed"
+                    value="5"
+                    icon="🎤"
+                />
             </div>
 
 

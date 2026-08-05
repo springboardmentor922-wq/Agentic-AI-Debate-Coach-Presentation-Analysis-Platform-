@@ -14,7 +14,57 @@ function DebateRoom() {
 
     const [loading, setLoading] = useState(false);
 
+    const [recording, setRecording] = useState(false);
+
     const [result, setResult] = useState(null);
+
+    function startRecording() {
+
+        const SpeechRecognition =
+            window.SpeechRecognition ||
+            window.webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+
+            alert("Speech Recognition is not supported in this browser.");
+
+            return;
+
+        }
+
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = "en-US";
+
+        recognition.continuous = false;
+
+        recognition.interimResults = false;
+
+        setRecording(true);
+
+        recognition.start();
+
+        recognition.onresult = (event) => {
+
+            const speech = event.results[0][0].transcript;
+
+            setArgument(prev =>
+
+                prev
+                    ? prev + " " + speech
+                    : speech
+
+            );
+
+        };
+
+        recognition.onend = () => {
+
+            setRecording(false);
+
+        };
+
+    }
 
     async function handleSubmit(e) {
 
@@ -82,23 +132,57 @@ function DebateRoom() {
 
                     <br /><br />
 
-                    <button>
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: "15px"
+                        }}
+                    >
 
-                        {
+                        <button
+                            type="button"
+                            onClick={startRecording}
+                            disabled={recording}
+                        >
 
-                            loading
+                            {
 
-                                ?
+                                recording
 
-                                "Analyzing..."
+                                    ?
 
-                                :
+                                    "🎙 Listening..."
 
-                                "Submit Argument"
+                                    :
 
-                        }
+                                    "🎙 Record"
 
-                    </button>
+                            }
+
+                        </button>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                        >
+
+                            {
+
+                                loading
+
+                                    ?
+
+                                    "Analyzing..."
+
+                                    :
+
+                                    "Submit Argument"
+
+                            }
+
+                        </button>
+
+                    </div>
 
                 </form>
 

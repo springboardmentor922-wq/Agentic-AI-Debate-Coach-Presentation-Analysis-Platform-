@@ -82,9 +82,7 @@ function PresentationAnalysis() {
 
                     <p>
 
-                        <strong>Clarity:</strong>
-
-                        {" "}
+                        <strong>Clarity:</strong>{" "}
 
                         {data.clarity}%
 
@@ -102,9 +100,7 @@ function PresentationAnalysis() {
 
                     <p>
 
-                        <strong>Confidence:</strong>
-
-                        {" "}
+                        <strong>Confidence:</strong>{" "}
 
                         {data.confidence}%
 
@@ -122,9 +118,7 @@ function PresentationAnalysis() {
 
                     <p>
 
-                        <strong>Speaking Speed:</strong>
-
-                        {" "}
+                        <strong>Speaking Speed:</strong>{" "}
 
                         {data.speaking_speed}
 
@@ -134,7 +128,7 @@ function PresentationAnalysis() {
 
                 <div className="panel">
 
-                    <h2>AI Coach</h2>
+                    <h2>AI Coach Feedback</h2>
 
                     <p>
 
@@ -143,6 +137,20 @@ function PresentationAnalysis() {
                     </p>
 
                 </div>
+
+            </div>
+
+            <br />
+
+            <div className="panel">
+
+                <h2>📝 AI Summary</h2>
+
+                <p>
+
+                    {data.feedback}
+
+                </p>
 
             </div>
 
@@ -162,7 +170,7 @@ function PresentationAnalysis() {
 
                     <ul>
 
-                        {data.strengths.map((item, index) => (
+                        {(data.strengths || []).map((item, index) => (
 
                             <li key={index}>{item}</li>
 
@@ -178,7 +186,7 @@ function PresentationAnalysis() {
 
                     <ul>
 
-                        {data.weaknesses.map((item, index) => (
+                        {(data.weaknesses || []).map((item, index) => (
 
                             <li key={index}>{item}</li>
 
@@ -198,7 +206,7 @@ function PresentationAnalysis() {
 
                 <ul>
 
-                    {data.filler_words.map((item, index) => (
+                    {(data.filler_words || []).map((item, index) => (
 
                         <li key={index}>{item}</li>
 
