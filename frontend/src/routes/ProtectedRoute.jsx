@@ -1,6 +1,6 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../hooks/useAuth";
 
 const ProtectedRoute = ({
 
@@ -9,6 +9,8 @@ const ProtectedRoute = ({
     allowedRoles = []
 
 }) => {
+
+    const location = useLocation();
 
     const {
 
@@ -28,7 +30,7 @@ const ProtectedRoute = ({
 
     if (!isAuthenticated) {
 
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/login" replace state={{ from: location }} />;
 
     }
 

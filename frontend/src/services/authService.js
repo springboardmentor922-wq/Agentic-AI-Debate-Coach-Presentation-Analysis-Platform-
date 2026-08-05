@@ -1,93 +1,28 @@
-/*
-=========================================================
-Authentication Service
-=========================================================
-*/
-
 import apiClient from "./apiClient";
-
-
-// ================================================
-// Register User
-// ================================================
+import { clearSession, getUser } from "./tokenService";
 
 export const registerUser = async (userData) => {
-
-    try {
-
-        const response = await apiClient.post(
-
-            "/auth/register",
-
-            userData
-
-        );
-
-        return response.data;
-
-    }
-
-    catch (error) {
-
-        throw error.response?.data || error;
-
-    }
-
+    const response = await apiClient.post("/auth/register", userData);
+    return response.data;
 };
-
-
-// ================================================
-// Login User
-// ================================================
 
 export const loginUser = async (credentials) => {
-
-    try {
-
-        const response = await apiClient.post(
-
-            "/auth/login",
-
-            credentials
-
-        );
-
-        return response.data;
-
-    }
-
-    catch (error) {
-
-        throw error.response?.data || error;
-
-    }
-
+    const response = await apiClient.post("/auth/login", credentials);
+    return response.data;
 };
-
-
-// ================================================
-// Logout
-// ================================================
 
 export const logoutUser = () => {
-
-    localStorage.removeItem("access_token");
-
-    localStorage.removeItem("user_data");
-
+    clearSession();
 };
 
+export const getCurrentUser = () => getUser();
 
-// ================================================
-// Get Current User
-// ================================================
-
-export const getCurrentUser = () => {
-
-    return JSON.parse(
-
-        localStorage.getItem("user_data")
-
-    );
-
+export const refreshToken = async () => {
+    try {
+        const response = await apiClient.post("/auth/refresh");
+        return response.data;
+    }
+    catch {
+        return null;
+    }
 };

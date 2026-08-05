@@ -2,6 +2,25 @@ const TOKEN_KEY = "access_token";
 
 const USER_KEY = "user_data";
 
+const parseJson = (value) => {
+
+    if (!value) {
+        return null;
+    }
+
+    try {
+
+        return JSON.parse(value);
+
+    }
+    catch {
+
+        return null;
+
+    }
+
+};
+
 export const saveToken = (token) => {
 
     localStorage.setItem(TOKEN_KEY, token);
@@ -28,9 +47,7 @@ export const saveUser = (user) => {
 
 export const getUser = () => {
 
-    const user = localStorage.getItem(USER_KEY);
-
-    return user ? JSON.parse(user) : null;
+    return parseJson(localStorage.getItem(USER_KEY));
 
 };
 
@@ -45,4 +62,10 @@ export const logoutUser = () => {
     removeToken();
 
     removeUser();
+
+};
+
+export const clearSession = () => {
+
+    logoutUser();
 };

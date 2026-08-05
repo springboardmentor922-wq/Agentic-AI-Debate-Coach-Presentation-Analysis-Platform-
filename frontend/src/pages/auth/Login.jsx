@@ -6,7 +6,7 @@ import "./Login.css";
 import heroImage from "../../assets/hero.png";
 
 import { loginUser } from "../../services/authService";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 const Login = () => {
 

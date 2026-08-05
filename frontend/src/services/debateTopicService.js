@@ -23,7 +23,7 @@ const BASE_URL = "/debate-topics";
 // Get All Debate Topics
 // =========================================================
 
-const getAllTopics = async () => {
+export const getAllTopics = async () => {
     try {
         const response = await apiClient.get(BASE_URL);
         return response.data;
@@ -37,7 +37,7 @@ const getAllTopics = async () => {
 // Get Debate Topic By ID
 // =========================================================
 
-const getTopicById = async (topicId) => {
+export const getTopicById = async (topicId) => {
     try {
         const response = await apiClient.get(`${BASE_URL}/${topicId}`);
         return response.data;
@@ -51,7 +51,7 @@ const getTopicById = async (topicId) => {
 // Create Debate Topic
 // =========================================================
 
-const createTopic = async (topicData) => {
+export const createTopic = async (topicData) => {
     try {
         const response = await apiClient.post(BASE_URL, topicData);
         return response.data;
@@ -65,7 +65,7 @@ const createTopic = async (topicData) => {
 // Update Debate Topic
 // =========================================================
 
-const updateTopic = async (topicId, topicData) => {
+export const updateTopic = async (topicId, topicData) => {
     try {
         const response = await apiClient.put(
             `${BASE_URL}/${topicId}`,
@@ -83,7 +83,7 @@ const updateTopic = async (topicId, topicData) => {
 // Delete Debate Topic
 // =========================================================
 
-const deleteTopic = async (topicId) => {
+export const deleteTopic = async (topicId) => {
     try {
         const response = await apiClient.delete(
             `${BASE_URL}/${topicId}`

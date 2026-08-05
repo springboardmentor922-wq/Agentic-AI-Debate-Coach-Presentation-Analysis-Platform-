@@ -8,188 +8,71 @@ import EducatorDashboard from "../pages/dashboards/EducatorDashboard";
 import AdminDashboard from "../pages/dashboards/AdminDashboard";
 import UserProfile from "../pages/profile/UserProfile";
 import DebateTopics from "../pages/debateTopics/DebateTopics";
+import TopicDetails from "../pages/debateTopics/TopicDetails";
 import DebateSessions from "../pages/debateSessions/DebateSessions";
 import SessionDetails from "../pages/debateSessions/SessionDetails";
 import DebateRoom from "../pages/debateSessions/DebateRoom";
 import AIAnalysisReport from "../pages/aiAnalysis/AIAnalysisReport";
+import Reports from "../pages/reports/Reports";
+import SkillTracking from "../pages/skills/SkillTracking";
+import Notifications from "../pages/notifications/Notifications";
+import Settings from "../pages/settings/Settings";
 import MainLayout from "../components/layout/MainLayout";
+import ProtectedRoute from "./ProtectedRoute";
+import PublicRoute from "./PublicRoute";
+import RoleRedirect from "./RoleRedirect";
+import { ROLES } from "../utils/roleRoutes";
 
 const AppRoutes = () => {
-
     return (
-
         <Routes>
-
-            {/* ================================= */}
-            {/* Default Route */}
-            {/* ================================= */}
-
-            <Route
-
-                path="/"
-
-                element={<Navigate to="/login" replace />}
-
-            />
-
-            {/* ================================= */}
-            {/* Authentication */}
-            {/* ================================= */}
+            <Route path="/" element={<RoleRedirect fallback="/login" />} />
+            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
             <Route
-
-                path="/login"
-
-                element={<Login />}
-
-            />
-
-            <Route
-
-                path="/register"
-
-                element={<Register />}
-
-            />
-
-            {/* ================================= */}
-            {/* Learner */}
-            {/* ================================= */}
-
-            <Route
-
                 path="/learner/dashboard"
-
-                element={<LearnerDashboard />}
-
+                element={<ProtectedRoute allowedRoles={["Learner"]}><LearnerDashboard /></ProtectedRoute>}
             />
-
-            {/* ================================= */}
-            {/* Debate Coach */}
-            {/* ================================= */}
-
             <Route
-
                 path="/coach/dashboard"
-
-                element={<CoachDashboard />}
-
+                element={<ProtectedRoute allowedRoles={["Debate Coach"]}><CoachDashboard /></ProtectedRoute>}
             />
-
-            {/* ================================= */}
-            {/* Educator */}
-            {/* ================================= */}
-
             <Route
-
                 path="/educator/dashboard"
-
-                element={<EducatorDashboard />}
-
+                element={<ProtectedRoute allowedRoles={["Educator"]}><EducatorDashboard /></ProtectedRoute>}
             />
-
-            {/* ================================= */}
-            {/* Administrator */}
-            {/* ================================= */}
-
             <Route
-
                 path="/admin/dashboard"
-
-                element={< AdminDashboard />}
-
+                element={<ProtectedRoute allowedRoles={["Administrator"]}><AdminDashboard /></ProtectedRoute>}
             />
 
-
-            {/* ================================= */}
-            {/* UserProfile*/}
-            {/* ================================= */}
-
+            <Route path="/profile" element={<ProtectedRoute allowedRoles={ROLES}><UserProfile /></ProtectedRoute>} />
+            <Route path="/topics" element={<ProtectedRoute allowedRoles={ROLES}><DebateTopics /></ProtectedRoute>} />
+            <Route path="/topics/:topicId" element={<ProtectedRoute allowedRoles={ROLES}><TopicDetails /></ProtectedRoute>} />
+            <Route path="/unauthorized" element={<h1>Unauthorized</h1>} />
+            <Route path="/debate-sessions" element={<ProtectedRoute allowedRoles={ROLES}><DebateSessions /></ProtectedRoute>} />
+            <Route path="/debate-sessions/topic/:topicId" element={<ProtectedRoute allowedRoles={ROLES}><DebateSessions /></ProtectedRoute>} />
+            <Route path="/skills" element={<ProtectedRoute allowedRoles={ROLES}><SkillTracking /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute allowedRoles={ROLES}><Reports /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute allowedRoles={ROLES}><Notifications /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute allowedRoles={ROLES}><Settings /></ProtectedRoute>} />
+            <Route path="/debate-sessions/:sessionId" element={<ProtectedRoute allowedRoles={ROLES}><SessionDetails /></ProtectedRoute>} />
+            <Route path="/my-topics/:topicId" element={<ProtectedRoute allowedRoles={ROLES}><SessionDetails /></ProtectedRoute>} />
+            <Route path="/debate-room/:sessionId" element={<ProtectedRoute allowedRoles={ROLES}><DebateRoom /></ProtectedRoute>} />
             <Route
-
-                path="/profile"
-
-                element={<UserProfile />}
-
+                path="/ai-analysis-report"
+                element={
+                    <ProtectedRoute allowedRoles={ROLES}>
+                        <MainLayout>
+                            <AIAnalysisReport />
+                        </MainLayout>
+                    </ProtectedRoute>
+                }
             />
-
-            {/* ================================= */}
-            {/* Debate topics*/}
-            {/* ================================= */}
-
-            <Route
-                    path="/topics"
-                    element={<DebateTopics />}
-                />
-
-            {/* ================================= */}
-            {/* Unauthorized */}
-            {/* ================================= */}
-
-            <Route
-
-                path="/unauthorized"
-
-                element={<h1>Unauthorized</h1>}
-
-            />
-
-            <Route
-                path="/debate-sessions"
-                element={<DebateSessions />}
-            />
-
-            <Route
-                path="/debate-sessions/topic/:topicId"
-                element={<DebateSessions />}
-            />
-
-            <Route
-
-                path="/debate-sessions/:sessionId"
-
-                element={<SessionDetails />}
-
-            />
-
-            <Route
-                path="/my-topics/:topicId"
-                element={<SessionDetails />}
-            />
-
-            <Route
-
-                path="/debate-room/:sessionId"
-
-                element={<DebateRoom />}
-
-            />
-
-            <Route
-path="/ai-analysis-report"
-element={
-    <MainLayout>
-
-        <AIAnalysisReport/>
-
-    </MainLayout>
-}
-/>
-
-            {/* ================================= */}
-            {/* 404 */}
-            {/* ================================= */}
-
-            <Route
-
-                path="*"
-
-                element={<h1>404 - Page Not Found</h1>}
-
-            />
-
+            <Route path="/dashboard" element={<RoleRedirect fallback="/login" />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-
     );
 
 };

@@ -4,7 +4,7 @@ import { FaTimes, FaRobot, FaPaperPlane } from "react-icons/fa";
 
 import { getAICoachContext } from "../../utils/aiCoachContext";
 import { sendChatMessage } from "../../services/chatbotService";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 import "./AICoachWidget.css";
 

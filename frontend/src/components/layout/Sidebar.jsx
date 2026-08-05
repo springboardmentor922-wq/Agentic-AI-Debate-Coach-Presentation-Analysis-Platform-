@@ -1,7 +1,7 @@
 import "./Sidebar.css";
 import { NavLink, useNavigate } from "react-router-dom";
 
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 import {
 
@@ -17,13 +17,15 @@ import {
 
     FaChartBar,
 
+    FaBell,
+
+    FaCog,
+
     FaUsers,
 
     FaSignOutAlt,
 
     FaUserShield,
-
-    FaChalkboardTeacher,
 
     FaGraduationCap
 
@@ -192,6 +194,22 @@ const Sidebar = () => {
                             <FaChartBar />
 
                             Reports
+
+                        </NavLink>
+
+                        <NavLink to="/notifications">
+
+                            <FaBell />
+
+                            Notifications
+
+                        </NavLink>
+
+                        <NavLink to="/settings">
+
+                            <FaCog />
+
+                            Settings
 
                         </NavLink>
 

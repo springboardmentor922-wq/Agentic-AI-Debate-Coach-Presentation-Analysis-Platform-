@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
     getToken,
@@ -8,27 +8,29 @@ import {
     logoutUser
 } from "../services/tokenService";
 
-const AuthContext = createContext();
+import { getDashboardRouteForRole } from "../utils/roleRoutes";
+import { AuthContext } from "./authContext.js";
 
 export const AuthProvider = ({ children }) => {
 
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => getUser());
 
-    const [loading, setLoading] = useState(true);
+    const [token, setToken] = useState(() => getToken());
+
+    const [loading] = useState(false);
 
     useEffect(() => {
+        const handleUnauthorized = () => {
+            setUser(null);
+            setToken(null);
+        };
 
-        const token = getToken();
+        window.addEventListener("auth:unauthorized", handleUnauthorized);
 
-        const storedUser = getUser();
+        return () => {
+            window.removeEventListener("auth:unauthorized", handleUnauthorized);
+        };
 
-        if (token && storedUser) {
-
-            setUser(storedUser);
-
-        }
-
-        setLoading(false);
 
     }, []);
 
@@ -36,11 +38,13 @@ export const AuthProvider = ({ children }) => {
     // Login
     // ============================================
 
-    const login = (token, userData) => {
+    const login = (authToken, userData) => {
 
-        saveToken(token);
+        saveToken(authToken);
 
         saveUser(userData);
+
+        setToken(authToken);
 
         setUser(userData);
 
@@ -56,7 +60,19 @@ export const AuthProvider = ({ children }) => {
 
         setUser(null);
 
+        setToken(null);
+
     };
+
+    const hasRole = (allowedRoles = []) => {
+        if (allowedRoles.length === 0) {
+            return true;
+        }
+
+        return allowedRoles.includes(user?.role);
+    };
+
+    const getDefaultRoute = () => getDashboardRouteForRole(user?.role);
 
     return (
 
@@ -66,13 +82,19 @@ export const AuthProvider = ({ children }) => {
 
                 user,
 
+                token,
+
                 loading,
 
                 login,
 
                 logout,
 
-                isAuthenticated: !!user
+                hasRole,
+
+                getDefaultRoute,
+
+                isAuthenticated: !!token && !!user
 
             }}
 
@@ -85,5 +107,3 @@ export const AuthProvider = ({ children }) => {
     );
 
 };
-
-export const useAuth = () => useContext(AuthContext);

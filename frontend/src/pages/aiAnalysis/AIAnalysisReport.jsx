@@ -1,4 +1,3 @@
-import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./AIAnalysisReport.css";
 
@@ -7,10 +6,13 @@ const AIAnalysisReport = () => {
     const navigate = useNavigate();
 
     const analysis = location.state?.analysis;
+    const reportPayload = location.state?.report;
     const selectedTopic = location.state?.selectedTopic;
     const selectedSession = location.state?.selectedSession;
 
-    if (!analysis || !analysis.data) {
+    const report = analysis?.data || reportPayload || null;
+
+    if (!report) {
         return (
             <div className="analysis-empty">
                 <h2>No Analysis Available</h2>
@@ -29,11 +31,9 @@ const AIAnalysisReport = () => {
         );
     }
 
-    const report = analysis.data;
+    const argument = report.argument_analysis || {};
 
-    const argument = report.argument_analysis;
-
-    const transcript = report.transcript;
+    const transcript = report.transcript || {};
 
     const overallScore =
         argument?.argument_scoring?.overall_score ?? 0;

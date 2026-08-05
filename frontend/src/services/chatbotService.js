@@ -1,5 +1,7 @@
-import apiClient from "./apiClient";
+import { sendChatMessage } from "./chatService";
 
-export const sendChatMessage = async (payload) => {
-    return apiClient.post("/api/v1/chat", payload);
+export { sendChatMessage };
+
+export default {
+    sendChatMessage,
 };

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { FaChartLine, FaComments, FaStar, FaUser } from "react-icons/fa";
 
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../hooks/useAuth";
 
 import StatCard from "../../components/cards/StatCard";
 import CreateTopicModal from "../../components/debateTopics/CreateTopicModal";
@@ -15,6 +15,7 @@ import MainLayout from "../../components/layout/MainLayout";
 import debateTopicService from "../../services/debateTopicService";
 import DeleteTopicModal from "../../components/debateTopics/DeleteTopicModal";
 import { useNavigate } from "react-router-dom";
+import { getRecommendedTopics } from "../../services/recommendationService";
 import "./DebateTopics.css";
 
 const formatDate = (value) => {
@@ -100,6 +101,7 @@ const DebateTopics = () => {
     const [topicToDelete, setTopicToDelete] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [topics, setTopics] = useState([]);
+    const [recommendedTopicData, setRecommendedTopicData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [createLoading, setCreateLoading] = useState(false);
     const [error, setError] = useState("");
@@ -111,38 +113,47 @@ const DebateTopics = () => {
     const [sortBy, setSortBy] = useState("latest");
 
     const navigate = useNavigate();
-    const loadTopics = async ({ showLoading = true, suppressErrors = false } = {}) => {
-        if (showLoading) {
-            setLoading(true);
-        }
-
-        try {
-            const response = await debateTopicService.getAllTopics();
-            setTopics(Array.isArray(response) ? response : []);
-            setError("");
-            return true;
-        } catch (loadError) {
-            console.error("Error loading debate topics:", loadError);
-
-            if (!suppressErrors) {
-                setError("Unable to load debate topics right now. Please try again later.");
-            }
-
-            return false;
-        } finally {
-            if (showLoading) {
-                setLoading(false);
-            }
-        }
-    };
 
     useEffect(() => {
         if (authLoading || !user) {
-            return;
+            return undefined;
         }
 
-        loadTopics();
-    }, [authLoading, user?.id]);
+        let isActive = true;
+
+        const run = async () => {
+            setLoading(true);
+
+            try {
+                const response = await debateTopicService.getAllTopics();
+
+                if (!isActive) {
+                    return;
+                }
+
+                setTopics(Array.isArray(response) ? response : []);
+                const recommendedResponse = await getRecommendedTopics().catch(() => []);
+                setRecommendedTopicData(Array.isArray(recommendedResponse) ? recommendedResponse : []);
+                setError("");
+            } catch (loadError) {
+                console.error("Error loading debate topics:", loadError);
+
+                if (isActive) {
+                    setError("Unable to load debate topics right now. Please try again later.");
+                }
+            } finally {
+                if (isActive) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        void run();
+
+        return () => {
+            isActive = false;
+        };
+    }, [authLoading, user]);
 
     useEffect(() => {
         if (!successMessage) {
@@ -213,15 +224,20 @@ const DebateTopics = () => {
         return filteredTopics.filter((topic) => topic.topic_type === "custom");
     }, [filteredTopics]);
 
-    const recommendedTopics = useMemo(() => {
-        return filteredTopics
-            .filter((topic) => topic.topic_type === "official")
-            .slice(0, 3)
-            .map((topic) => ({
-                ...topic,
+    const personalizedRecommendedTopics = useMemo(() => {
+        return recommendedTopicData.length > 0
+            ? recommendedTopicData.map((topic) => ({
+                ...normalizeTopic(topic, user?.id),
                 topic_type: "recommended"
-            }));
-    }, [filteredTopics]);
+            }))
+            : filteredTopics
+                .filter((topic) => topic.topic_type === "official")
+                .slice(0, 3)
+                .map((topic) => ({
+                    ...topic,
+                    topic_type: "recommended"
+                }));
+    }, [filteredTopics, recommendedTopicData, user?.id]);
 
     const statistics = useMemo(() => ([
         {
@@ -244,11 +260,18 @@ const DebateTopics = () => {
         },
         {
             title: "Recommended Topics",
-            value: recommendedTopics.length,
+            value: personalizedRecommendedTopics.length,
             icon: <FaChartLine />,
             color: "#8B5CF6"
         }
-    ]), [normalizedTopics.length, officialTopics.length, myTopics.length, recommendedTopics.length]);
+    ]), [normalizedTopics.length, officialTopics.length, myTopics.length, personalizedRecommendedTopics.length]);
+
+    const refreshTopics = async () => {
+        const response = await debateTopicService.getAllTopics();
+        setTopics(Array.isArray(response) ? response : []);
+        const recommendedResponse = await getRecommendedTopics().catch(() => []);
+        setRecommendedTopicData(Array.isArray(recommendedResponse) ? recommendedResponse : []);
+    };
 
   const handleSubmitTopic = async (data) => {
     try {
@@ -276,10 +299,7 @@ const DebateTopics = () => {
 
         setIsCreateModalOpen(false);
 
-        await loadTopics({
-            showLoading: false,
-            suppressErrors: true,
-        });
+        await refreshTopics();
 
     } catch (error) {
 
@@ -321,10 +341,7 @@ const handleConfirmDelete = async () => {
         setShowDeleteModal(false);
         setTopicToDelete(null);
 
-        await loadTopics({
-            showLoading: false,
-            suppressErrors: true,
-        });
+        await refreshTopics();
 
     } catch (error) {
         console.error(error);
@@ -336,19 +353,19 @@ const handleConfirmDelete = async () => {
     }
 };
     const handleViewDetails = (topic) => {
-    navigate(`/my-topics/${topic.id}`, {
+        navigate(`/topics/${topic.id}`, {
     state: {
         selectedTopic: topic,
-        source: "my-topic",
+            source: "topic-details",
     },
 });
 };
 
 const handleJoinDebate = (topic) => {
-    navigate(`/my-topics/${topic.id}`, {
+        navigate(`/topics/${topic.id}`, {
     state: {
         selectedTopic: topic,
-        source: "my-topic",
+            source: "topic-details",
     },
 });
 };
@@ -361,7 +378,7 @@ const handleCloseDeleteModal = () => {
     navigate(`/debate-sessions/topic/${topic.id}`, {
         state: {
             selectedTopic: topic,
-            source: "official-topic",
+            source: "topic-details",
             action: "select",
         },
     });
@@ -421,7 +438,7 @@ const handleCloseDeleteModal = () => {
 
                         <div className="topics-content-grid">
                             <RecommendedTopics
-                                recommendedTopics={recommendedTopics}
+                                recommendedTopics={personalizedRecommendedTopics}
                                 loading={loading}
                                 onViewDetails={handleViewDetails}
                                 onSelectTopic={handleSelectTopic}
