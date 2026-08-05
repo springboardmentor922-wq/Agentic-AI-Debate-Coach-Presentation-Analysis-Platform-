@@ -40,6 +40,10 @@ class ArgumentAnalysisRequest(BaseModel):
         min_length=10,
         description="User's debate argument."
     )
+    debate_format: str = Field(default="One-on-One", max_length=50)
+    difficulty: str = Field(default="Intermediate", max_length=20)
+    user_position: str = Field(default="Affirmative", max_length=20)
+    current_round: int = Field(default=1, ge=1)
 
 
 class AIAnalysisData(BaseModel):

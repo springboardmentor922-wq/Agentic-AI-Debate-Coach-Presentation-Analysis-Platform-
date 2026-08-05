@@ -18,7 +18,6 @@ Note:
 from pathlib import Path
 import tempfile
 
-import whisper
 from fastapi import HTTPException, UploadFile, status
 
 
@@ -42,7 +41,17 @@ class SpeechService:
         Load the Whisper model once during application startup.
         """
 
-        self.model = whisper.load_model("base")
+        self.model = None
+
+    def _get_model(self):
+        """Load Whisper only for an audio request, not at application import."""
+        if self.model is None:
+            try:
+                import whisper
+                self.model = whisper.load_model("base")
+            except Exception as exc:
+                raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="Speech transcription is not configured or unavailable.") from exc
+        return self.model
 
     async def transcribe_audio(
         self,
@@ -82,17 +91,22 @@ class SpeechService:
 
                 temp_path = temp_file.name
 
-            result = self.model.transcribe(temp_path)
+            result = self._get_model().transcribe(temp_path)
 
             transcript = result["text"].strip()
 
             return transcript
 
+        except HTTPException:
+            raise
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Speech transcription failed: {str(exc)}",
-            )
+            ) from exc
+        finally:
+            if "temp_path" in locals():
+                Path(temp_path).unlink(missing_ok=True)
 
 
 speech_service = SpeechService()

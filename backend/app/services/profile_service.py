@@ -52,6 +52,13 @@ class ProfileService:
             current_user.full_name = profile_data.full_name
 
         if profile_data.email:
+            existing_user = (
+                db.query(User)
+                .filter(User.email == profile_data.email, User.id != current_user.id)
+                .first()
+            )
+            if existing_user:
+                raise ValueError("Email is already registered.")
             current_user.email = profile_data.email
 
         # -----------------------------------------------
@@ -177,23 +184,22 @@ class ProfileService:
             current_user.full_name = profile_data.full_name
 
         if profile_data.email is not None:
+            existing_user = (
+                db.query(User)
+                .filter(User.email == profile_data.email, User.id != current_user.id)
+                .first()
+            )
+            if existing_user:
+                raise ValueError("Email is already registered.")
             current_user.email = profile_data.email
 
         # -----------------------------------------------
         # Update Profile Table
         # -----------------------------------------------
 
-        profile.phone_number = profile_data.phone_number
-        profile.institution = profile_data.institution
-        profile.location = profile_data.location
-        profile.date_of_birth = profile_data.date_of_birth
-        profile.gender = profile_data.gender
-        profile.bio = profile_data.bio
-        profile.experience_level = profile_data.experience_level
-        profile.learning_goals = profile_data.learning_goals
-        profile.preferred_debate_topics = profile_data.preferred_debate_topics
-        profile.presentation_domains = profile_data.presentation_domains
-        profile.coaching_preferences = profile_data.coaching_preferences
+        for field, value in profile_data.model_dump(exclude_unset=True).items():
+            if field not in {"full_name", "email"}:
+                setattr(profile, field, value)
 
         db.commit()
 

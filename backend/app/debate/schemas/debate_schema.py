@@ -28,6 +28,11 @@ from app.ai.schemas.argument_analysis_schema import (
 from app.ai.schemas.fallacy_detection_schema import (
     FallacyDetectionResponse,
 )
+from app.ai.schemas.milestone3_schema import (
+    AIDebateOpponentResponse, CoachingResponse, CounterargumentResponse,
+    LearningPathResponse, PerformanceScore, RecommendationResponse,
+    ObservabilityMetadata,
+)
 
 
 class DebateTranscription(BaseModel):
@@ -54,6 +59,15 @@ class DebateAnalysisData(BaseModel):
     argument_analysis: ArgumentAnalysisResponse
 
     logical_fallacy_analysis: FallacyDetectionResponse
+
+    counterargument: CounterargumentResponse | None = None
+    ai_debate_opponent: AIDebateOpponentResponse | None = None
+    performance: PerformanceScore | None = None
+    coaching: CoachingResponse | None = None
+    recommendations: RecommendationResponse | None = None
+    learning_path: LearningPathResponse | None = None
+    progress_updated: bool | None = None
+    observability: ObservabilityMetadata | None = None
 
 
 class DebateAnalysisResponse(BaseModel):

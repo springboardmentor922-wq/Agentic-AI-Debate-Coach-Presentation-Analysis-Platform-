@@ -24,12 +24,12 @@ class Settings:
     """
 
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./agentic_ai_debate_coach.db")
 
     # JWT
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "change-me-in-production")
 
-    ALGORITHM: str = os.getenv("ALGORITHM")
+    ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(
         os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
@@ -55,11 +55,15 @@ class Settings:
         os.getenv("LLM_MAX_TOKENS", 1024)
     )
 
-    GROQ_API_KEY: str = ""
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
-    LLM_PROVIDER: str = "groq"
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "groq").lower()
+
+    MONGODB_URL: str = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+    MONGODB_DATABASE: str = os.getenv("MONGODB_DATABASE", "agentic_ai_debate_coach")
+    FAISS_INDEX_PATH: str = os.getenv("FAISS_INDEX_PATH", "data/faiss")
 
 # Create a global settings object
 settings = Settings()

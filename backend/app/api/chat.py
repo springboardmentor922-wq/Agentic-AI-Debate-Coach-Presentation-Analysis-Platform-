@@ -32,8 +32,10 @@ def send_chat_message(request: ChatRequest):
             data=outputs,
         )
 
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Chat failed: {str(exc)}",
-        )
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Chat is temporarily unavailable.",
+        ) from exc

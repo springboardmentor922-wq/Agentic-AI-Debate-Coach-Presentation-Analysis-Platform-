@@ -15,15 +15,7 @@ Note:
     and the AI agents.
 """
 
-from app.ai.agents.argument_analysis_agent import ArgumentAnalysisAgent
-from app.ai.agents.fallacy_detection_agent import FallacyDetectionAgent
-
-from app.ai.schemas.argument_analysis_schema import (
-    ArgumentAnalysisResponse,
-)
-from app.ai.schemas.fallacy_detection_schema import (
-    FallacyDetectionResponse,
-)
+from app.ai.orchestrator.debate_graph import debate_orchestrator
 
 
 class AIAnalysisService:
@@ -31,47 +23,9 @@ class AIAnalysisService:
     Service responsible for AI-powered debate analysis.
     """
 
-    def __init__(self):
-        """
-        Initialize AI agents.
-        """
-
-        self.argument_analysis_agent = ArgumentAnalysisAgent()
-        self.fallacy_detection_agent = FallacyDetectionAgent()
-
-    def analyze_argument(
-        self,
-        argument: str,
-    ) -> ArgumentAnalysisResponse:
-        """
-        Perform argument analysis.
-
-        Args:
-            argument:
-                User's debate argument.
-
-        Returns:
-            Structured argument analysis.
-        """
-
-        return self.argument_analysis_agent.analyze_argument(argument)
-
-    def detect_fallacies(
-        self,
-        argument: str,
-    ) -> FallacyDetectionResponse:
-        """
-        Detect logical fallacies.
-
-        Args:
-            argument:
-                User's debate argument.
-
-        Returns:
-            Structured logical fallacy analysis.
-        """
-
-        return self.fallacy_detection_agent.detect_fallacies(argument)
+    def analyze_with_workflow(self, *, session_id: int, argument: str, user_id: int | None = None, debate_format: str = "One-on-One", difficulty: str = "Intermediate", user_position: str = "Affirmative", current_round: int = 1) -> dict:
+        """Backward-compatible adapter that delegates legacy analysis requests to LangGraph."""
+        return debate_orchestrator.invoke(session_id=session_id, argument=argument, user_id=user_id, debate_format=debate_format, difficulty=difficulty, user_position=user_position, current_round=current_round)
 
 
 # Singleton service instance

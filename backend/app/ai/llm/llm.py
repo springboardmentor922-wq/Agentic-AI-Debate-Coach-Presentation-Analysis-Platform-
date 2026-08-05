@@ -19,7 +19,7 @@ Note:
 
 from app.core.config import settings
 
-if settings.LLM_PROVIDER == "groq":
+if settings.LLM_PROVIDER == "groq" and settings.GROQ_API_KEY:
 
     from langchain_groq import ChatGroq
 

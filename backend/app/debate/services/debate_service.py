@@ -19,6 +19,7 @@ Note:
     to their respective services.
 """
 
+import asyncio
 from fastapi import UploadFile
 
 from app.ai.schemas.argument_analysis_schema import (
@@ -38,7 +39,12 @@ from app.services.ai_analysis_service import (
 from app.speech.services.speech_service import (
     speech_service,
 )
-from app.mongodb.debate_repository import debate_repository
+from app.ai.orchestrator.debate_graph import debate_orchestrator
+from app.ai.schemas.milestone3_schema import (
+    AIDebateOpponentResponse, CoachingResponse, CounterargumentResponse,
+    LearningPathResponse, PerformanceScore, RecommendationResponse,
+    ObservabilityMetadata,
+)
 
 class DebateService:
     """
@@ -51,6 +57,11 @@ class DebateService:
         session_id: int,
         speech_text: str | None = None,
         media_file: UploadFile | None = None,
+        user_id: int | None = None,
+        debate_format: str = "One-on-One",
+        difficulty: str = "Intermediate",
+        user_position: str = "Affirmative",
+        current_round: int = 1,
     ) -> DebateAnalysisResponse:
         """
         Process a complete debate submission.
@@ -89,45 +100,18 @@ class DebateService:
         # Argument Analysis
         # -------------------------------------------------
 
-        argument_analysis: ArgumentAnalysisResponse = (
-            ai_analysis_service.analyze_argument(
-                transcript
-            )
+        workflow = await asyncio.to_thread(
+            debate_orchestrator.invoke,
+            session_id=session_id, user_id=user_id, argument=transcript,
+            debate_format=debate_format, difficulty=difficulty,
+            user_position=user_position, current_round=current_round,
+            input_type=input_type, media_filename=media_filename,
         )
+        argument_analysis = ArgumentAnalysisResponse.model_validate(workflow["argument_analysis"])
+        logical_fallacy_analysis = FallacyDetectionResponse.model_validate(workflow["logical_fallacy_analysis"])
 
-        # -------------------------------------------------
-        # Step 3
-        # Logical Fallacy Detection
-        # -------------------------------------------------
-
-        logical_fallacy_analysis: FallacyDetectionResponse = (
-            ai_analysis_service.detect_fallacies(
-                transcript
-            )
-        )
-
-        # -------------------------------------------------
-        # Step 4
-        # Save to MongoDB
-        # -------------------------------------------------
-
-        report_id = debate_repository.save_debate_analysis(
-            session_id=session_id,
-            user_id=0,
-            topic_id=0,
-            input_type=input_type,
-            media_filename=media_filename,
-            transcript={
-                "transcript": transcript
-            },
-            argument_analysis=argument_analysis.model_dump(),
-            logical_fallacy_analysis=logical_fallacy_analysis.model_dump(),
-        )
-
-        # -------------------------------------------------
-        # Step 5
-        # Return Response
-        # -------------------------------------------------
+        # The graph's final persistence node stores this complete workflow
+        # exactly once. Keep API orchestration free of duplicate writes.
 
         return DebateAnalysisResponse(
             success=True,
@@ -139,6 +123,14 @@ class DebateService:
                 ),
                 argument_analysis=argument_analysis,
                 logical_fallacy_analysis=logical_fallacy_analysis,
+                counterargument=CounterargumentResponse.model_validate(workflow["counterargument"]),
+                ai_debate_opponent=AIDebateOpponentResponse.model_validate(workflow["ai_debate_opponent"]),
+                performance=PerformanceScore.model_validate(workflow["performance"]),
+                coaching=CoachingResponse.model_validate(workflow["coaching"]),
+                recommendations=RecommendationResponse.model_validate(workflow["recommendations"]),
+                learning_path=LearningPathResponse.model_validate(workflow["learning_path"]),
+                progress_updated=workflow.get("progress_updated"),
+                observability=ObservabilityMetadata.model_validate(workflow["observability"]),
             ),
         )
     

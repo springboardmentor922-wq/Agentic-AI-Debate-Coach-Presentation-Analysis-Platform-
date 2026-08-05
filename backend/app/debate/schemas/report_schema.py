@@ -33,8 +33,8 @@ class DebateReport(BaseModel):
         description="Type of debate input."
     )
 
-    media_filename: str = Field(
-        ...,
+    media_filename: Optional[str] = Field(
+        None,
         description="Uploaded media filename."
     )
 

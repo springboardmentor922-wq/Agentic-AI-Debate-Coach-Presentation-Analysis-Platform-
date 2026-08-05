@@ -288,3 +288,68 @@ CREATE TABLE session_rounds (
         )
 
 );
+
+-- Milestone 3: additive relational workflow support. AI-generated results remain in MongoDB.
+CREATE TABLE coach_assignments (
+    id SERIAL PRIMARY KEY,
+    coach_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    learner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) NOT NULL DEFAULT 'Active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_coach_learner UNIQUE (coach_id, learner_id)
+);
+
+CREATE TABLE coach_feedback (
+    id SERIAL PRIMARY KEY,
+    coach_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    learner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    session_id INTEGER REFERENCES debate_sessions(id) ON DELETE SET NULL,
+    feedback TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE educator_classes (
+    id SERIAL PRIMARY KEY,
+    educator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE class_enrollments (
+    id SERIAL PRIMARY KEY,
+    class_id INTEGER NOT NULL REFERENCES educator_classes(id) ON DELETE CASCADE,
+    learner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_class_learner UNIQUE (class_id, learner_id)
+);
+
+CREATE TABLE debate_assignments (
+    id SERIAL PRIMARY KEY,
+    assigned_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    learner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    topic_id INTEGER NOT NULL REFERENCES debate_topics(id) ON DELETE RESTRICT,
+    class_id INTEGER REFERENCES educator_classes(id) ON DELETE SET NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'Assigned',
+    due_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    notification_type VARCHAR(50) NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- These fields are already used by the SQLAlchemy UserSkill model and are
+-- additive, preserving existing user skill rows during Milestone 3 rollout.
+ALTER TABLE user_skills ADD COLUMN IF NOT EXISTS confidence_score DECIMAL(5,2) DEFAULT 0.00;
+ALTER TABLE user_skills ADD COLUMN IF NOT EXISTS total_debates INTEGER DEFAULT 0;
+ALTER TABLE user_skills ADD COLUMN IF NOT EXISTS total_presentations INTEGER DEFAULT 0;
+ALTER TABLE debate_sessions ADD COLUMN IF NOT EXISTS started_at TIMESTAMP;
+ALTER TABLE debate_sessions ADD COLUMN IF NOT EXISTS ended_at TIMESTAMP;

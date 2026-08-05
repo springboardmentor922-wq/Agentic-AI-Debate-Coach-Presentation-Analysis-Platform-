@@ -15,6 +15,7 @@ Business logic belongs in DebateService.
 
 from datetime import datetime
 from bson import ObjectId
+from bson.errors import InvalidId
 
 from app.mongodb.database import mongodb
 
@@ -74,6 +75,35 @@ class DebateRepository:
 
         return str(result.inserted_id)
 
+    def save_workflow_result(self, session_id: int, user_id: int | None, result: dict) -> str:
+        """Persist one complete, report-compatible workflow document."""
+        transcript = result.get("argument", "")
+        document = {
+            "session_id": session_id,
+            "user_id": user_id,
+            "topic_id": result.get("context", {}).get("topic", {}).get("id"),
+            "input_type": result.get("input_type", "text"),
+            "media_filename": result.get("media_filename"),
+            "transcript": {"transcript": transcript},
+            "argument_analysis": result.get("argument_analysis", {}),
+            "logical_fallacy_analysis": result.get("logical_fallacy_analysis", {}),
+            "counterargument": result.get("counterargument", {}),
+            "ai_debate_opponent": result.get("ai_debate_opponent", {}),
+            "performance": result.get("performance", {}),
+            "coaching": result.get("coaching", {}),
+            "recommendations": result.get("recommendations", {}),
+            "learning_path": result.get("learning_path", {}),
+            "memory": result.get("memory", {}),
+            "observability": result.get("observability", {}),
+            "workflow": result,
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+        }
+        return str(self.collection.insert_one(document).inserted_id)
+
+    def save_observability(self, execution: dict) -> str:
+        return str(mongodb.ai_execution_collection.insert_one(execution).inserted_id)
+
     # =====================================================
     # Get Report By ID
     # =====================================================
@@ -83,11 +113,11 @@ class DebateRepository:
         Retrieve a debate report using MongoDB ObjectId.
         """
 
-        report = self.collection.find_one(
-            {
-                "_id": ObjectId(report_id)
-            }
-        )
+        try:
+            object_id = ObjectId(report_id)
+        except (InvalidId, TypeError):
+            return None
+        report = self.collection.find_one({"_id": object_id})
 
         return report
 

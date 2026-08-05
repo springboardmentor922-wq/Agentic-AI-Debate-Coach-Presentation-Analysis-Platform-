@@ -13,6 +13,7 @@ Note:
     This module should not contain AI logic.
 """
 
+import asyncio
 from fastapi import APIRouter, HTTPException, status
 
 from app.schemas.ai_analysis import (
@@ -21,6 +22,8 @@ from app.schemas.ai_analysis import (
     AIAnalysisData,
 )
 from app.services.ai_analysis_service import ai_analysis_service
+from app.ai.schemas.argument_analysis_schema import ArgumentAnalysisResponse
+from app.ai.schemas.fallacy_detection_schema import FallacyDetectionResponse
 
 router = APIRouter(
     prefix="/ai",
@@ -46,17 +49,14 @@ async def analyze_argument(
 
     try:
 
-        argument_analysis = (
-            ai_analysis_service.analyze_argument(
-                request.argument
-            )
+        workflow = await asyncio.to_thread(
+            ai_analysis_service.analyze_with_workflow,
+            session_id=request.session_id, argument=request.argument,
+            debate_format=request.debate_format, difficulty=request.difficulty,
+            user_position=request.user_position, current_round=request.current_round,
         )
-
-        fallacy_analysis = (
-            ai_analysis_service.detect_fallacies(
-                request.argument
-            )
-        )
+        argument_analysis = ArgumentAnalysisResponse.model_validate(workflow["argument_analysis"])
+        fallacy_analysis = FallacyDetectionResponse.model_validate(workflow["logical_fallacy_analysis"])
 
         return AIAnalysisAPIResponse(
             success=True,
@@ -67,8 +67,10 @@ async def analyze_argument(
             ),
         )
 
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"AI analysis failed: {str(exc)}",
-        )
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI analysis is temporarily unavailable.",
+        ) from exc

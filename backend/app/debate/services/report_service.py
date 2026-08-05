@@ -55,11 +55,11 @@ class ReportService:
             session_id=document["session_id"],
             user_id=document.get("user_id"),
             topic_id=document.get("topic_id"),
-            input_type=document["input_type"],
-            media_filename=document["media_filename"],
-            transcript=document["transcript"],
-            argument_analysis=document["argument_analysis"],
-            logical_fallacy_analysis=document["logical_fallacy_analysis"],
+            input_type=document.get("input_type", "text"),
+            media_filename=document.get("media_filename"),
+            transcript=document.get("transcript", {}),
+            argument_analysis=document.get("argument_analysis", {}),
+            logical_fallacy_analysis=document.get("logical_fallacy_analysis", {}),
         )
 
 

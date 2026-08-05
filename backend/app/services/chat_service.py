@@ -9,16 +9,16 @@ from typing import Any, List
 
 from langchain_core.prompts import ChatPromptTemplate
 
-from app.ai.agents.argument_analysis_agent import ArgumentAnalysisAgent
-from app.ai.agents.fallacy_detection_agent import FallacyDetectionAgent
 from app.ai.llm.llm import llm
+from app.services.ai_analysis_service import ai_analysis_service
 from app.schemas.chat import ChatAgentOutput, ChatHistoryItem, ChatRequest
 
 
 class ChatService:
     def __init__(self):
-        self.argument_analysis_agent = ArgumentAnalysisAgent()
-        self.fallacy_detection_agent = FallacyDetectionAgent()
+        # Debate-specific analysis is delegated to the unified LangGraph
+        # workflow through AIAnalysisService; chat never runs agents itself.
+        pass
 
     def _history_text(self, history: List[ChatHistoryItem]) -> str:
         if not history:
@@ -65,35 +65,27 @@ class ChatService:
     def _build_debate_outputs(self, request: ChatRequest) -> List[ChatAgentOutput]:
         context_prompt = self._build_context_prompt(request)
 
-        argument_analysis = self.argument_analysis_agent.analyze_argument(
-            request.message
-        )
+        if request.session_id is None or len(request.message.strip()) < 10:
+            return self._build_default_outputs(request)
 
-        counterargument = self._run_text_chain(
-            system_prompt=(
-                "You are the Counterargument Generation Agent in an AI Debate Coach. "
-                "Create one strong counterargument that directly challenges the user's latest point. "
-                "Stay concise, practical, and debate-focused."
-            ),
-            user_prompt=context_prompt,
-        )
-
-        fallacy_analysis = self.fallacy_detection_agent.detect_fallacies(
-            request.message
+        workflow = ai_analysis_service.analyze_with_workflow(
+            session_id=request.session_id,
+            argument=request.message,
+            user_id=request.user_id,
         )
 
         return [
             ChatAgentOutput(
                 agent="Argument Analysis",
-                content=argument_analysis.model_dump(),
+                content=workflow["argument_analysis"],
             ),
             ChatAgentOutput(
                 agent="Counterargument",
-                content=counterargument,
+                content=workflow["counterargument"],
             ),
             ChatAgentOutput(
                 agent="Fallacy Detection",
-                content=fallacy_analysis.model_dump(),
+                content=workflow["logical_fallacy_analysis"],
             ),
         ]
 
