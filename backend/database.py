@@ -96,6 +96,7 @@ def init_db():
                 format TEXT NOT NULL,
                 position TEXT NOT NULL,
                 opponent_type TEXT NOT NULL,
+                difficulty TEXT NOT NULL DEFAULT 'Advanced',
                 scheduled_for TEXT NOT NULL,
                 status TEXT NOT NULL CHECK(status IN ('scheduled', 'active', 'completed', 'cancelled')),
                 notes TEXT NOT NULL DEFAULT '',
@@ -155,6 +156,29 @@ def init_db():
                 FOREIGN KEY(coach_id) REFERENCES users(id)
             );
             
+
+            CREATE TABLE IF NOT EXISTS coach_tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                assigned_by INTEGER NOT NULL,
+                learner_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'completed')),
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(assigned_by) REFERENCES users(id),
+                FOREIGN KEY(learner_id) REFERENCES users(id)
+            );
+
+
+            CREATE TABLE IF NOT EXISTS coach_assignments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                learner_id INTEGER NOT NULL UNIQUE,
+                coach_id INTEGER,
+                assigned_by TEXT NOT NULL DEFAULT 'learner',
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(learner_id) REFERENCES users(id),
+                FOREIGN KEY(coach_id) REFERENCES users(id)
+            );
             """
         )
         migrate_schema(conn)
@@ -188,10 +212,19 @@ def migrate_schema(conn):
         "words_per_minute": "INTEGER",
         "pace_status": "TEXT",
         "audio_path": "TEXT",
+        # Milestone 3: Counterargument Generation Engine
+        "rebuttal_type": "TEXT",
+        "challenge_question": "TEXT",
+        "strategy_suggestion": "TEXT",
     }
     for column, definition in new_turn_columns.items():
         if column not in existing_turn_columns:
             conn.execute(f"ALTER TABLE debate_turns ADD COLUMN {column} {definition}")
+
+    # Milestone 3: AI Debate Simulation Engine -- difficulty level
+    existing_session_columns = {row["name"] for row in conn.execute("PRAGMA table_info(debate_sessions)").fetchall()}
+    if "difficulty" not in existing_session_columns:
+        conn.execute("ALTER TABLE debate_sessions ADD COLUMN difficulty TEXT NOT NULL DEFAULT 'Advanced'")
 
 
 def seed_data(conn):
@@ -221,8 +254,8 @@ def seed_data(conn):
             conn.execute(
                 """
                 INSERT INTO debate_sessions
-                (owner_id, topic, format, position, opponent_type, scheduled_for, status, notes, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (owner_id, topic, format, position, opponent_type, difficulty, scheduled_for, status, notes, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     learner["id"],
@@ -230,6 +263,7 @@ def seed_data(conn):
                     "Oxford Debate",
                     "For",
                     "AI Simulation",
+                    "Advanced",
                     scheduled,
                     "scheduled",
                     "Focus on evidence quality and ethical trade-offs.",
@@ -312,13 +346,7 @@ def consume_otp(conn, otp_id):
     conn.execute("UPDATE otp_codes SET consumed = 1 WHERE id = ?", (otp_id,))
 
 
-# ---------------------------------------------------------------------------
-# Session status auto-sync (Module 3: Session management)
-# ---------------------------------------------------------------------------
-
 def sync_session_statuses(conn):
-    """Auto-cancels sessions that were never started (still 'scheduled') once
-    their scheduled time has passed. Active/completed sessions are untouched."""
     now = datetime.utcnow()
     rows = conn.execute(
         "SELECT id, scheduled_for FROM debate_sessions WHERE status = 'scheduled'"
@@ -332,10 +360,6 @@ def sync_session_statuses(conn):
             conn.execute("UPDATE debate_sessions SET status = 'cancelled' WHERE id = ?", (row["id"],))
 
 
-# ---------------------------------------------------------------------------
-# Debate Room helpers
-# ---------------------------------------------------------------------------
-
 def save_debate_turn(
     conn,
     session_id,
@@ -346,6 +370,9 @@ def save_debate_turn(
     words_per_minute=None,
     pace_status=None,
     audio_path=None,
+    rebuttal_type=None,
+    challenge_question=None,
+    strategy_suggestion=None,
 ):
     detected = bool(fallacy_report and fallacy_report.fallacy_detected)
     conn.execute(
@@ -356,8 +383,9 @@ def save_debate_turn(
          main_claim, evidence_offered, evidence_present, reasoning_notes,
          clarity_score, relevance_score, evidence_score, consistency_score,
          persuasiveness_score, overall_score, score_feedback,
-         words_per_minute, pace_status, audio_path, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         words_per_minute, pace_status, audio_path,
+         rebuttal_type, challenge_question, strategy_suggestion, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             session_id,
@@ -382,6 +410,9 @@ def save_debate_turn(
             words_per_minute,
             pace_status,
             audio_path,
+            rebuttal_type,
+            challenge_question,
+            strategy_suggestion,
             now_iso(),
         ),
     )
@@ -405,10 +436,6 @@ def get_debate_turns(conn, session_id):
         turns.append(turn)
     return turns
 
-
-# ---------------------------------------------------------------------------
-# Session-end summary (Milestone 2/4: Generate debate feedback reports)
-# ---------------------------------------------------------------------------
 
 def compute_session_stats(conn, session_id):
     rows = conn.execute(
@@ -486,9 +513,8 @@ def get_session_summary(conn, session_id):
             data[key] = []
     return data
 
+
 def attach_session_scores(conn, sessions):
-    """Adds an 'overall_score' field (or None) to each session dict, pulled
-    from debate_session_summaries if the session has ended."""
     if not sessions:
         return sessions
     ids = [s["id"] for s in sessions]
@@ -502,10 +528,8 @@ def attach_session_scores(conn, sessions):
         s["overall_score"] = score_map.get(s["id"])
     return sessions
 
+
 def compute_learner_skills(conn, user_id):
-    """Computes live skill percentages from the learner's actual debate turn
-    history, instead of using static seeded numbers. Falls back to the
-    original default (via skills table) if the learner has no scored turns yet."""
     rows = conn.execute(
         """
         SELECT clarity_score, evidence_score, consistency_score, persuasiveness_score, overall_score
@@ -544,9 +568,44 @@ def compute_learner_skills(conn, user_id):
     return result
 
 
+def compute_learner_history_stats(conn, user_id):
+    """Milestone 3: Recommendation & Coaching Engine input -- aggregates a
+    learner's ENTIRE debate history (all sessions), not just one session."""
+    rows = conn.execute(
+        """
+        SELECT clarity_score, relevance_score, evidence_score, consistency_score,
+               persuasiveness_score, overall_score, fallacy_detected, fallacy_type
+        FROM debate_turns
+        JOIN debate_sessions ON debate_sessions.id = debate_turns.session_id
+        WHERE debate_sessions.owner_id = ? AND debate_turns.speaker = 'user'
+              AND debate_turns.overall_score IS NOT NULL
+        """,
+        (user_id,),
+    ).fetchall()
+
+    def avg(key):
+        vals = [r[key] for r in rows if r[key] is not None]
+        return round(sum(vals) / len(vals)) if vals else 0
+
+    fallacy_counts = {}
+    for r in rows:
+        if r["fallacy_detected"] and r["fallacy_type"]:
+            fallacy_counts[r["fallacy_type"]] = fallacy_counts.get(r["fallacy_type"], 0) + 1
+    most_common_fallacy = max(fallacy_counts, key=fallacy_counts.get) if fallacy_counts else None
+
+    return {
+        "turns_count": len(rows),
+        "avg_overall": avg("overall_score"),
+        "avg_clarity": avg("clarity_score"),
+        "avg_relevance": avg("relevance_score"),
+        "avg_evidence": avg("evidence_score"),
+        "avg_consistency": avg("consistency_score"),
+        "avg_persuasiveness": avg("persuasiveness_score"),
+        "most_common_fallacy": most_common_fallacy,
+    }
+
+
 def get_recent_activity(conn, limit=6):
-    """Combines recent user registrations and session creations into one
-    reverse-chronological feed for the Admin Dashboard's activity panel."""
     users = conn.execute(
         "SELECT name, role, created_at FROM users ORDER BY created_at DESC LIMIT ?", (limit,)
     ).fetchall()
@@ -587,8 +646,6 @@ def update_user_role(conn, user_id, new_role):
 
 
 def delete_user_cascade(conn, user_id):
-    """Deletes a user and every record tied to them, so no orphaned data is
-    left behind (profile, skills, sessions, turns, and session summaries)."""
     session_ids = [
         row["id"] for row in conn.execute(
             "SELECT id FROM debate_sessions WHERE owner_id = ?", (user_id,)
@@ -603,22 +660,38 @@ def delete_user_cascade(conn, user_id):
     conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
 
 
-def compute_skill_gap_analysis(conn):
-    """Aggregates average skill scores across every learner's scored debate
-    turns, so a coach/educator can see class-wide strengths/weaknesses
-    rather than one learner at a time."""
-    rows = conn.execute(
-        """
-        SELECT debate_turns.clarity_score, debate_turns.evidence_score,
-               debate_turns.consistency_score, debate_turns.persuasiveness_score,
-               debate_turns.overall_score
-        FROM debate_turns
-        JOIN debate_sessions ON debate_sessions.id = debate_turns.session_id
-        JOIN users ON users.id = debate_sessions.owner_id
-        WHERE users.role = 'learner' AND debate_turns.speaker = 'user'
-              AND debate_turns.overall_score IS NOT NULL
-        """
-    ).fetchall()
+def compute_skill_gap_analysis(conn, coach_id=None):
+    """Aggregates average skill scores across scored debate turns.
+    If coach_id is given, scoped to only that coach's assigned learners
+    (via coach_assignments). Otherwise (educator/admin), covers all learners
+    platform-wide."""
+    if coach_id is not None:
+        rows = conn.execute(
+            """
+            SELECT debate_turns.clarity_score, debate_turns.evidence_score,
+                   debate_turns.consistency_score, debate_turns.persuasiveness_score,
+                   debate_turns.overall_score
+            FROM debate_turns
+            JOIN debate_sessions ON debate_sessions.id = debate_turns.session_id
+            JOIN coach_assignments ON coach_assignments.learner_id = debate_sessions.owner_id
+            WHERE coach_assignments.coach_id = ? AND debate_turns.speaker = 'user'
+                  AND debate_turns.overall_score IS NOT NULL
+            """,
+            (coach_id,),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            """
+            SELECT debate_turns.clarity_score, debate_turns.evidence_score,
+                   debate_turns.consistency_score, debate_turns.persuasiveness_score,
+                   debate_turns.overall_score
+            FROM debate_turns
+            JOIN debate_sessions ON debate_sessions.id = debate_turns.session_id
+            JOIN users ON users.id = debate_sessions.owner_id
+            WHERE users.role = 'learner' AND debate_turns.speaker = 'user'
+                  AND debate_turns.overall_score IS NOT NULL
+            """
+        ).fetchall()
 
     def avg(key):
         vals = [r[key] for r in rows if r[key] is not None]
@@ -655,7 +728,92 @@ def get_coach_feedback(conn, session_id):
     return [dict(row) for row in rows]
 
 
+def set_learner_coach(conn, learner_id, coach_id, assigned_by="learner"):
+    conn.execute(
+        """
+        INSERT INTO coach_assignments (learner_id, coach_id, assigned_by, created_at)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(learner_id) DO UPDATE SET
+          coach_id = excluded.coach_id, assigned_by = excluded.assigned_by, created_at = excluded.created_at
+        """,
+        (learner_id, coach_id, assigned_by, now_iso()),
+    )
+
+
+def get_learner_coach(conn, learner_id):
+    row = conn.execute(
+        """
+        SELECT coach_assignments.*, users.name AS coach_name, users.email AS coach_email
+        FROM coach_assignments JOIN users ON users.id = coach_assignments.coach_id
+        WHERE learner_id = ?
+        """,
+        (learner_id,),
+    ).fetchone()
+    return dict(row) if row else None
+
+
+def get_assigned_learners(conn, coach_id):
+    rows = conn.execute(
+        """
+        SELECT users.id, users.name, users.email, users.role, users.created_at
+        FROM coach_assignments JOIN users ON users.id = coach_assignments.learner_id
+        WHERE coach_assignments.coach_id = ? ORDER BY users.name
+        """,
+        (coach_id,),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def list_available_coaches(conn):
+    rows = conn.execute(
+        """
+        SELECT users.id, users.name, users.email, profiles.specialization,
+               (SELECT COUNT(*) FROM coach_assignments WHERE coach_assignments.coach_id = users.id) AS learner_count
+        FROM users LEFT JOIN profiles ON profiles.user_id = users.id
+        WHERE users.role = 'coach' ORDER BY users.name
+        """
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def create_task(conn, assigned_by, learner_id, title, description):
+    conn.execute(
+        "INSERT INTO coach_tasks (assigned_by, learner_id, title, description, status, created_at) "
+        "VALUES (?, ?, ?, ?, 'pending', ?)",
+        (assigned_by, learner_id, title, description, now_iso()),
+    )
+
+
+def get_tasks_for_learner(conn, learner_id):
+    rows = conn.execute(
+        """
+        SELECT coach_tasks.*, users.name AS assigned_by_name
+        FROM coach_tasks JOIN users ON users.id = coach_tasks.assigned_by
+        WHERE learner_id = ? ORDER BY coach_tasks.created_at DESC
+        """,
+        (learner_id,),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def get_tasks_assigned_by(conn, coach_id):
+    rows = conn.execute(
+        """
+        SELECT coach_tasks.*, users.name AS learner_name
+        FROM coach_tasks JOIN users ON users.id = coach_tasks.learner_id
+        WHERE assigned_by = ? ORDER BY coach_tasks.created_at DESC
+        """,
+        (coach_id,),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def mark_task_status(conn, task_id, learner_id, status):
+    conn.execute(
+        "UPDATE coach_tasks SET status = ? WHERE id = ? AND learner_id = ?",
+        (status, task_id, learner_id),
+    )
+
 
 def row_to_dict(row):
     return dict(row) if row else None
-

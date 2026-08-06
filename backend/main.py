@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import logging
 import traceback
+import time
 import uuid
 from pathlib import Path
 from typing import List, Literal, Optional
@@ -21,6 +22,7 @@ from database import (
     RECORDINGS_DIR,
     attach_session_scores,
     compute_learner_skills,
+    compute_learner_history_stats,
     compute_platform_average_score,
     compute_session_stats,
     consume_otp,
@@ -43,16 +45,26 @@ from database import (
     compute_skill_gap_analysis,
     save_coach_feedback,
     get_coach_feedback,
-
-
+    create_task,
+    get_tasks_for_learner,
+    get_tasks_assigned_by,
+    mark_task_status,
+    set_learner_coach,
+    get_learner_coach,
+    get_assigned_learners,
+    list_available_coaches,
 )
 from schemas.fallacy import FallacyReport
 from schemas.scoring import ArgumentScore
+from schemas.rebuttal import OpponentRebuttal
 from schemas.session_summary import SessionSummary
+from schemas.recommendation import CoachingRecommendation
 from agents.chatbot_engine import run_debate_turn
 from services.speech import transcribe_audio
 from services.session_summary_agent import generate_session_summary
 from services.assistant_agent import generate_assistant_reply
+from services.recommendation_agent import generate_recommendation
+from services.coach_agent import generate_coach_reply
 
 logger = logging.getLogger("debate_coach")
 logging.basicConfig(level=logging.INFO)
@@ -106,6 +118,7 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+
 class CoachFeedbackRequest(BaseModel):
     feedback_text: str
 
@@ -140,9 +153,24 @@ class ProfileUpdateRequest(BaseModel):
     years_of_experience: Optional[str] = ""
 
 
+class TaskCreateRequest(BaseModel):
+    learner_id: int
+    title: str
+    description: Optional[str] = ""
+
+
+class TaskStatusRequest(BaseModel):
+    status: Literal["pending", "completed"]    
+
+
 class SkillItem(BaseModel):
     skill_name: str
     score: int = 50
+
+class CoachAssignRequest(BaseModel):
+    learner_id: int
+    coach_id: int
+
 
 
 class SkillsUpdateRequest(BaseModel):
@@ -154,6 +182,7 @@ class SessionCreateRequest(BaseModel):
     format: str
     position: str
     opponent_type: str
+    difficulty: Literal["Novice", "Advanced", "Master"] = "Advanced"
     scheduled_for: str
     notes: Optional[str] = ""
 
@@ -359,8 +388,6 @@ def me(user=Depends(get_current_user)):
 
 @app.post("/api/assistant/chat")
 def assistant_chat(data: AssistantChatRequest, user=Depends(get_current_user)):
-    """The global floating chatbot -- available on every page, not tied to
-    a debate session. Friendly helper, not an opponent."""
     message = data.message.strip()
     if not message:
         raise ValueError("Type a message first.")
@@ -379,8 +406,21 @@ def coach_skill_gap(user=Depends(get_current_user)):
     if user["role"] not in {"coach", "educator", "admin"}:
         raise HTTPException(status_code=403, detail="Not allowed")
     with get_connection() as conn:
-        analysis = compute_skill_gap_analysis(conn)
+        coach_id = user["id"] if user["role"] == "coach" else None
+        analysis = compute_skill_gap_analysis(conn, coach_id=coach_id)
     return analysis
+
+
+@app.get("/api/learner/recommendations")
+def learner_recommendations(user=Depends(get_current_user)):
+    """Milestone 3: Recommendation & Coaching Engine -- standing, personalized
+    recommendation built from the learner's FULL debate history."""
+    if user["role"] != "learner":
+        raise HTTPException(status_code=403, detail="Only learners have personalized recommendations.")
+    with get_connection() as conn:
+        stats = compute_learner_history_stats(conn, user["id"])
+    recommendation: CoachingRecommendation = generate_recommendation(stats)
+    return recommendation.dict()
 
 
 @app.post("/api/sessions/{session_id}/feedback", status_code=201)
@@ -427,6 +467,7 @@ def dashboard(user=Depends(get_current_user)):
         "roleLabel": ROLE_LABELS[user["role"]],
     }
 
+
 @app.get("/api/profile")
 def get_profile(user=Depends(get_current_user)):
     with get_connection() as conn:
@@ -457,6 +498,56 @@ def update_profile(data: ProfileUpdateRequest, user=Depends(get_current_user)):
             (*values, user["id"]),
         )
     return get_profile(user)
+
+
+@app.post("/api/coach/chat")
+def coach_chat(data: AssistantChatRequest, user=Depends(get_current_user)):
+    message = data.message.strip()
+    if not message:
+        raise ValueError("Type a message or paste an argument first.")
+    history = [turn.dict() for turn in data.history]
+    result = generate_coach_reply(message, history, user["name"], ROLE_LABELS[user["role"]])
+    return result
+
+
+@app.get("/api/tasks")
+def list_tasks(user=Depends(get_current_user)):
+    with get_connection() as conn:
+        if user["role"] == "learner":
+            tasks = get_tasks_for_learner(conn, user["id"])
+            return {"tasks": tasks, "scope": "learner"}
+        elif user["role"] in {"coach", "educator", "admin"}:
+            tasks = get_tasks_assigned_by(conn, user["id"])
+            return {"tasks": tasks, "scope": "assigner"}
+    raise HTTPException(status_code=403, detail="Access denied")
+
+
+@app.post("/api/tasks", status_code=201)
+def create_task_route(data: TaskCreateRequest, user=Depends(get_current_user)):
+    if user["role"] not in {"coach", "educator", "admin"}:
+        raise HTTPException(status_code=403, detail="Only coaches or educators can assign tasks.")
+    title = data.title.strip()
+    if not title:
+        raise ValueError("Task title is required.")
+    with get_connection() as conn:
+        learner = conn.execute(
+            "SELECT * FROM users WHERE id = ? AND role = 'learner'", (data.learner_id,)
+        ).fetchone()
+        if not learner:
+            raise HTTPException(status_code=404, detail="Learner not found.")
+        create_task(conn, user["id"], data.learner_id, title, (data.description or "").strip())
+        tasks = get_tasks_assigned_by(conn, user["id"])
+    return {"tasks": tasks}
+
+
+@app.put("/api/tasks/{task_id}")
+def update_task_status(task_id: int, data: TaskStatusRequest, user=Depends(get_current_user)):
+    if user["role"] != "learner":
+        raise HTTPException(status_code=403, detail="Only the assigned learner can update task status.")
+    with get_connection() as conn:
+        mark_task_status(conn, task_id, user["id"], data.status)
+        tasks = get_tasks_for_learner(conn, user["id"])
+    return {"tasks": tasks}
 
 
 @app.get("/api/skills")
@@ -493,8 +584,8 @@ def create_session(data: SessionCreateRequest, user=Depends(get_current_user)):
         cur = conn.execute(
             """
             INSERT INTO debate_sessions
-            (owner_id, topic, format, position, opponent_type, scheduled_for, status, notes, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, 'scheduled', ?, ?)
+            (owner_id, topic, format, position, opponent_type, difficulty, scheduled_for, status, notes, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'scheduled', ?, ?)
             """,
             (
                 user["id"],
@@ -502,6 +593,7 @@ def create_session(data: SessionCreateRequest, user=Depends(get_current_user)):
                 data.format,
                 data.position,
                 data.opponent_type,
+                data.difficulty,
                 data.scheduled_for,
                 (data.notes or "").strip(),
                 now_iso(),
@@ -538,9 +630,6 @@ def delete_session(session_id: int, user=Depends(get_current_user)):
 
 @app.post("/api/sessions/{session_id}/end")
 def end_session(session_id: int, user=Depends(get_current_user)):
-    """Ends a debate session: computes aggregate stats across the user's
-    turns, generates a closing coaching report, and marks the session
-    completed. Idempotent -- calling it again just returns the same report."""
     with get_connection() as conn:
         session = row_to_dict(conn.execute("SELECT * FROM debate_sessions WHERE id = ?", (session_id,)).fetchone())
         if not session:
@@ -576,10 +665,8 @@ def end_session(session_id: int, user=Depends(get_current_user)):
 def list_users(user=Depends(get_current_user)):
     with get_connection() as conn:
         if user["role"] == "coach":
-            rows = conn.execute(
-                "SELECT id,name,email,role,created_at FROM users WHERE role='learner' ORDER BY name"
-            ).fetchall()
-            return {"users": [dict(r) for r in rows], "scope": "learners"}
+            rows = get_assigned_learners(conn, user["id"])
+            return {"users": rows, "scope": "learners"}
 
         elif user["role"] == "educator":
             rows = conn.execute(
@@ -614,6 +701,52 @@ def get_user_profile(user_id: int, viewer=Depends(get_current_user)):
         "profile": row_to_dict(profile_row),
         "skills": skills,
     }
+
+@app.get("/api/coaches")
+def get_coaches(user=Depends(get_current_user)):
+    with get_connection() as conn:
+        coaches = list_available_coaches(conn)
+    return {"coaches": coaches}
+
+
+@app.get("/api/my-coach")
+def my_coach(user=Depends(get_current_user)):
+    if user["role"] != "learner":
+        raise HTTPException(status_code=403, detail="Only learners have an assigned coach.")
+    with get_connection() as conn:
+        coach = get_learner_coach(conn, user["id"])
+    return {"coach": coach}
+
+
+@app.post("/api/my-coach")
+def choose_my_coach(data: CoachAssignRequest, user=Depends(get_current_user)):
+    if user["role"] != "learner":
+        raise HTTPException(status_code=403, detail="Only learners can choose their own coach.")
+    if data.learner_id != user["id"]:
+        raise HTTPException(status_code=403, detail="You can only assign your own coach.")
+    with get_connection() as conn:
+        coach = conn.execute("SELECT id FROM users WHERE id = ? AND role = 'coach'", (data.coach_id,)).fetchone()
+        if not coach:
+            raise HTTPException(status_code=404, detail="Coach not found.")
+        set_learner_coach(conn, user["id"], data.coach_id, assigned_by="learner")
+        result = get_learner_coach(conn, user["id"])
+    return {"coach": result}
+
+
+@app.post("/api/admin/assign-coach")
+def admin_assign_coach(data: CoachAssignRequest, user=Depends(get_current_user)):
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Administrator access required")
+    with get_connection() as conn:
+        learner = conn.execute("SELECT id FROM users WHERE id = ? AND role = 'learner'", (data.learner_id,)).fetchone()
+        coach = conn.execute("SELECT id FROM users WHERE id = ? AND role = 'coach'", (data.coach_id,)).fetchone()
+        if not learner:
+            raise HTTPException(status_code=404, detail="Learner not found.")
+        if not coach:
+            raise HTTPException(status_code=404, detail="Coach not found.")
+        set_learner_coach(conn, data.learner_id, data.coach_id, assigned_by="admin")
+        result = get_learner_coach(conn, data.learner_id)
+    return {"coach": result}
 
 
 @app.get("/api/users/{user_id}/sessions")
@@ -674,7 +807,7 @@ def admin_overview(user=Depends(get_current_user)):
             for role_name, total in role_totals.items()
         ],
         "systemHealth": {
-            "database": True,  # if this query ran, the DB connection is alive
+            "database": True,
             "aiService": bool(os.environ.get("GROQ_API_KEY")),
             "emailService": bool(os.environ.get("SMTP_HOST")),
         },
@@ -717,7 +850,6 @@ def admin_delete_user(user_id: int, user=Depends(get_current_user)):
             raise HTTPException(status_code=404, detail="User not found")
         delete_user_cascade(conn, user_id)
     return {"ok": True}
-
 
 
 @app.get("/api/debate/turns/{session_id}")
@@ -774,9 +906,15 @@ async def debate_turn(
     if not user_text:
         raise ValueError("Couldn't make out that audio -- please try again.")
 
+    # Milestone 3, Section 5.1: edge-case guard -- reject too-short/gibberish
+    # input with a gentle redirect instead of running the full pipeline.
+    if len(user_text.strip()) < 4:
+        raise ValueError("That's a bit short -- try giving a fuller argument so I can give you useful feedback.")
+
     with get_connection() as conn:
         history = get_debate_turns(conn, session_id)
 
+    start_time = time.time()
     result = run_debate_turn(
         topic=session["topic"],
         debate_format=session["format"],
@@ -784,10 +922,14 @@ async def debate_turn(
         history=history,
         user_text=user_text,
         duration_seconds=duration_seconds,
+        difficulty=session.get("difficulty", "Advanced"),
     )
+    elapsed = time.time() - start_time
+    logger.info("Turn processed for session %s in %.2fs", session_id, elapsed)
+
     fallacy_report: FallacyReport = result["fallacy_report"]
     argument_score: ArgumentScore = result["argument_score"]
-    opponent_reply: str = result["opponent_reply"]
+    opponent_rebuttal: OpponentRebuttal = result["opponent_rebuttal"]
     words_per_minute = result["words_per_minute"]
     pace_status = result["pace_status"]
 
@@ -796,7 +938,12 @@ async def debate_turn(
             conn, session_id, "user", user_text, fallacy_report, argument_score,
             words_per_minute=words_per_minute, pace_status=pace_status, audio_path=audio_path,
         )
-        save_debate_turn(conn, session_id, "opponent", opponent_reply, None, None)
+        save_debate_turn(
+            conn, session_id, "opponent", opponent_rebuttal.rebuttal_text, None, None,
+            rebuttal_type=opponent_rebuttal.rebuttal_type,
+            challenge_question=opponent_rebuttal.challenge_question,
+            strategy_suggestion=opponent_rebuttal.strategy_suggestion,
+        )
         if session["status"] == "scheduled":
             conn.execute(
                 "UPDATE debate_sessions SET status = 'active' WHERE id = ?", (session_id,)
@@ -809,7 +956,10 @@ async def debate_turn(
         "wordsPerMinute": words_per_minute,
         "paceStatus": pace_status,
         "audioPath": audio_path,
-        "opponentReply": opponent_reply,
+        "opponentReply": opponent_rebuttal.rebuttal_text,
+        "rebuttalType": opponent_rebuttal.rebuttal_type,
+        "challengeQuestion": opponent_rebuttal.challenge_question,
+        "strategySuggestion": opponent_rebuttal.strategy_suggestion,
     }
 
 

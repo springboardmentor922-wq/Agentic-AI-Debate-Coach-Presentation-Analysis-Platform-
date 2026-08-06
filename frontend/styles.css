@@ -1389,3 +1389,28 @@ hr {
     width: 92vw;
   }
 }
+
+.rebuttal-tag {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.rebuttal-tag-logical { background: #e0e7ff; color: #3730a3; }
+.rebuttal-tag-evidence-based { background: #dbeafe; color: #1e40af; }
+.rebuttal-tag-ethical { background: #fce7f3; color: #9d174d; }
+.rebuttal-tag-practical-policy { background: #dcfce7; color: #166534; }
+
+.challenge-flag {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  font-size: 13.5px;
+  color: #78350f;
+}
