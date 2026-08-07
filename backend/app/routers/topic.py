@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database.connection import get_db
 from app.models.topic import DebateTopic
 from app.schemas.topic import TopicCreate
-from app.auth.dependencies import get_current_admin
+from app.auth.dependencies import get_current_admin, get_current_learner
 
 router = APIRouter(
     prefix="/topics",
@@ -36,7 +36,30 @@ def create_topic(
 
     return new_topic
 
+@router.post("/learner", status_code=status.HTTP_201_CREATED)
+def create_topic_from_learner(
+    topic: TopicCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_learner)
+):
 
+    existing = db.query(DebateTopic).filter(
+        DebateTopic.title == topic.title
+    ).first()
+
+    if existing:
+        raise HTTPException(
+            status_code=409,
+            detail="Topic already exists."
+        )
+
+    new_topic = DebateTopic(**topic.model_dump())
+
+    db.add(new_topic)
+    db.commit()
+    db.refresh(new_topic)
+
+    return new_topic
 @router.get("/")
 def get_topics(db: Session = Depends(get_db)):
     return db.query(DebateTopic).all()

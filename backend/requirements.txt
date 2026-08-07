@@ -29,3 +29,9 @@ librosa
 soundfile
 librosa
 soundfile
+openai-whisper
+ffmpeg-python
+pydub
+moviepy
+python-pptx
+pypdf

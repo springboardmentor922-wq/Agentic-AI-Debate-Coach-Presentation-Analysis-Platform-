@@ -11,6 +11,7 @@ from app.routers import recommendation
 from app.routers import statistics
 from app.routers import dashboard
 from app.routers import ai
+from app.routers import presentation
 from app.routers import (
     auth,
     profile,
@@ -48,6 +49,7 @@ app.include_router(recommendation.router)
 app.include_router(statistics.router)
 app.include_router(dashboard.router)
 app.include_router(ai.router)
+app.include_router(presentation.router)
 @app.get("/")
 def home():
     return {

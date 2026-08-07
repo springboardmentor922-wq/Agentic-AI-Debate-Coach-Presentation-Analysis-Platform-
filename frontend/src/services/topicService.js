@@ -2,7 +2,7 @@ import api from "./api";
 
 export const getTopics = async () => {
 
-    const response = await api.get("/topics");
+    const response = await api.get("/topics/");
 
     return response.data;
 
@@ -10,7 +10,10 @@ export const getTopics = async () => {
 
 export const createTopic = async (topic) => {
 
-    const response = await api.post("/topics", topic);
+    const response = await api.post(
+        "/topics/learner",
+        topic
+    );
 
     return response.data;
 

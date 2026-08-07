@@ -36,24 +36,47 @@ function DebateRoom() {
 
         recognition.lang = "en-US";
 
-        recognition.continuous = false;
+        recognition.continuous = true;
 
-        recognition.interimResults = false;
-
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 3;
         setRecording(true);
 
         recognition.start();
 
+        let finalTranscript = "";
+
         recognition.onresult = (event) => {
 
-            const speech = event.results[0][0].transcript;
+            let interimTranscript = "";
 
-            setArgument(prev =>
+            for (
+                let i = event.resultIndex;
+                i < event.results.length;
+                i++
+            ) {
 
+                const transcript =
+                    event.results[i][0].transcript;
+
+                if (event.results[i].isFinal) {
+
+                    finalTranscript += transcript + " ";
+
+                }
+
+                else {
+
+                    interimTranscript += transcript;
+
+                }
+
+            }
+
+            setArgument((prev) =>
                 prev
-                    ? prev + " " + speech
-                    : speech
-
+                    ? prev + " " + finalTranscript + interimTranscript
+                    : finalTranscript + interimTranscript
             );
 
         };

@@ -1,75 +1,42 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException
 
-from app.database.connection import get_db
-from app.models.topic import DebateTopic
-from app.schemas.topic import TopicCreate
-from app.auth.dependencies import get_current_learner
+from app.schemas.debate import DebateRequest, DebateResponse
+from app.services.ai.debate_engine import DebateEngine
+from app.services.mongodb.transcript_service import TranscriptService
 
 router = APIRouter(
-    prefix="/topics",
-    tags=["Debate Topics"]
+    prefix="/debate",
+    tags=["Debate"]
 )
 
+engine = DebateEngine()
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
-def create_topic(
-    topic: TopicCreate,
-    db: Session = Depends(get_db),
-    current_user=Depends(get_current_learner)
-):
-
-    existing = db.query(DebateTopic).filter(
-        DebateTopic.title == topic.title
-    ).first()
-
-    if existing:
-
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="Topic already exists."
-        )
-
-    new_topic = DebateTopic(
-        **topic.model_dump()
-    )
-
-    db.add(new_topic)
-
-    db.commit()
-
-    db.refresh(new_topic)
-
-    return new_topic
+transcript_service = TranscriptService()
 
 
-@router.get("/")
-def get_topics(
-    db: Session = Depends(get_db)
-):
+@router.get("/{session_id}/transcript")
+async def get_transcript(session_id: int):
 
-    return db.query(
-        DebateTopic
-    ).all()
+    history = await transcript_service.get_history(session_id)
 
-
-@router.get("/{topic_id}")
-def get_topic(
-    topic_id: int,
-    db: Session = Depends(get_db)
-):
-
-    topic = db.query(
-        DebateTopic
-    ).filter(
-        DebateTopic.id == topic_id
-    ).first()
-
-    if topic is None:
+    if not history:
 
         raise HTTPException(
             status_code=404,
-            detail="Topic not found."
+            detail="Transcript not found"
         )
 
-    return topic
+    return history
+
+
+@router.post(
+    "/analyze",
+    response_model=DebateResponse
+)
+async def analyze_argument(
+    request: DebateRequest
+):
+
+    return await engine.evaluate(
+        request.argument
+    )
