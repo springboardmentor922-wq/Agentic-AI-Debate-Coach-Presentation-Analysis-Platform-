@@ -15,7 +15,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import coachChatApi from '../api/coachChat'
-import { resolvePageContext, AGENT_LABELS } from '../utils/chatPageContext'
+import { resolvePageContext } from '../utils/chatPageContext'
 
 // Very small markdown-lite renderer (bold + bullet lines + line breaks) so we
 // don't need an extra dependency for the chatbot's formatted replies.
@@ -328,18 +328,6 @@ export default function GlobalChatbot() {
                         </div>
                       ) : (
                         <Markdownish text={m.text} />
-                      )}
-                      {m.role === 'assistant' && m.agents_used?.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {m.agents_used.map((a) => (
-                            <span
-                              key={a}
-                              className="rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-medium text-brand-600 dark:text-brand-300"
-                            >
-                              {AGENT_LABELS[a] || a}
-                            </span>
-                          ))}
-                        </div>
                       )}
                       {m.role === 'assistant' && !m.id?.startsWith('err-') && !m.streaming && (
                         <div className="mt-1.5 flex items-center gap-2 text-ink-900/40 dark:text-white/40">

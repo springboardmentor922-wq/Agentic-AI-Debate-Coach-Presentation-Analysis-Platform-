@@ -1,6 +1,6 @@
 """
 Processing Jobs (Milestone 3, Part 3-4 optimization). Backs the async
-audio/video upload pipeline: upload returns immediately with a job id,
+audio upload pipeline: upload returns immediately with a job id,
 heavy work (transcription, argument/fallacy/presentation analysis, scoring,
 report/notification creation) runs in a FastAPI background task, and the
 frontend polls GET /api/v1/jobs/{job_id} for real stage-by-stage progress
@@ -33,7 +33,8 @@ async def create_job(user_id: str, kind: str) -> dict:
     now = datetime.utcnow().isoformat()
     doc = {
         "user_id": user_id,
-        "kind": kind,  # "audio" | "video"
+        "kind": kind,  # always "audio" — kept as a field rather than a bare bool in case a
+        # non-audio processing pipeline (e.g. text-only) is added later
         "status": "queued",
         "progress": STAGE_PROGRESS["queued"],
         "message": "Queued for processing…",

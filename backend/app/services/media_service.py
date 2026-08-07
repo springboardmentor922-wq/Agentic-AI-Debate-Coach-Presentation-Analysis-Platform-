@@ -18,7 +18,10 @@ from fastapi import HTTPException, UploadFile
 from app.core.config import settings
 
 _AUDIO_EXT = {e.strip().lower() for e in settings.ALLOWED_AUDIO_EXT.split(",")}
-_VIDEO_EXT = {e.strip().lower() for e in settings.ALLOWED_VIDEO_EXT.split(",")}
+_AUDIO_EXT = {
+    e.strip().lower()
+    for e in settings.ALLOWED_AUDIO_EXT.split(",")
+}
 
 
 def _ext(filename: str) -> str:

@@ -37,14 +37,12 @@ Architecture
 from __future__ import annotations
 
 import logging
-from datetime import datetime
 
 from app.core.database import (
     debate_feedback_reports_collection,
     fallacy_reports_collection,
     presentation_analysis_collection,
     performance_scores_collection,
-    performance_history_collection,
     debate_sessions_collection,
     coach_assignments_collection,
     coach_reviews_collection,
@@ -103,12 +101,15 @@ AGENT_LABELS: dict[str, str] = {
 # they're on (e.g. asking "check this for fallacies" from the dashboard).
 _KEYWORD_AGENTS = {
     "fallacy": "fallacy_detection",
+    "fallacies": "fallacy_detection",
     "ad hominem": "fallacy_detection",
     "straw man": "fallacy_detection",
     "counterargument": "counterargument",
     "counter-argument": "counterargument",
+    "counterarguments": "counterargument",
     "rebuttal": "counterargument",
     "argument": "argument_analysis",
+    "arguments": "argument_analysis",
     "claim": "argument_analysis",
     "presentation": "presentation_analysis",
     "speech": "presentation_analysis",
@@ -123,19 +124,80 @@ _KEYWORD_AGENTS = {
     "report": "report_generation",
 }
 
+# Which specialist agents each role is even allowed to activate. This is the
+# hard boundary that keeps a coach/educator/admin turn from accidentally
+# pulling in learner-only debate-practice agents (argument analysis, fallacy
+# detection, counterargument, presentation analysis) just because a keyword
+# matched — those agents operate on a learner's own text/voice, which coaches
+# and admins don't have in this context. Without this gate, keyword matching
+# alone made every role's chatbot capable of drifting into learner behavior.
+ROLE_ALLOWED_AGENTS: dict[str, set[str]] = {
+    "learner": {
+        "argument_analysis",
+        "fallacy_detection",
+        "counterargument",
+        "presentation_analysis",
+        "recommendation_coaching",
+        "performance_analytics",
+        "report_generation",
+    },
+    "debate_coach": {"performance_analytics", "recommendation_coaching", "report_generation"},
+    "educator": {"performance_analytics", "report_generation"},
+    "administrator": {"performance_analytics", "report_generation"},
+}
 
-def resolve_agents(page_key: str, message: str, has_argument_text: bool) -> list[str]:
-    """Decide which specialist agents this turn should activate."""
-    agents = list(dict.fromkeys(PAGE_AGENT_MAP.get(page_key, [])))  # de-dup, keep order
+
+def _is_conversational_smalltalk(message: str) -> bool:
+    """Detects greetings/small talk ("Hi", "thanks", "how are you", "bye")
+    so the orchestrator can skip specialist-agent activation entirely and
+    let the reply be a plain conversational one — this is what stops a bare
+    "Hi" from triggering the Recommendation/Performance agents just because
+    of the page the user happens to be on."""
+    normalized = message.strip().lower().strip("!?. ")
+    if not normalized:
+        return True
+    smalltalk_phrases = {
+        "hi", "hii", "hiii", "hello", "hey", "heyy", "yo", "sup", "hi there", "hello there",
+        "good morning", "good afternoon", "good evening", "good night",
+        "how are you", "how are you doing", "how's it going", "hows it going", "whats up", "what's up",
+        "thanks", "thank you", "thankyou", "thanks a lot", "thank you so much", "ty",
+        "ok", "okay", "cool", "nice", "great", "awesome", "got it", "sounds good",
+        "bye", "goodbye", "see you", "see ya", "later", "good bye",
+        "who are you", "what are you", "what can you do", "help",
+    }
+    if normalized in smalltalk_phrases:
+        return True
+    # Short messages (<=5 words) that start with a smalltalk opener and have
+    # no debate/coaching-relevant keyword are still smalltalk, e.g.
+    # "hi, how are you doing" or "hey there!".
+    word_count = len(normalized.split())
+    starts_with_smalltalk = any(normalized.startswith(p) for p in ("hi", "hello", "hey", "thank", "bye", "good morning", "good evening", "good afternoon", "how are you"))
+    if word_count <= 6 and starts_with_smalltalk:
+        return not any(kw in normalized for kw in _KEYWORD_AGENTS)
+    return False
+
+
+def resolve_agents(page_key: str, message: str, has_argument_text: bool, role: str | None = None) -> list[str]:
+    """Decide which specialist agents this turn should activate, constrained
+    to what the user's role is allowed to use. Greetings/small talk never
+    activate any agent, regardless of page — a page's default agents are
+    only a *ceiling* for what's relevant there, not something that should
+    fire on every single message sent while that page happens to be open."""
+    if not has_argument_text and _is_conversational_smalltalk(message):
+        return []
+
+    allowed = ROLE_ALLOWED_AGENTS.get(role or "", ROLE_ALLOWED_AGENTS["learner"])
+
+    agents = [a for a in dict.fromkeys(PAGE_AGENT_MAP.get(page_key, [])) if a in allowed]
 
     lowered = message.lower()
     for kw, agent in _KEYWORD_AGENTS.items():
-        if kw in lowered and agent not in agents:
+        if kw in lowered and agent in allowed and agent not in agents:
             agents.append(agent)
 
-    if has_argument_text:
+    if has_argument_text and role == "learner":
         for agent in ("argument_analysis", "fallacy_detection", "counterargument"):
-            if agent not in agents:
+            if agent in allowed and agent not in agents:
                 agents.append(agent)
 
     return agents[:4]  # keep the turn focused — max 4 specialists at once
@@ -352,39 +414,151 @@ async def run_agents(agents: list[str], *, text: str | None, topic: str | None, 
 
 # --------------------------------------------------------------------------
 # Conversation Orchestrator Agent — synthesizes the final reply
+#
+# Each role gets its OWN system prompt with a distinct persona, scope, and
+# hard "never do X" boundary, rather than one shared prompt with a `{role}`
+# variable swapped in. A shared prompt only changes what facts get quoted
+# back — the voice, scope, and behavior stayed identical across roles, which
+# was the root cause of every role "sounding the same." These four prompts
+# are deliberately non-overlapping in subject matter.
 # --------------------------------------------------------------------------
-ORCHESTRATOR_SYSTEM_PROMPT = """You are the AI Debate Coach — the platform-wide agentic assistant for a
-debate coaching and presentation analysis platform. You coordinate specialized AI agents and speak to the
-user directly, in your own voice, as a knowledgeable, encouraging coach.
+_SHARED_RULES = """Ground every specific claim (scores, counts, names) in the agent outputs or evidence JSON below —
+never invent a number or fact that isn't in it. Keep responses focused, under 180 words, markdown-formatted
+(short bullet points where useful). Speak as "I", not "the agents" or "the system".
 
-The user's role is: {role}
-The page they are currently on: {page_label}
-Specialist agents that ran this turn and what they found (JSON, may be empty if none were needed):
-{agent_outputs}
+NEVER mention internal agent/system names (e.g. "Recommendation Agent", "Performance Analytics Agent",
+"Fallacy Detection Agent") anywhere in your reply — merge whatever they found into your own natural sentences,
+as if you personally looked it up. If the agent_outputs JSON is empty and the user just sent a greeting, thanks,
+or casual remark, reply like a normal person would — a short, warm, conversational line. Do NOT force in
+debate/coaching content, statistics, or a feature pitch unless the user actually asked for help with something."""
 
-Real evidence about this user/role from the database (JSON — never contradict or invent beyond this):
-{evidence}
+LEARNER_SYSTEM_PROMPT = f"""You are the AI Debate Coach for a LEARNER on a debate-coaching platform. You are a
+personal debate & public-speaking tutor. You specialize ONLY in: debate preparation, logical reasoning and
+logical fallacies, grammar and pronunciation, public speaking and confidence, argument and speech improvement,
+presentation feedback, quizzes, learning plans, practice exercises, debate strategy, and encouragement/motivation.
 
-Rules:
-- Ground every specific claim (scores, counts, fallacy names) in the agent outputs or evidence above. Never invent a number.
-- If no agents ran and no evidence is relevant, just answer the debate/presentation coaching question directly and helpfully.
-- Keep responses focused, under 180 words, markdown-formatted (short bullet points where useful).
-- Speak as "I" (the AI Debate Coach), not "the agents"."""
+The page they are currently on: {{page_label}}
+Specialist agents that ran this turn (JSON, may be empty): {{agent_outputs}}
+Real evidence about this learner from the database (JSON): {{evidence}}
+
+{_SHARED_RULES}
+You do not have visibility into other learners, coach queues, class rosters, or platform administration — if asked
+about those, say that's outside what you can see as their learner coach and redirect to debate/speaking help."""
+
+COACH_SYSTEM_PROMPT = f"""You are the AI Debate Coach ASSISTANT for a DEBATE COACH on a debate-coaching platform.
+You specialize ONLY in coaching-workflow tasks: learner evaluation support, presentation/debate review help,
+the pending-review queue, evaluation status, coaching recommendations, identifying weak learners and top
+performers, performance analytics across the coach's roster, coaching plans, and review summaries.
+
+The page they are currently on: {{page_label}}
+Specialist agents that ran this turn (JSON, may be empty): {{agent_outputs}}
+Real evidence about this coach's roster/queue from the database (JSON): {{evidence}}
+
+{_SHARED_RULES}
+You do not tutor learners directly, generate counterarguments, or run fallacy/argument analysis on raw text — that
+is the learner-side tool. You do not have visibility into other coaches' rosters, class curricula, or platform
+administration. If asked for those, say so and redirect to coaching-queue and roster-analytics help instead."""
+
+EDUCATOR_SYSTEM_PROMPT = f"""You are the AI Debate Coach ASSISTANT for an EDUCATOR on a debate-coaching platform.
+You specialize ONLY in: class analytics, student performance trends, learning/progress reports, curriculum
+guidance, debate topic and assignment ideas, course insights, learning outcomes, and academic/grading support
+at the class level.
+
+The page they are currently on: {{page_label}}
+Specialist agents that ran this turn (JSON, may be empty): {{agent_outputs}}
+Real evidence about this educator's classes from the database (JSON): {{evidence}}
+
+{_SHARED_RULES}
+You do not tutor individual learners one-on-one, run the coach's review queue, or perform platform
+administration — if asked for those, say so and redirect to class-analytics and curriculum help instead."""
+
+ADMIN_SYSTEM_PROMPT = f"""You are the AI Debate Coach ASSISTANT for a PLATFORM ADMINISTRATOR on a debate-coaching
+platform. You specialize ONLY in: platform health, system status, user and role management, AI provider/service
+status, database health, platform-wide analytics, security and audit information, configuration, integrations,
+infrastructure, and overall platform summaries.
+
+The page they are currently on: {{page_label}}
+Specialist agents that ran this turn (JSON, may be empty): {{agent_outputs}}
+Real platform-wide evidence from the database (JSON): {{evidence}}
+
+{_SHARED_RULES}
+You do not tutor learners, run coaching-queue workflows, or produce class curricula — those are other roles'
+tools. If asked for those, say so and redirect to platform-health and administration help instead."""
+
+ROLE_SYSTEM_PROMPTS: dict[str, str] = {
+    "learner": LEARNER_SYSTEM_PROMPT,
+    "debate_coach": COACH_SYSTEM_PROMPT,
+    "educator": EDUCATOR_SYSTEM_PROMPT,
+    "administrator": ADMIN_SYSTEM_PROMPT,
+}
+
+
+def system_prompt_for_role(role: str | None) -> str:
+    return ROLE_SYSTEM_PROMPTS.get(role or "", LEARNER_SYSTEM_PROMPT)
+
+
+_GREETING_REPLIES = {
+    "learner": "Hi! 👋 Good to see you. How can I help with your debate prep today — practice, feedback, or something specific you're working on?",
+    "debate_coach": "Hi there! Ready to help with your coaching workflow — reviews, learner progress, whatever you need.",
+    "educator": "Hello! Happy to help with class analytics, reports, or curriculum ideas — what's on your mind?",
+    "administrator": "Hi! I'm here for platform health, users, or analytics — what would you like to check?",
+}
+_THANKS_REPLIES = "You're welcome! Let me know if there's anything else I can help with."
+_BYE_REPLIES = "Goodbye! Have a great one — come back anytime you need help."
 
 
 def _deterministic_reply(message: str, agent_outputs: list[dict], evidence: dict) -> str:
     """Grounded, non-LLM fallback so the chatbot is never empty/dummy even
-    if every provider is down."""
+    if every provider is down. Never surfaces raw internal agent names —
+    agent findings are merged into flowing natural sentences instead of a
+    labeled dump, since the person talking to this should never see
+    "Recommendation & Coaching Agent" as literal text."""
+    role = evidence.get("role") or "learner"
+    normalized = message.strip().lower().strip("!?. ")
+
+    if not agent_outputs:
+        if normalized in {"thanks", "thank you", "thankyou", "thanks a lot", "thank you so much", "ty"}:
+            return _THANKS_REPLIES
+        if normalized in {"bye", "goodbye", "good bye", "see you", "see ya", "later"}:
+            return _BYE_REPLIES
+        if not normalized or normalized in {
+            "hi", "hii", "hiii", "hello", "hey", "heyy", "yo", "sup", "hi there", "hello there",
+            "good morning", "good afternoon", "good evening", "good night",
+            "how are you", "how are you doing", "how's it going", "hows it going",
+        }:
+            return _GREETING_REPLIES.get(role, _GREETING_REPLIES["learner"])
+
     if agent_outputs:
-        lines = [f"**{o['label']}**: {o['summary']}" for o in agent_outputs]
-        return "Here's what I found:\n\n" + "\n\n".join(lines)
-    role = evidence.get("role", "there")
-    return (
-        f"I hear you — as your AI Debate Coach I can analyze arguments, catch logical fallacies, "
-        f"generate counterarguments, review your presentation scores, and give you coaching "
-        f"recommendations grounded in your real activity. Try pasting an argument to analyze, or ask "
-        f"about your recent performance, {role}."
-    )
+        # Merge every agent's summary into one flowing paragraph — no
+        # "**Agent Name**:" labels, no bullet-per-agent structure that
+        # reveals the internal pipeline.
+        sentences = [o["summary"].rstrip(".") for o in agent_outputs if o.get("summary")]
+        merged = ". ".join(sentences)
+        if merged and not merged.endswith("."):
+            merged += "."
+        return f"Here's what I found: {merged}" if merged else _GREETING_REPLIES.get(role, _GREETING_REPLIES["learner"])
+
+    role_fallbacks = {
+        "learner": (
+            "I can help you analyze arguments, catch logical fallacies, generate counterarguments, "
+            "review your presentation scores, and give coaching recommendations grounded in your real "
+            "activity. Try pasting an argument to analyze, or ask about your recent performance."
+        ),
+        "debate_coach": (
+            "I can help with your coaching workflow — pending reviews, your roster's recent performance, "
+            "weak-vs-top learners, and coaching-plan recommendations. Ask about your evaluation queue or "
+            "a specific learner's recent scores."
+        ),
+        "educator": (
+            "I can help with class analytics, learner performance trends, curriculum and assignment ideas, "
+            "and academic reporting. Ask about a class's recent progress or recommended debate topics."
+        ),
+        "administrator": (
+            "I can help with platform health, user/role management, AI provider status, and platform-wide "
+            "analytics. Ask about total users, session volume, or system status."
+        ),
+    }
+    return role_fallbacks.get(role, role_fallbacks["learner"])
 
 
 def _suggested_questions(page_key: str, agent_outputs: list[dict]) -> list[str]:
@@ -416,7 +590,7 @@ async def handle_message(
     used by clients that just want the final result — e.g. tests, or a
     fallback if the streaming endpoint's connection drops)."""
     prep = await _prepare_turn(user, page_key, message, argument_text)
-    messages = [("system", ORCHESTRATOR_SYSTEM_PROMPT)] + history + [("human", "{message}")]
+    messages = [("system", system_prompt_for_role(user.get("role")))] + history + [("human", "{message}")]
 
     try:
         reply = await get_text_result_with_history(
@@ -443,7 +617,9 @@ async def _prepare_turn(user: dict, page_key: str, message: str, argument_text: 
     resolves agents, gathers evidence, runs specialists. Kept as one place
     so streaming and non-streaming can never disagree on which agents ran."""
     text_for_agents = argument_text or (message if PAGE_AGENT_MAP.get(page_key) else None)
-    active_agents = resolve_agents(page_key, message, has_argument_text=bool(argument_text))
+    active_agents = resolve_agents(
+        page_key, message, has_argument_text=bool(argument_text), role=user.get("role")
+    )
     evidence = await gather_evidence(user)
     agent_outputs = await run_agents(active_agents, text=text_for_agents, topic=None, evidence=evidence)
     return {"evidence": evidence, "agent_outputs": agent_outputs}
@@ -477,7 +653,7 @@ async def stream_message(
     from app.services.llm_provider import stream_text_result_with_history
 
     prep = await _prepare_turn(user, page_key, message, argument_text)
-    messages = [("system", ORCHESTRATOR_SYSTEM_PROMPT)] + history + [("human", "{message}")]
+    messages = [("system", system_prompt_for_role(user.get("role")))] + history + [("human", "{message}")]
 
     full_reply = ""
     try:

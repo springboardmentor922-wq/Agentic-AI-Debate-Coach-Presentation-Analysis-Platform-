@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
   Send, Plus, Play, Square, Users, Bot, Clock, History, Loader2, PlayCircle,
-  UploadCloud, Video, Download, PauseCircle,
+  UploadCloud, Download, PauseCircle,
 } from 'lucide-react'
 import Breadcrumbs from '../../components/ui/Breadcrumbs'
 import Badge from '../../components/ui/Badge'
@@ -92,12 +92,11 @@ export default function Sessions() {
     return () => { cancelled = true }
   }, [format])
 
-  // --- Session-linked media upload state (Audio/Video Upload requirement) ---
-  const [uploadingMedia, setUploadingMedia] = useState(null) // 'audio' | 'video' | null
+  // --- Session-linked audio upload state ---
+  const [uploadingMedia, setUploadingMedia] = useState(null) // 'audio' | null
   const [mediaResult, setMediaResult] = useState(null)
   const [mediaError, setMediaError] = useState(null)
   const audioInputRef = useRef(null)
-  const videoInputRef = useRef(null)
 
   // --- Report download state ---
   const [downloadingReport, setDownloadingReport] = useState(null)
@@ -227,15 +226,15 @@ export default function Sessions() {
 
   const [mediaProgress, setMediaProgress] = useState(0)
 
-  const uploadMedia = async (kind, file) => {
+  const uploadMedia = async (file) => {
     if (!session || !file) return
-    setUploadingMedia(kind)
+    setUploadingMedia('audio')
     setMediaError(null)
     setMediaResult(null)
     setMediaProgress(0)
     try {
       const duration = await new Promise((resolve) => {
-        const el = document.createElement(kind === 'video' ? 'video' : 'audio')
+        const el = document.createElement('audio')
         el.preload = 'metadata'
         el.onloadedmetadata = () => { URL.revokeObjectURL(el.src); resolve(Number.isFinite(el.duration) ? el.duration : 30) }
         el.onerror = () => resolve(30)
@@ -245,11 +244,10 @@ export default function Sessions() {
       fd.append('file', file)
       fd.append('session_id', session.id)
       fd.append('duration_seconds', String(Math.round(duration)))
-      const endpoint = kind === 'video' ? '/debate/upload-video' : '/debate/upload-audio'
       // Validation errors (bad format/too large) throw synchronously and
       // are caught below. Otherwise we get a job id back immediately and
       // poll for real progress while the pipeline runs in the background.
-      const { data: accepted } = await api.post(endpoint, fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+      const { data: accepted } = await api.post('/debate/upload-audio', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
       const resultDoc = await new Promise((resolve, reject) => {
         const interval = setInterval(async () => {
           try {
@@ -270,7 +268,7 @@ export default function Sessions() {
       })
       setMediaResult(resultDoc)
     } catch (err) {
-      setMediaError(err.response?.data?.detail || err.message || `Could not analyze this ${kind} upload.`)
+      setMediaError(err.response?.data?.detail || err.message || 'Could not analyze this audio upload.')
     } finally {
       setUploadingMedia(null)
     }
@@ -542,8 +540,7 @@ export default function Sessions() {
                 </p>
 
                 <div className="mb-3 flex gap-2">
-                  <input ref={audioInputRef} type="file" accept="audio/*" className="hidden" onChange={(e) => uploadMedia('audio', e.target.files?.[0])} />
-                  <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={(e) => uploadMedia('video', e.target.files?.[0])} />
+                  <input ref={audioInputRef} type="file" accept="audio/*" className="hidden" onChange={(e) => uploadMedia(e.target.files?.[0])} />
                   <button
                     type="button"
                     onClick={() => audioInputRef.current?.click()}
@@ -551,14 +548,6 @@ export default function Sessions() {
                     className="btn-secondary flex-1 !py-2 text-xs"
                   >
                     {uploadingMedia === 'audio' ? <Loader2 size={13} className="animate-spin" /> : <UploadCloud size={13} />} Upload Audio
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => videoInputRef.current?.click()}
-                    disabled={!!uploadingMedia}
-                    className="btn-secondary flex-1 !py-2 text-xs"
-                  >
-                    {uploadingMedia === 'video' ? <Loader2 size={13} className="animate-spin" /> : <Video size={13} />} Upload Video
                   </button>
                 </div>
                 {uploadingMedia && (

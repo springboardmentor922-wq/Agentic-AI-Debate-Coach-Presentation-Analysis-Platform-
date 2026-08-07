@@ -1,6 +1,6 @@
 """
-Milestone 3 — AI Debate Simulation Engine, Live AI Debate, Audio/Video
-Upload pipelines, and AI Opponent personalities.
+Milestone 3 — AI Debate Simulation Engine, Live AI Debate, Audio
+Upload pipeline, and AI Opponent personalities.
 
 This router is additive: it does not modify the existing `/api/v1/debate`
 routes in debate_sessions.py (session CRUD) or `/api/v1/analysis` routes in
@@ -26,7 +26,6 @@ from app.core.database import (
     debate_feedback_reports_collection,
     performance_scores_collection,
     presentation_analysis_collection,
-    debate_topics_collection,
 )
 from app.core.deps import get_current_user, require_roles
 from app.schemas.user import UserRole
@@ -35,7 +34,6 @@ from app.services import coach_review_service
 from app.services.achievement_engine import evaluate_achievements_for_user
 from app.services.certificate_engine import evaluate_certificates_for_user
 from app.schemas.debate_simulation import (
-    AIPersonality,
     DebateTopicOut,
     DebateStartRequest,
     DebateLiveTurnRequest,
@@ -337,90 +335,6 @@ async def upload_audio(
     background_tasks.add_task(
         _process_audio_job, job["id"], saved_path, current_user["id"], session_id, duration_seconds, topic, debate_format
     )
-    return {"job_id": job["id"], "status": job["status"], "progress": job["progress"]}
-
-
-# --------------------------------------------------------------------------
-# PART 4 — Video Upload pipeline
-# --------------------------------------------------------------------------
-
-async def _process_video_job(job_id: str, video_path: str, user_id: str, session_id: str | None, duration_seconds: float, topic: str | None) -> None:
-    audio_path = None
-    try:
-        await job_service.set_stage(job_id, "transcribing", "Extracting audio and transcribing…")
-        audio_path = media_service.extract_audio(video_path)
-        try:
-            transcription = await _transcribe_with_retry(audio_path)
-        except whisper_service.TranscriptionUnavailableError as exc:
-            await job_service.fail_job(job_id, str(exc))
-            return
-
-        transcript = transcription.text
-        if not transcript.strip():
-            await job_service.fail_job(job_id, "No speech was detected in this video's audio track.")
-            return
-
-        await job_service.set_stage(job_id, "analyzing", "Analyzing arguments and checking for fallacies…")
-        metrics = presentation_service.compute_speech_metrics(transcript, duration_seconds or 30.0)
-        argument_report = await analyze_argument(transcript)
-        fallacy_report = await detect_fallacy(transcript, argument_analysis=argument_report)
-        counter = await generate_counterarguments(transcript, topic=topic)
-
-        await job_service.set_stage(job_id, "scoring", "Scoring your presentation…")
-        score = await presentation_service.score_presentation(transcript, metrics)
-
-        await job_service.set_stage(job_id, "saving", "Saving your report…")
-        now = datetime.utcnow().isoformat()
-        doc = {
-            "session_id": session_id,
-            "user_id": user_id,
-            "media_type": "video",
-            "transcript": transcript,
-            "speech_metrics": metrics.model_dump(),
-            "presentation_score": score.model_dump(),
-            "argument_analysis": argument_report.model_dump(),
-            "fallacy_report": fallacy_report.model_dump(),
-            "counterarguments": counter.model_dump(),
-            "created_at": now,
-            "transcription_engine": transcription.engine,
-            "transcription_fallback_reason": transcription.fallback_reason,
-        }
-        result = await presentation_analysis_collection.insert_one(doc)
-        doc_id = str(result.inserted_id)
-
-        await create_notification(
-            user_id=user_id, type_="learning_milestone",
-            title="Video analysis ready",
-            message=f"Your presentation score is {score.overall_score}/100.",
-        )
-        await job_service.complete_job(job_id, doc_id, f"Presentation score: {score.overall_score}/100")
-    except Exception as exc:
-        logger.exception("upload-video background job failed")
-        await job_service.fail_job(job_id, f"Video analysis failed: {exc}")
-    finally:
-        media_service.cleanup(video_path, audio_path)
-
-
-@router.post("/upload-video", status_code=202)
-async def upload_video(
-    background_tasks: BackgroundTasks,
-    file: UploadFile = File(...),
-    session_id: str | None = Form(default=None),
-    duration_seconds: float = Form(default=0.0),
-    current_user: dict = Depends(require_roles(UserRole.learner)),
-):
-    """Upload -> (background) Extract audio -> Whisper -> Speech analysis ->
-    Presentation analysis -> Argument analysis -> save. Returns a job id
-    immediately; poll GET /api/v1/jobs/{job_id} for progress."""
-    video_path = await media_service.save_upload(file, kind="video")  # validates extension/size, raises 400/413 synchronously
-
-    topic = None
-    if session_id:
-        session = await _get_owned_session(session_id, current_user)
-        topic = session["topic"]
-
-    job = await job_service.create_job(current_user["id"], kind="video")
-    background_tasks.add_task(_process_video_job, job["id"], video_path, current_user["id"], session_id, duration_seconds, topic)
     return {"job_id": job["id"], "status": job["status"], "progress": job["progress"]}
 
 

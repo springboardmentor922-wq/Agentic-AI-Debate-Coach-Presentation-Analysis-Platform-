@@ -8,7 +8,7 @@ const FAQS = [
   { q: 'Why does my score change after I submit?', a: 'Your AI score appears immediately. If a coach or educator later reviews the same session, their score is added alongside it — your original AI score never gets overwritten.' },
   { q: 'How does the AI Debate Coach chatbot work?', a: 'It reads your own recent debate sessions, fallacy reports, and presentation analysis to answer questions in context — a fresh conversation starts each time you log in, and past conversations stay available under the history icon in the chat window.' },
   { q: 'Can other people see my data?', a: 'Only you can see your own raw responses and drafts. Your assigned coach and educator can see your scored sessions and reports so they can give feedback — that access is enforced on the server, not just hidden in the UI.' },
-  { q: 'My audio/video upload seems stuck — what should I do?', a: 'Large files can take a little longer to transcribe and score. If it does not finish after a few minutes, refresh the Presentation Analysis page — if it still is not there, try re-uploading the file.' },
+  { q: 'My audio upload seems stuck — what should I do?', a: 'Large files can take a little longer to transcribe and score. If it does not finish after a few minutes, refresh the Presentation Analysis page — if it still is not there, try re-uploading the file.' },
 ]
 
 export default function LearnerHelp() {

@@ -1,6 +1,6 @@
 """
 Processing Job status polling (Milestone 3, Part 3-4 optimization). The
-audio/video upload endpoints in routers/debate_live.py return a job id
+audio upload endpoint in routers/debate_live.py returns a job id
 immediately and do the real work in a background task; the frontend polls
 this endpoint for real stage-by-stage progress. When status is "done", the
 full presentation analysis result is embedded inline so the frontend

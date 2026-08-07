@@ -12,8 +12,6 @@ import {
   Target,
   ListTree,
   FileText,
-  ClipboardCheck,
-  Library,
   MessageSquare,
   Megaphone,
   Settings as SettingsIcon,
@@ -27,6 +25,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
+import { useUnreadMessagesCount } from '../hooks/useUnreadMessagesCount'
 
 const NAV_GROUPS = [
   { label: 'Overview', items: [{ to: '/educator', label: 'Dashboard', icon: LayoutDashboard, end: true }] },
@@ -54,8 +53,6 @@ const NAV_GROUPS = [
     items: [
       { to: '/educator/practice-topics', label: 'Practice Topics', icon: ListTree },
       { to: '/educator/debate-formats', label: 'Debate Formats', icon: Swords },
-      { to: '/educator/rubrics', label: 'Rubrics & Criteria', icon: ClipboardCheck },
-      { to: '/educator/resources', label: 'Resource Library', icon: Library },
     ],
   },
   {
@@ -79,6 +76,7 @@ export default function EducatorLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const { user, logout } = useAuth()
+  const unreadMessages = useUnreadMessagesCount()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -119,13 +117,18 @@ export default function EducatorLayout() {
                       end={item.end}
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                        `relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                           isActive ? 'bg-brand-500 text-white shadow-premium' : 'text-white/60 hover:bg-white/10'
                         }`
                       }
                     >
                       <item.icon size={18} className="shrink-0" />
                       {!collapsed && <span className="truncate">{item.label}</span>}
+                      {item.to.endsWith('/messages') && unreadMessages > 0 && (
+                        <span className={`ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] font-bold text-white ${collapsed ? 'absolute right-1 top-1' : ''}`}>
+                          {unreadMessages > 99 ? '99+' : unreadMessages}
+                        </span>
+                      )}
                     </NavLink>
                   </li>
                 ))}

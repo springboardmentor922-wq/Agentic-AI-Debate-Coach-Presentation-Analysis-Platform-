@@ -28,8 +28,8 @@ api.interceptors.response.use(
 )
 
 /**
- * Builds a URL for an authenticated media file (audio/video), for use in
- * plain <audio>/<video> src attributes which can't send an Authorization
+ * Builds a URL for an authenticated audio file, for use in a plain
+ * <audio> src attribute which can't send an Authorization
  * header. The token is passed as a query param and validated server-side
  * by app/routers/media.py's dedicated media auth dependency.
  */

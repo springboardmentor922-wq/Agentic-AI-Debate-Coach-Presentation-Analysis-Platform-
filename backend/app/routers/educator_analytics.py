@@ -14,7 +14,6 @@ from app.core.database import (
     debate_sessions_collection,
     presentation_analysis_collection,
     debate_topics_collection,
-    rubrics_collection,
     announcements_collection,
     users_collection,
     notifications_collection,

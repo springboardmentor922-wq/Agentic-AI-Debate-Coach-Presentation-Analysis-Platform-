@@ -40,13 +40,12 @@ class Settings(BaseSettings):
     LOCAL_WHISPER_MODEL: str = "tiny"
 
 
-    # --- Milestone 3: media uploads for audio/video debate recordings ---
+    # --- Milestone 3: media uploads for audio debate recordings ---
     UPLOAD_DIR: str = "uploads"
     MAX_UPLOAD_MB: int = 100
     # webm is included so in-browser MediaRecorder captures (live mic turns)
     # can reuse the same upload/validation path as mp3/wav/m4a file uploads.
     ALLOWED_AUDIO_EXT: str = "mp3,wav,m4a,webm"
-    ALLOWED_VIDEO_EXT: str = "mp4,mov,avi"
 
     FRONTEND_ORIGIN: str = "http://localhost:5173"
 

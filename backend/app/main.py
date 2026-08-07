@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-from app.core.database import client as mongo_client
+from app.core.database import client as mongo_client, ping_database
 
 logger = logging.getLogger("uvicorn")
 from app.routers import (
@@ -38,8 +38,8 @@ app = FastAPI(
         "Milestone 1: Auth, roles, profile & skill management, debate session scheduling "
         "and status management. Milestone 2: Argument Analysis Engine, Logical Fallacy "
         "Detection Engine, AI Debate Simulation, and analysis history/reporting. "
-        "Milestone 3: full AI Debate Simulation (curated topics, live debate, audio/video "
-        "upload pipelines, AI opponent personalities), Counterargument Generation, dynamic "
+        "Milestone 3: full AI Debate Simulation (curated topics, live debate, audio "
+        "upload pipeline, AI opponent personalities), Counterargument Generation, dynamic "
         "Coaching Engine, Personalized Learning Plans, and the Notification system."
     ),
     version="0.4.0",
@@ -101,10 +101,44 @@ async def verify_mongo_connection():
 
 
 @app.on_event("startup")
+async def create_indexes():
+    """Create indexes for the query patterns actually used across the
+    dashboard/coach/educator/admin routers. Every one of these fields is
+    filtered or sorted on in a hot-path endpoint (see dashboard.py,
+    coach_review.py, educator_analytics.py) with no index today, meaning
+    every one of those queries was a full collection scan. Index creation
+    is idempotent (create_index is a no-op if the index already exists),
+    so this is safe to run on every startup."""
+    from app.core.database import (
+        debate_sessions_collection,
+        debate_feedback_reports_collection,
+        fallacy_reports_collection,
+        performance_scores_collection,
+        users_collection,
+    )
+
+    try:
+        await debate_sessions_collection.create_index([("owner_id", 1), ("status", 1)])
+        await debate_sessions_collection.create_index([("owner_id", 1), ("updated_at", -1)])
+        await debate_feedback_reports_collection.create_index([("user_id", 1), ("updated_at", -1)])
+        await debate_feedback_reports_collection.create_index("session_id")
+        await fallacy_reports_collection.create_index("user_id")
+        await performance_scores_collection.create_index([("user_id", 1), ("created_at", 1)])
+        await users_collection.create_index("role")
+        await users_collection.create_index("email", unique=True)
+        logger.info("MongoDB indexes verified/created")
+    except Exception:
+        # Index creation failing (e.g. transient Atlas hiccup at boot) should
+        # never prevent the app from starting — queries still work without
+        # the index, just slower, and this will retry next restart.
+        logger.exception("Index creation failed at startup — app will continue without them")
+
+
+@app.on_event("startup")
 async def preload_local_whisper_model():
     """Warms the local faster-whisper fallback model in the background at
     boot instead of on the first upload that needs it. Without this, the
-    very first audio/video upload after a restart pays the one-time model
+    very first audio upload after a restart pays the one-time model
     download/load cost synchronously inside the job — which is what made
     the Presentation Analysis page feel stuck well past 10 seconds whenever
     the hosted OpenAI Whisper call failed (quota/auth/network) and it had
@@ -122,4 +156,12 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "healthy"}
+    """Real health check — actually pings MongoDB rather than always
+    reporting healthy, so an orchestrator/load-balancer can detect a dead
+    DB connection instead of routing traffic to an app that can't serve
+    any real request."""
+    db_ok = await ping_database()
+    return {
+        "status": "healthy" if db_ok else "degraded",
+        "database": "connected" if db_ok else "unreachable",
+    }

@@ -1,4 +1,4 @@
-"""Secure media serving — streams a learner's recorded debate/presentation
+"""Secure audio serving — streams a learner's recorded debate/presentation
 audio back to whoever is authorized to see it: the learner who recorded it,
 any coach who has that learner on their roster, or any educator/admin.
 Never a public static file mount, so access is always checked per request."""
@@ -26,7 +26,7 @@ def _oid(value: str) -> ObjectId:
 
 
 async def get_user_for_media(
-    token: str | None = Query(default=None, description="Bearer access token, since <audio>/<video> tags can't send an Authorization header"),
+    token: str | None = Query(default=None, description="Bearer access token, since an <audio> tag can't send an Authorization header"),
 ):
     """Same validation as get_current_user, but also accepts the JWT as a
     `?token=` query parameter — required because HTML media elements can't

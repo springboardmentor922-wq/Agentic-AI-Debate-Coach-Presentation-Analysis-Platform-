@@ -8,7 +8,7 @@ import httpx
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, status, Depends
 
-from app.core.database import users_collection, otp_codes_collection, password_reset_tokens_collection
+from app.core.database import users_collection, otp_codes_collection, password_reset_tokens_collection, retry_query
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from bson.errors import InvalidId
 
@@ -179,7 +179,11 @@ async def register(payload: UserRegister):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: UserLogin):
-    user = await users_collection.find_one({"email": payload.email})
+    # Wrapped with retry_query: login is the single highest-traffic, most
+    # user-visible Mongo call in the app — a transient AutoReconnect here
+    # (e.g. mid replica-set election) shouldn't surface as a hard failure
+    # when a bounded retry would succeed.
+    user = await retry_query(users_collection.find_one, {"email": payload.email})
     if not user or not verify_password(payload.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not user.get("is_active", True):

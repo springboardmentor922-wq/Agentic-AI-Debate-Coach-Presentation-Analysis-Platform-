@@ -1,8 +1,57 @@
+import logging
+
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import AutoReconnect, ConnectionFailure, NetworkTimeout
+
 from app.core.config import settings
 
-client = AsyncIOMotorClient(settings.MONGO_URI)
+logger = logging.getLogger(__name__)
+
+# Resilient client configuration so transient Atlas hiccups (DNS blips,
+# replica-set elections, brief network partitions) never crash a request.
+# Motor/PyMongo retries most transient errors internally when these are set;
+# retry_query() below is a thin extra guard for read paths that call it.
+client = AsyncIOMotorClient(
+    settings.MONGO_URI,
+    serverSelectionTimeoutMS=8000,
+    connectTimeoutMS=8000,
+    socketTimeoutMS=20000,
+    retryWrites=True,
+    retryReads=True,
+    maxPoolSize=50,
+    minPoolSize=0,
+    heartbeatFrequencyMS=10000,
+)
 db = client[settings.MONGO_DB_NAME]
+
+RETRYABLE_MONGO_ERRORS = (AutoReconnect, ConnectionFailure, NetworkTimeout)
+
+
+async def ping_database() -> bool:
+    """Used by the health endpoint and startup check — never raises."""
+    try:
+        await client.admin.command("ping")
+        return True
+    except RETRYABLE_MONGO_ERRORS:
+        logger.warning("MongoDB ping failed (transient) — will retry on next call", exc_info=True)
+        return False
+    except Exception:
+        logger.exception("MongoDB ping failed")
+        return False
+
+
+async def retry_query(coro_fn, *args, retries: int = 2, **kwargs):
+    """Wrap a single Motor call with a couple of short retries on the
+    transient errors above (e.g. AutoReconnect during a replica-set
+    election), so a passing network blip doesn't surface as a 500."""
+    last_exc: Exception | None = None
+    for attempt in range(retries + 1):
+        try:
+            return await coro_fn(*args, **kwargs)
+        except RETRYABLE_MONGO_ERRORS as exc:
+            last_exc = exc
+            logger.warning("Transient MongoDB error (attempt %s/%s): %s", attempt + 1, retries + 1, exc)
+    raise last_exc
 
 # Collections
 users_collection = db["users"]
@@ -62,5 +111,4 @@ platform_settings_collection = db["platform_settings"]  # single-doc config: sit
 messages_collection = db["messages"]
 
 # --- Module #5: Educator Dashboard ---
-rubrics_collection = db["rubrics"]  # real grading rubrics an educator creates
 announcements_collection = db["announcements"]  # real class-wide announcements an educator has sent

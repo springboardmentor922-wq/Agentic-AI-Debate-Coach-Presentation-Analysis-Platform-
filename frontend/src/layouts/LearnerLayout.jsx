@@ -13,6 +13,7 @@ import {
   Star,
   GraduationCap,
   NotebookPen,
+  MessageSquare,
   Bell,
   Settings as SettingsIcon,
   LifeBuoy,
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
+import { useUnreadMessagesCount } from '../hooks/useUnreadMessagesCount'
 
 // Grouped exactly like the mentor's Learner Dashboard sidebar reference:
 // LEARN / ANALYZE / IMPROVE / RESOURCES / OTHER.
@@ -68,6 +70,7 @@ const NAV_GROUPS = [
   {
     label: 'Other',
     items: [
+      { to: '/learner/messages', label: 'Messages', icon: MessageSquare },
       { to: '/learner/notifications', label: 'Notifications', icon: Bell },
       { to: '/learner/settings', label: 'Settings', icon: SettingsIcon },
       { to: '/learner/help', label: 'Help & Support', icon: LifeBuoy },
@@ -80,6 +83,7 @@ export default function LearnerLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
   const { user, logout } = useAuth()
+  const unreadMessages = useUnreadMessagesCount()
   const navigate = useNavigate()
 
   const displayName = user?.full_name || 'Account'
@@ -131,7 +135,7 @@ export default function LearnerLayout() {
                       end={item.end}
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                        `relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                           isActive
                             ? 'bg-brand-500 text-white shadow-premium'
                             : 'text-ink-900/60 hover:bg-black/5 dark:text-white/60 dark:hover:bg-white/10'
@@ -140,6 +144,11 @@ export default function LearnerLayout() {
                     >
                       <item.icon size={18} className="shrink-0" />
                       {!collapsed && <span className="truncate">{item.label}</span>}
+                      {item.to.endsWith('/messages') && unreadMessages > 0 && (
+                        <span className={`ml-auto flex h-5 min-w-[20px] items-center justify-center rounded-full bg-brand-500 px-1 text-[10px] font-bold text-white ${collapsed ? 'absolute right-1 top-1' : ''}`}>
+                          {unreadMessages > 99 ? '99+' : unreadMessages}
+                        </span>
+                      )}
                     </NavLink>
                   </li>
                 ))}

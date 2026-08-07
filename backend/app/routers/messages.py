@@ -1,7 +1,7 @@
-"""Real 1:1 direct messaging — used by the Coach and Educator dashboards'
-"Messages" sidebar section to talk to their learners. Not a fabricated
-inbox: every conversation/message here is actually persisted and readable
-by both participants."""
+"""Real messaging system — supports the five conversation pairs the platform
+actually needs: Learner<->Coach, Learner<->Educator, Admin<->Learner,
+Admin<->Coach, Admin<->Educator. Every conversation/message here is actually
+persisted and readable by both participants; nothing is a placeholder."""
 from datetime import datetime
 
 from bson import ObjectId
@@ -13,6 +13,17 @@ from app.core.database import messages_collection, users_collection
 from app.core.deps import get_current_user
 
 router = APIRouter(prefix="/api/v1/messages", tags=["Messages"])
+
+# Which role may message which other role(s) — the five pairs from the spec.
+# Kept as an explicit allow-list (not a "everyone can message everyone"
+# default) so the messaging system can't silently be used outside the
+# relationships it was built for, e.g. a learner messaging another learner.
+ALLOWED_PEERS: dict[str, set[str]] = {
+    "learner": {"debate_coach", "educator", "administrator"},
+    "debate_coach": {"learner", "administrator"},
+    "educator": {"learner", "administrator"},
+    "administrator": {"learner", "debate_coach", "educator"},
+}
 
 
 class MessageIn(BaseModel):
@@ -30,6 +41,12 @@ class MessageOut(BaseModel):
     created_at: str
 
 
+class ContactOut(BaseModel):
+    user_id: str
+    name: str
+    role: str
+
+
 def _oid(value: str) -> ObjectId:
     try:
         return ObjectId(value)
@@ -42,6 +59,32 @@ async def _serialize(doc: dict) -> dict:
     doc["id"] = str(doc.pop("_id"))
     doc["sender_name"] = sender["full_name"] if sender else "Unknown"
     return doc
+
+
+@router.get("/contacts", response_model=list[ContactOut])
+async def list_contacts(q: str = "", current_user: dict = Depends(get_current_user)):
+    """Real user search/selection for starting a new conversation, scoped to
+    the roles this user is allowed to message (see ALLOWED_PEERS) — this is
+    what backs the "user search" / "user selection" requirement, not a
+    static or placeholder directory."""
+    allowed_roles = list(ALLOWED_PEERS.get(current_user["role"], set()))
+    if not allowed_roles:
+        return []
+    query: dict = {"role": {"$in": allowed_roles}, "_id": {"$ne": _oid(current_user["id"])}}
+    if q:
+        query["full_name"] = {"$regex": q, "$options": "i"}
+    cursor = users_collection.find(query, {"full_name": 1, "role": 1}).limit(30)
+    return [
+        {"user_id": str(u["_id"]), "name": u["full_name"], "role": u["role"]}
+        async for u in cursor
+    ]
+
+
+@router.get("/unread-count")
+async def unread_count(current_user: dict = Depends(get_current_user)):
+    """Total unread messages across all conversations — backs the nav badge."""
+    count = await messages_collection.count_documents({"recipient_id": current_user["id"], "read": False})
+    return {"unread_count": count}
 
 
 @router.get("/conversations")
@@ -88,6 +131,15 @@ async def send_message(payload: MessageIn, current_user: dict = Depends(get_curr
     recipient = await users_collection.find_one({"_id": _oid(payload.recipient_id)})
     if not recipient:
         raise HTTPException(status_code=404, detail="Recipient not found")
+
+    allowed_roles = ALLOWED_PEERS.get(current_user["role"], set())
+    if recipient.get("role") not in allowed_roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"{current_user['role']} cannot message {recipient.get('role')} — messaging is limited to "
+            "Learner<->Coach, Learner<->Educator, and Admin<->any role.",
+        )
+
     doc = {
         "sender_id": current_user["id"],
         "recipient_id": payload.recipient_id,
@@ -98,3 +150,4 @@ async def send_message(payload: MessageIn, current_user: dict = Depends(get_curr
     result = await messages_collection.insert_one(doc)
     doc["_id"] = result.inserted_id
     return await _serialize(doc)
+

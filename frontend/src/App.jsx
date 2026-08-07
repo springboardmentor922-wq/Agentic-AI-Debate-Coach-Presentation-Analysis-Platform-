@@ -27,6 +27,7 @@ import LearnerNotes from './pages/learner/Notes'
 import NotificationsPage from './pages/learner/NotificationsPage'
 import LearnerSettings from './pages/learner/Settings'
 import LearnerHelp from './pages/learner/LearnerHelp'
+import LearnerMessages from './pages/learner/LearnerMessages'
 import CoachLogin from './pages/coach/CoachLogin'
 import CoachLayout from './layouts/CoachLayout'
 import CoachDashboardHome from './pages/coach/CoachDashboardHome'
@@ -60,8 +61,6 @@ import EducatorPresentationReports from './pages/educator/EducatorPresentationRe
 import EducatorSkillGap from './pages/educator/EducatorSkillGap'
 import EducatorPracticeTopics from './pages/educator/EducatorPracticeTopics'
 import EducatorDebateFormats from './pages/educator/EducatorDebateFormats'
-import EducatorRubrics from './pages/educator/EducatorRubrics'
-import EducatorResourceLibrary from './pages/educator/EducatorResourceLibrary'
 import EducatorAnnouncements from './pages/educator/EducatorAnnouncements'
 import EducatorMessages from './pages/educator/EducatorMessages'
 import EducatorSettings from './pages/educator/EducatorSettings'
@@ -74,9 +73,7 @@ import AdminRoles from './pages/admin/AdminRoles'
 import AdminAnalytics from './pages/admin/AdminAnalytics'
 import AdminSessions from './pages/admin/AdminSessions'
 import AdminContent from './pages/admin/AdminContent'
-import AdminBilling from './pages/admin/AdminBilling'
 import AdminNotificationCenter from './pages/admin/AdminNotificationCenter'
-import AdminAuditLogs from './pages/admin/AdminAuditLogs'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminSecurity from './pages/admin/AdminSecurity'
 import AdminIntegrations from './pages/admin/AdminIntegrations'
@@ -84,6 +81,7 @@ import AdminAIServices from './pages/admin/AdminAIServices'
 import AdminBackup from './pages/admin/AdminBackup'
 import AdminReports from './pages/admin/AdminReports'
 import AdminHelp from './pages/admin/AdminHelp'
+import AdminMessages from './pages/admin/AdminMessages'
 
 export default function App() {
   const { user } = useAuth()
@@ -123,6 +121,7 @@ export default function App() {
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="settings" element={<LearnerSettings />} />
         <Route path="help" element={<LearnerHelp />} />
+        <Route path="messages" element={<LearnerMessages />} />
       </Route>
 
       <Route path="/coach/login" element={<CoachLogin />} />
@@ -173,8 +172,6 @@ export default function App() {
         <Route path="skill-gap" element={<EducatorSkillGap />} />
         <Route path="practice-topics" element={<EducatorPracticeTopics />} />
         <Route path="debate-formats" element={<EducatorDebateFormats />} />
-        <Route path="rubrics" element={<EducatorRubrics />} />
-        <Route path="resources" element={<EducatorResourceLibrary />} />
         <Route path="announcements" element={<EducatorAnnouncements />} />
         <Route path="messages" element={<EducatorMessages />} />
         <Route path="settings" element={<EducatorSettings />} />
@@ -197,14 +194,13 @@ export default function App() {
         <Route path="ai-services" element={<AdminAIServices />} />
         <Route path="content" element={<AdminContent />} />
         <Route path="reports" element={<AdminReports />} />
-        <Route path="billing" element={<AdminBilling />} />
         <Route path="notification-center" element={<AdminNotificationCenter />} />
         <Route path="settings" element={<AdminSettings />} />
         <Route path="security" element={<AdminSecurity />} />
         <Route path="integrations" element={<AdminIntegrations />} />
         <Route path="backup" element={<AdminBackup />} />
-        <Route path="audit-logs" element={<AdminAuditLogs />} />
         <Route path="help" element={<AdminHelp />} />
+        <Route path="messages" element={<AdminMessages />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

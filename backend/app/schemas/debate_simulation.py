@@ -42,7 +42,7 @@ class DebateFinishRequest(BaseModel):
 
 
 # --------------------------------------------------------------------------
-# Presentation Analysis (audio/video upload pipeline)
+# Presentation Analysis (audio upload pipeline — audio only, see media_type below)
 # --------------------------------------------------------------------------
 
 class SpeechMetrics(BaseModel):
@@ -77,7 +77,7 @@ class PresentationAnalysisOut(BaseModel):
     topic: Optional[str] = None
     debate_format: Optional[str] = None
     audio_filename: Optional[str] = None
-    media_type: str  # audio | video
+    media_type: str  # always "audio" — Presentation Analysis is audio-only
     transcript: str
     speech_metrics: SpeechMetrics
     presentation_score: PresentationScore

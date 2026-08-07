@@ -9,6 +9,7 @@ history yet, the honest answer is zeros / empty lists, not fabricated data.
 """
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
+import asyncio
 
 from fastapi import APIRouter, Depends, Query
 
@@ -19,7 +20,7 @@ from app.core.database import (
     fallacy_reports_collection,
     performance_scores_collection,
 )
-from app.core.deps import get_current_user, require_roles
+from app.core.deps import require_roles
 from app.schemas.user import UserRole
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["Learner Dashboard"])
@@ -49,11 +50,22 @@ async def get_dashboard_summary(current_user: dict = Depends(require_roles(UserR
     user_id = current_user["id"]
     now = datetime.utcnow()
 
-    # --- Sessions completed + durations, from real session documents ---
+    # These three queries are independent (different collections, no shared
+    # dependency) but were previously awaited one after another — each one
+    # paying its own round-trip latency serially. Running them concurrently
+    # cuts this endpoint's DB wait time to roughly the slowest single query
+    # instead of the sum of all three.
     completed_cursor = debate_sessions_collection.find(
         {"owner_id": user_id, "status": "completed"}
     )
-    completed_sessions = [doc async for doc in completed_cursor]
+    perf_cursor = performance_scores_collection.find({"user_id": user_id}).sort("created_at", 1)
+    fallacy_cursor = fallacy_reports_collection.find({"user_id": user_id})
+
+    completed_sessions, perf_records, fallacy_docs = await asyncio.gather(
+        completed_cursor.to_list(length=None),
+        perf_cursor.to_list(length=None),
+        fallacy_cursor.to_list(length=None),
+    )
     sessions_completed = len(completed_sessions)
 
     durations = [
@@ -64,9 +76,6 @@ async def get_dashboard_summary(current_user: dict = Depends(require_roles(UserR
     avg_duration_seconds = sum(durations) / len(durations) if durations else 0
 
     # --- Performance scores (written whenever a feedback report is generated) ---
-    perf_cursor = performance_scores_collection.find({"user_id": user_id}).sort("created_at", 1)
-    perf_records = [doc async for doc in perf_cursor]
-
     overall_score = round(sum(p["score"] for p in perf_records) / len(perf_records)) if perf_records else 0
 
     last_7 = [p for p in perf_records if _parse_dt(p["created_at"]) and _parse_dt(p["created_at"]) >= now - timedelta(days=7)]
@@ -91,8 +100,6 @@ async def get_dashboard_summary(current_user: dict = Depends(require_roles(UserR
     sessions_delta = f"{'+' if sessions_last_7 >= sessions_prev_7 else ''}{sessions_last_7 - sessions_prev_7}"
 
     # --- Fallacies avoided: share of analyzed turns with no fallacy detected ---
-    fallacy_cursor = fallacy_reports_collection.find({"user_id": user_id})
-    fallacy_docs = [doc async for doc in fallacy_cursor]
     if fallacy_docs:
         clean = sum(1 for d in fallacy_docs if not d["report"].get("fallacy_detected"))
         fallacies_avoided_pct = round((clean / len(fallacy_docs)) * 100)
@@ -142,7 +149,10 @@ async def get_recommendations(
     ranked by frequency of occurrence across the learner's session reports.
     """
     user_id = current_user["id"]
-    reports = [doc async for doc in debate_feedback_reports_collection.find({"user_id": user_id})]
+    reports, fallacy_docs = await asyncio.gather(
+        debate_feedback_reports_collection.find({"user_id": user_id}).to_list(length=None),
+        fallacy_reports_collection.find({"user_id": user_id, "report.fallacy_detected": True}).to_list(length=None),
+    )
 
     weakness_counter: Counter[str] = Counter()
     issue_counter: Counter[str] = Counter()
@@ -153,7 +163,6 @@ async def get_recommendations(
         for issue in report.get("logical_issues", []):
             issue_counter[issue] += 1
 
-    fallacy_docs = [doc async for doc in fallacy_reports_collection.find({"user_id": user_id, "report.fallacy_detected": True})]
     fallacy_type_counter = Counter(d["report"].get("fallacy_type") for d in fallacy_docs if d["report"].get("fallacy_type"))
 
     recommendations = []
@@ -206,9 +215,17 @@ async def get_leaderboard(
     ]
     ranked = [doc async for doc in performance_scores_collection.aggregate(pipeline)]
 
+    # Batch-fetch every user in one query instead of one find_one per
+    # leaderboard row (was N+1: up to `limit` round-trips per request).
+    user_ids = [_to_object_id(entry["_id"]) for entry in ranked]
+    users_by_id = {
+        str(u["_id"]): u
+        async for u in users_collection.find({"_id": {"$in": [uid for uid in user_ids if uid]}})
+    }
+
     leaderboard = []
     for rank, entry in enumerate(ranked, start=1):
-        user = await users_collection.find_one({"_id": _to_object_id(entry["_id"])})
+        user = users_by_id.get(str(entry["_id"]))
         if not user or user.get("role") != UserRole.learner.value:
             continue
         leaderboard.append({
@@ -234,9 +251,17 @@ async def get_recent_activity(
     user_id = current_user["id"]
     reports = [doc async for doc in debate_feedback_reports_collection.find({"user_id": user_id}).sort("updated_at", -1).limit(limit)]
 
+    # Batch-fetch the sessions these reports reference in one query instead
+    # of one find_one per report (was N+1: up to `limit` round-trips).
+    session_ids = [_to_object_id(doc["session_id"]) for doc in reports]
+    sessions_by_id = {
+        str(s["_id"]): s
+        async for s in debate_sessions_collection.find({"_id": {"$in": [sid for sid in session_ids if sid]}})
+    }
+
     activity = []
     for doc in reports:
-        session = await debate_sessions_collection.find_one({"_id": _to_object_id(doc["session_id"])})
+        session = sessions_by_id.get(str(_to_object_id(doc["session_id"])))
         topic = session["topic"] if session else "Debate session"
         activity.append({
             "id": str(doc["_id"]) if "_id" in doc else doc["session_id"],
