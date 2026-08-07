@@ -1,0 +1,435 @@
+/* =========================
+   PAGE
+========================= */
+
+.login-page{
+    min-height:100vh;
+    background:var(--page-bg);
+    position:relative;
+    overflow:hidden;
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:90px 40px;
+}
+
+/* =========================
+   GRID
+========================= */
+
+.login-grid{
+    position:absolute;
+    inset:0;
+
+    background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+
+    background-size:70px 70px;
+    opacity:.25;
+    z-index:0;
+}
+
+/* =========================
+   GLOW
+========================= */
+
+.login-glow{
+    position:absolute;
+    width:550px;
+    height:550px;
+    border-radius:50%;
+    filter:blur(120px);
+    opacity:.28;
+}
+
+.glow-left{
+    left:-220px;
+    top:-120px;
+    background:#6C4CFF;
+}
+
+.glow-right{
+    right:-220px;
+    bottom:-150px;
+    background:#00D4FF;
+}
+
+/* =========================
+   SECTION
+========================= */
+
+.portal-section{
+    position:relative;
+    z-index:5;
+    width:100%;
+    max-width:1500px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.portal-header{
+    text-align:center;
+    margin-bottom:70px;
+}
+
+.portal-badge{
+
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+
+    padding:12px 24px;
+
+    border-radius:999px;
+
+    border:1px solid var(--border);
+
+    background:rgba(110,70,255,.12);
+
+    color:#9B8CFF;
+
+    font-weight:600;
+
+    margin-bottom:30px;
+}
+
+.portal-title{
+
+    font-size:64px;
+
+    font-weight:800;
+
+    line-height:1.1;
+
+    margin-bottom:24px;
+
+    color:var(--text);
+}
+
+.portal-title span{
+
+    background:linear-gradient(
+    90deg,
+    #7A5FFF,
+    #2EA8FF,
+    #1DD89F);
+
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.portal-description{
+
+    max-width:850px;
+
+    margin:auto;
+
+    color:var(--text-light);
+
+    font-size:20px;
+
+    line-height:1.8;
+}
+
+/* =========================
+   GRID
+========================= */
+
+.portal-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    gap:32px;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.portal-card{
+
+    position:relative;
+
+    display:block;
+
+    text-decoration:none;
+
+    color:var(--text);
+
+    padding:38px;
+
+    border-radius:28px;
+
+    background:var(--card-bg);
+
+    border:1px solid var(--border);
+
+    transition:.35s;
+
+    min-height:560px;
+
+    overflow:hidden;
+}
+
+.portal-card:hover{
+
+    transform:translateY(-10px);
+
+    border-color:#2EA8FF;
+
+    box-shadow:
+    0 25px 70px rgba(0,0,0,.45),
+    0 0 40px rgba(46,168,255,.18);
+}
+
+/* =========================
+   ICON
+========================= */
+
+.portal-icon{
+
+    width:92px;
+
+    height:92px;
+
+    border-radius:26px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    margin-bottom:34px;
+
+    color:white;
+}
+
+.portal-card.purple .portal-icon{
+    background:linear-gradient(135deg,#9A4DFF,#6B35F0);
+}
+
+.portal-card.blue .portal-icon{
+    background:linear-gradient(135deg,#297BFF,#27C7F6);
+}
+
+.portal-card.green .portal-icon{
+    background:linear-gradient(135deg,#1BCF6B,#27D18A);
+}
+
+.portal-card.orange .portal-icon{
+    background:linear-gradient(135deg,#FF8D28,#FF5042);
+}
+
+/* =========================
+   TEXT
+========================= */
+
+.portal-card h3{
+
+    font-size:50px;
+
+    font-weight:800;
+
+    margin-bottom:22px;
+
+    color:var(--text);
+}
+
+.portal-subtitle{
+
+    color:var(--text-secondary);
+
+    font-size:17px;
+
+    line-height:1.9;
+
+    margin-bottom:35px;
+}
+/* =========================
+   FEATURES
+========================= */
+
+.portal-features{
+
+    list-style:none;
+
+    padding:0;
+
+    margin:0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+}
+
+.portal-features li{
+
+    display:flex;
+
+    gap:14px;
+
+    align-items:flex-start;
+
+    color:var(--text-secondary);
+
+    font-size:17px;
+}
+
+.portal-features svg{
+
+    color:#1AD46D;
+
+    flex-shrink:0;
+
+    margin-top:2px;
+}
+
+/* =========================
+   BADGE
+========================= */
+
+.popular-badge{
+
+    position:absolute;
+
+    right:24px;
+
+    top:24px;
+
+    padding:10px 18px;
+
+    border-radius:999px;
+
+    background:#6F4CFF;
+
+    color:white;
+
+    font-size:14px;
+
+    font-weight:700;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+.portal-footer{
+
+    margin-top:70px;
+
+    text-align:center;
+}
+
+.portal-footer p{
+
+    color:var(--text-light);
+
+    margin-bottom:12px;
+
+    font-size:18px;
+}
+
+.portal-footer a{
+
+    text-decoration:none;
+
+    color:#35A8FF;
+
+    font-size:22px;
+
+    font-weight:700;
+}
+
+.portal-footer a:hover{
+
+    color:#6FC8FF;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:1300px){
+
+.portal-grid{
+
+grid-template-columns:repeat(2,1fr);
+
+}
+
+.portal-card{
+
+min-height:auto;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.portal-grid{
+
+grid-template-columns:1fr;
+
+}
+
+.portal-title{
+
+font-size:42px;
+
+}
+
+.portal-description{
+
+font-size:16px;
+
+}
+
+.portal-card h3{
+
+font-size:34px;
+
+}
+
+.login-page{
+
+padding:70px 20px;
+
+}
+
+}
+
+/* =========================
+   REGISTER LINK
+========================= */
+
+.portal-register-link{
+
+  background:linear-gradient(
+      90deg,
+      #3b82f6,
+      #8b5cf6
+  );
+
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+
+  font-weight:700;
+
+  text-decoration:none;
+}
+
+.portal-register-link:hover{
+
+  opacity:.85;
+
+}

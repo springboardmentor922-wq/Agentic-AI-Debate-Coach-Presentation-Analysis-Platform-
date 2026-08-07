@@ -1,0 +1,329 @@
+/* =====================================================
+   REGISTER PAGE
+===================================================== */
+
+.register-page{
+    min-height:100vh;
+    position:relative;
+    overflow:hidden;
+    background:var(--page-bg);
+    transition:.3s;
+}
+
+/* ================= Background ================= */
+
+.register-grid{
+    position:absolute;
+    inset:0;
+    background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size:45px 45px;
+    opacity:.35;
+}
+
+.register-glow{
+    position:absolute;
+    width:500px;
+    height:500px;
+    border-radius:50%;
+    filter:blur(130px);
+    z-index:0;
+}
+
+.glow-left{
+    left:-180px;
+    top:-120px;
+    background:#3b82f650;
+}
+
+.glow-right{
+    right:-180px;
+    bottom:-180px;
+    background:#8b5cf640;
+}
+
+/* ================= Layout ================= */
+
+.register-container{
+    position:relative;
+    z-index:5;
+    min-height:100vh;
+    width:90%;
+    max-width:1400px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:1fr 520px;
+    gap:70px;
+    align-items:center;
+}
+
+/* ================= Left ================= */
+
+.register-left h1{
+    font-size:64px;
+    line-height:1.1;
+    color:var(--text);
+    font-weight:800;
+    margin:30px 0;
+}
+
+.register-left h1 span{
+    background:linear-gradient(90deg,#8b5cf6,#2563eb,#06b6d4);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.register-left>p{
+    color:var(--text-light);
+    font-size:18px;
+    line-height:1.8;
+    max-width:620px;
+    margin-bottom:45px;
+}
+
+.brand-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 24px;
+    border-radius:999px;
+    background:rgba(59,130,246,.12);
+    color:#2563eb;
+    font-weight:600;
+}
+
+/* ================= Features ================= */
+
+.feature-list{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+}
+
+.feature-item{
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+}
+
+.feature-icon{
+    width:54px;
+    height:54px;
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#3b82f6,#8b5cf6);
+    color:#fff;
+    flex-shrink:0;
+}
+
+.feature-item h3{
+    margin:0 0 8px;
+    font-size:20px;
+    color:var(--text);
+}
+
+.feature-item p{
+    margin:0;
+    line-height:1.7;
+    color:var(--text-light);
+}
+
+/* ================= Card ================= */
+
+.register-card{
+    background:var(--card-bg);
+    backdrop-filter:blur(18px);
+    border-radius:30px;
+    padding:45px;
+    border:1px solid var(--border);
+    box-shadow:0 20px 60px rgba(0,0,0,.08);
+}
+
+.register-card h2{
+    margin:0;
+    text-align:center;
+    font-size:34px;
+    color:var(--text);
+}
+
+.register-subtitle{
+    text-align:center;
+    margin:15px 0 30px;
+    color:var(--text-light);
+    line-height:1.7;
+}
+
+/* ================= Error ================= */
+
+.register-error{
+    padding:14px;
+    margin-bottom:20px;
+    border-radius:14px;
+    background:#ffe5e5;
+    color:#dc2626;
+    font-size:14px;
+}
+
+/* ================= Inputs ================= */
+
+.input-group{
+    position:relative;
+    margin-bottom:20px;
+}
+
+.input-icon{
+    position:absolute;
+    left:18px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--text-light);
+}
+
+.input-group input{
+    width:100%;
+    padding:15px 18px 15px 50px;
+    border-radius:14px;
+    border:1px solid var(--border);
+    outline:none;
+    font-size:15px;
+    transition:.3s;
+    background:var(--card-bg);
+    color:var(--text);
+}
+
+.input-group input::placeholder{
+    color:var(--text-light);
+}
+
+.input-group input:focus{
+    border-color:#3b82f6;
+    box-shadow:0 0 0 3px rgba(59,130,246,.15);
+}
+
+.password-status{
+    position:absolute;
+    right:18px;
+    top:50%;
+    transform:translateY(-50%);
+}
+
+.password-status.success{
+    color:#22c55e;
+}
+
+.password-status.error{
+    color:#ef4444;
+}
+
+.password-error{
+    color:#ef4444;
+    font-size:13px;
+    margin:-8px 0 15px;
+}
+/* ================= Button ================= */
+
+.register-btn{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:14px;
+    background:linear-gradient(135deg,#2563eb,#8b5cf6);
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.register-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 15px 35px rgba(59,130,246,.35);
+}
+
+.register-btn:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+}
+
+/* ================= Divider ================= */
+
+.divider{
+    text-align:center;
+    margin:28px 0;
+    position:relative;
+}
+
+.divider span{
+    background:var(--card-bg);
+    padding:0 18px;
+    position:relative;
+    color:var(--text-light);
+}
+
+.divider::before{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:50%;
+    height:1px;
+    background:var(--border);
+}
+
+/* ================= Footer ================= */
+
+.login-link,
+.role-link{
+    text-align:center;
+    margin-top:20px;
+    color:var(--text-light);
+    font-size:14px;
+}
+
+.login-link a,
+.role-link a{
+    color:#2563eb;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.login-link a:hover,
+.role-link a:hover{
+    color:#3b82f6;
+}
+
+/* ================= Responsive ================= */
+
+@media(max-width:1100px){
+
+.register-container{
+    grid-template-columns:1fr;
+    padding:60px 0;
+}
+
+.register-left{
+    display:none;
+}
+
+.register-card{
+    max-width:550px;
+    width:100%;
+    margin:auto;
+}
+
+}
+
+@media(max-width:600px){
+
+.register-card{
+    padding:30px 22px;
+}
+
+.register-card h2{
+    font-size:28px;
+}
+
+}
