@@ -1,0 +1,8 @@
+1st: # Activate the virtual environment
+
+python -m backend.app.main
+
+2nd:
+
+cd frontend
+npm run dev
