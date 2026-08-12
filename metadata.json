@@ -1,0 +1,6 @@
+{
+  "name": "Debate Coach & Presentation Analysis Platform",
+  "description": "An agentic debate and presentation coach with 8 specialized agents, real-time logical fallacy detection, speech analytics, and context-aware floating chatbot.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
