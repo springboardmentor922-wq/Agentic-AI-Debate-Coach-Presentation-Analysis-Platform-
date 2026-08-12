@@ -179,6 +179,19 @@ def init_db():
                 FOREIGN KEY(learner_id) REFERENCES users(id),
                 FOREIGN KEY(coach_id) REFERENCES users(id)
             );
+
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                title TEXT NOT NULL,
+                body TEXT NOT NULL DEFAULT '',
+                is_read INTEGER NOT NULL DEFAULT 0,
+                related_session_id INTEGER,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            );
+
             """
         )
         migrate_schema(conn)
@@ -216,6 +229,12 @@ def migrate_schema(conn):
         "rebuttal_type": "TEXT",
         "challenge_question": "TEXT",
         "strategy_suggestion": "TEXT",
+        "filler_word_count": "INTEGER",
+        "filler_words_found": "TEXT",
+        "confidence_score_delivery": "INTEGER",
+        "clarity_score_delivery": "INTEGER",
+        "engagement_score": "INTEGER",
+        "presentation_feedback": "TEXT",
     }
     for column, definition in new_turn_columns.items():
         if column not in existing_turn_columns:
@@ -347,7 +366,11 @@ def consume_otp(conn, otp_id):
 
 
 def sync_session_statuses(conn):
-    now = datetime.utcnow()
+    """Auto-cancels sessions that were never started (still 'scheduled') once
+    their scheduled time has passed. Compares against the same naive local
+    time basis the frontend datetime-local input produces, since no timezone
+    is stored -- treating both as 'wall clock' time consistently."""
+    now = datetime.now()
     rows = conn.execute(
         "SELECT id, scheduled_for FROM debate_sessions WHERE status = 'scheduled'"
     ).fetchall()
@@ -373,6 +396,7 @@ def save_debate_turn(
     rebuttal_type=None,
     challenge_question=None,
     strategy_suggestion=None,
+    presentation_metrics=None,
 ):
     detected = bool(fallacy_report and fallacy_report.fallacy_detected)
     conn.execute(
@@ -384,8 +408,11 @@ def save_debate_turn(
          clarity_score, relevance_score, evidence_score, consistency_score,
          persuasiveness_score, overall_score, score_feedback,
          words_per_minute, pace_status, audio_path,
-         rebuttal_type, challenge_question, strategy_suggestion, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         rebuttal_type, challenge_question, strategy_suggestion,
+         filler_word_count, filler_words_found, confidence_score_delivery,
+         clarity_score_delivery, engagement_score, presentation_feedback,
+         created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             session_id,
@@ -413,6 +440,12 @@ def save_debate_turn(
             rebuttal_type,
             challenge_question,
             strategy_suggestion,
+            presentation_metrics.filler_word_count if presentation_metrics else None,
+            json.dumps(presentation_metrics.filler_words_found) if presentation_metrics else None,
+            presentation_metrics.confidence_score if presentation_metrics else None,
+            presentation_metrics.clarity_score if presentation_metrics else None,
+            presentation_metrics.engagement_score if presentation_metrics else None,
+            presentation_metrics.feedback if presentation_metrics else None,
             now_iso(),
         ),
     )
@@ -433,6 +466,13 @@ def get_debate_turns(conn, session_id):
                 turn["evidence_offered"] = []
         else:
             turn["evidence_offered"] = []
+        if turn.get("filler_words_found"):
+            try:
+                turn["filler_words_found"] = json.loads(turn["filler_words_found"])
+            except (TypeError, ValueError):
+                turn["filler_words_found"] = []
+        else:
+            turn["filler_words_found"] = []
         turns.append(turn)
     return turns
 
@@ -814,6 +854,136 @@ def mark_task_status(conn, task_id, learner_id, status):
         (status, task_id, learner_id),
     )
 
+
+def compute_top_learners(conn, coach_id=None, limit=5):
+    """Ranks learners by average session score. If coach_id is given, scoped
+    to that coach's assigned learners; otherwise covers all learners."""
+    if coach_id is not None:
+        rows = conn.execute(
+            """
+            SELECT users.id, users.name, AVG(debate_session_summaries.avg_overall) AS avg_score,
+                   COUNT(*) AS sessions_count
+            FROM debate_session_summaries
+            JOIN debate_sessions ON debate_sessions.id = debate_session_summaries.session_id
+            JOIN users ON users.id = debate_sessions.owner_id
+            JOIN coach_assignments ON coach_assignments.learner_id = users.id
+            WHERE coach_assignments.coach_id = ?
+            GROUP BY users.id ORDER BY avg_score DESC LIMIT ?
+            """,
+            (coach_id, limit),
+        ).fetchall()
+    else:
+        rows = conn.execute(
+            """
+            SELECT users.id, users.name, AVG(debate_session_summaries.avg_overall) AS avg_score,
+                   COUNT(*) AS sessions_count
+            FROM debate_session_summaries
+            JOIN debate_sessions ON debate_sessions.id = debate_session_summaries.session_id
+            JOIN users ON users.id = debate_sessions.owner_id
+            WHERE users.role = 'learner'
+            GROUP BY users.id ORDER BY avg_score DESC LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    return [
+        {"name": r["name"], "avg_score": round(r["avg_score"]) if r["avg_score"] is not None else 0,
+         "sessions_count": r["sessions_count"]}
+        for r in rows
+    ]
+
+def create_notification(conn, user_id, ntype, title, body="", related_session_id=None):
+    conn.execute(
+        "INSERT INTO notifications (user_id, type, title, body, is_read, related_session_id, created_at) "
+        "VALUES (?, ?, ?, ?, 0, ?, ?)",
+        (user_id, ntype, title, body, related_session_id, now_iso()),
+    )
+
+
+def get_notifications(conn, user_id, limit=30):
+    rows = conn.execute(
+        "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?",
+        (user_id, limit),
+    ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def count_unread_notifications(conn, user_id):
+    row = conn.execute(
+        "SELECT COUNT(*) AS total FROM notifications WHERE user_id = ? AND is_read = 0", (user_id,)
+    ).fetchone()
+    return row["total"]
+
+
+def mark_notification_read(conn, notification_id, user_id):
+    conn.execute(
+        "UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?", (notification_id, user_id)
+    )
+
+
+def mark_all_notifications_read(conn, user_id):
+    conn.execute("UPDATE notifications SET is_read = 1 WHERE user_id = ?", (user_id,))
+
+
+def notification_exists(conn, user_id, ntype, related_session_id):
+    """Prevents duplicate reminder spam -- e.g. don't create the same
+    'session starting soon' notification twice for the same session."""
+    row = conn.execute(
+        "SELECT id FROM notifications WHERE user_id = ? AND type = ? AND related_session_id = ?",
+        (user_id, ntype, related_session_id),
+    ).fetchone()
+    return row is not None
+
+
+def check_and_create_session_reminders(conn):
+    """Real trigger: scans scheduled sessions starting within the next hour
+    and creates a one-time reminder notification for the owner, if one
+    doesn't already exist. Called opportunistically whenever a learner loads
+    their sessions/dashboard -- no background scheduler needed."""
+    now = datetime.utcnow()
+    soon = now + timedelta(hours=1)
+    rows = conn.execute(
+        "SELECT id, owner_id, topic, scheduled_for FROM debate_sessions WHERE status = 'scheduled'"
+    ).fetchall()
+    for row in rows:
+        try:
+            scheduled_dt = datetime.fromisoformat(row["scheduled_for"])
+        except ValueError:
+            continue
+        if now <= scheduled_dt <= soon:
+            if not notification_exists(conn, row["owner_id"], "session_reminder", row["id"]):
+                create_notification(
+                    conn, row["owner_id"], "session_reminder",
+                    "Upcoming debate session",
+                    f'"{row["topic"]}" starts soon.',
+                    related_session_id=row["id"],
+                )
+
+
+def compute_top_topics(conn, limit=5):
+    rows = conn.execute(
+        "SELECT topic, COUNT(*) AS session_count FROM debate_sessions GROUP BY topic ORDER BY session_count DESC LIMIT ?",
+        (limit,),
+    ).fetchall()
+    return [{"topic": r["topic"], "session_count": r["session_count"]} for r in rows]
+
+
+def get_pending_feedback_sessions(conn, coach_id, limit=5):
+    """Completed sessions from this coach's assigned learners that have no
+    coach_feedback yet -- a real 'evaluation queue', not a placeholder."""
+    rows = conn.execute(
+        """
+        SELECT debate_sessions.id, debate_sessions.topic, users.name AS owner_name,
+               debate_sessions.scheduled_for
+        FROM debate_sessions
+        JOIN users ON users.id = debate_sessions.owner_id
+        JOIN coach_assignments ON coach_assignments.learner_id = users.id
+        WHERE coach_assignments.coach_id = ? AND debate_sessions.status = 'completed'
+              AND debate_sessions.id NOT IN (SELECT session_id FROM coach_feedback)
+        ORDER BY debate_sessions.scheduled_for DESC LIMIT ?
+        """,
+        (coach_id, limit),
+    ).fetchall()
+    return [dict(r) for r in rows]
 
 def row_to_dict(row):
     return dict(row) if row else None

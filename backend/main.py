@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import os
+import io
 import shutil
 import tempfile
 import logging
@@ -16,6 +17,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field
+from schemas.presentation import PresentationMetrics
+from fastapi.responses import StreamingResponse
+from services.export_service import (
+    build_session_summary_excel,
+    build_session_summary_pdf,
+    build_platform_report_excel,
+)
 
 from auth import create_token, decode_token, generate_otp, hash_password, send_otp_email, verify_password
 from database import (
@@ -53,6 +61,15 @@ from database import (
     get_learner_coach,
     get_assigned_learners,
     list_available_coaches,
+    compute_top_learners,
+    compute_top_topics,
+    get_pending_feedback_sessions,
+    create_notification,
+    get_notifications,
+    count_unread_notifications,
+    mark_notification_read,
+    mark_all_notifications_read,
+    check_and_create_session_reminders,
 )
 from schemas.fallacy import FallacyReport
 from schemas.scoring import ArgumentScore
@@ -113,6 +130,8 @@ class RegisterRequest(BaseModel):
     institution: Optional[str] = ""
     years_of_experience: Optional[str] = ""
 
+class ToolTextRequest(BaseModel):
+    text: str
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -281,10 +300,15 @@ def can_view_profile(viewer, target):
     return False
 
 
-def get_current_user(authorization: Optional[str] = Header(default=None)):
-    if not authorization or not authorization.startswith("Bearer "):
+def get_current_user(authorization: Optional[str] = Header(default=None), token: Optional[str] = None):
+    auth_token = None
+    if authorization and authorization.startswith("Bearer "):
+        auth_token = authorization.replace("Bearer ", "", 1)
+    elif token:
+        auth_token = token
+    if not auth_token:
         raise HTTPException(status_code=401, detail="Authentication required")
-    payload = decode_token(authorization.replace("Bearer ", "", 1))
+    payload = decode_token(auth_token)
     if not payload:
         raise HTTPException(status_code=401, detail="Authentication required")
     with get_connection() as conn:
@@ -294,6 +318,29 @@ def get_current_user(authorization: Optional[str] = Header(default=None)):
         raise HTTPException(status_code=401, detail="Authentication required")
     return user
 
+
+@app.get("/api/notifications")
+def list_notifications(user=Depends(get_current_user)):
+    with get_connection() as conn:
+        if user["role"] == "learner":
+            check_and_create_session_reminders(conn)
+        notifications = get_notifications(conn, user["id"])
+        unread = count_unread_notifications(conn, user["id"])
+    return {"notifications": notifications, "unreadCount": unread}
+
+
+@app.put("/api/notifications/{notification_id}/read")
+def read_notification(notification_id: int, user=Depends(get_current_user)):
+    with get_connection() as conn:
+        mark_notification_read(conn, notification_id, user["id"])
+    return {"ok": True}
+
+
+@app.put("/api/notifications/read-all")
+def read_all_notifications(user=Depends(get_current_user)):
+    with get_connection() as conn:
+        mark_all_notifications_read(conn, user["id"])
+    return {"ok": True}
 
 @app.post("/api/register", status_code=201)
 def register(data: RegisterRequest):
@@ -347,6 +394,30 @@ def login(data: LoginRequest):
     send_otp_email(user["email"], code)
     return {"otpRequired": True, "email": user["email"]}
 
+
+@app.post("/api/tools/presentation")
+async def tool_presentation(audio: UploadFile = File(...), duration_seconds: Optional[float] = Form(None), user=Depends(get_current_user)):
+    suffix = Path(audio.filename or "audio.webm").suffix or ".webm"
+    saved_name = f"tool_{uuid.uuid4().hex}{suffix}"
+    saved_path = RECORDINGS_DIR / saved_name
+    with open(saved_path, "wb") as out_file:
+        shutil.copyfileobj(audio.file, out_file)
+
+    transcript = transcribe_audio(str(saved_path))
+    if not transcript:
+        raise ValueError("Couldn't make out that audio -- please try again.")
+
+    from services.presentation_analysis import analyze_presentation
+    import math
+    metrics = analyze_presentation(transcript)
+
+    wpm = None
+    pace = None
+    if duration_seconds and duration_seconds > 0:
+        wpm = math.ceil(len(transcript.split()) / (duration_seconds / 60.0))
+        pace = "Too Fast" if wpm > 160 else ("Too Slow" if wpm < 110 else "Optimal")
+
+    return {"transcript": transcript, "metrics": metrics.dict(), "wordsPerMinute": wpm, "paceStatus": pace}
 
 @app.post("/api/login/verify")
 def verify_login_otp(data: OtpVerifyRequest):
@@ -435,6 +506,12 @@ def add_coach_feedback(session_id: int, data: CoachFeedbackRequest, user=Depends
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
         save_coach_feedback(conn, session_id, user["id"], text)
+        create_notification(
+            conn, session["owner_id"], "coach_feedback",
+            "New coach feedback",
+            f'{user["name"]} left feedback on "{session["topic"]}".',
+            related_session_id=session_id,
+        )
         feedback = get_coach_feedback(conn, session_id)
     return {"feedback": feedback}
 
@@ -448,6 +525,15 @@ def dashboard(user=Depends(get_current_user)):
         learners_total = conn.execute(
             "SELECT COUNT(*) AS total FROM users WHERE role = 'learner'"
         ).fetchone()["total"]
+
+        extra = {}
+        if user["role"] == "coach":
+            extra["topLearners"] = compute_top_learners(conn, coach_id=user["id"])
+            extra["pendingFeedback"] = get_pending_feedback_sessions(conn, user["id"])
+        elif user["role"] == "educator":
+            extra["topLearners"] = compute_top_learners(conn)
+        elif user["role"] == "admin":
+            extra["topTopics"] = compute_top_topics(conn)
 
     completed = sum(1 for session in sessions if session["status"] == "completed")
     scheduled = sum(1 for session in sessions if session["status"] == "scheduled")
@@ -465,8 +551,59 @@ def dashboard(user=Depends(get_current_user)):
         "skills": skills,
         "recentSessions": sessions[:4],
         "roleLabel": ROLE_LABELS[user["role"]],
+        **extra,
     }
 
+
+@app.get("/api/sessions/{session_id}/export/excel")
+def export_session_excel(session_id: int, user=Depends(get_current_user)):
+    with get_connection() as conn:
+        session = row_to_dict(conn.execute("SELECT * FROM debate_sessions WHERE id = ?", (session_id,)).fetchone())
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        if not can_manage_session(user, session):
+            raise HTTPException(status_code=403, detail="Not allowed")
+        summary = get_session_summary(conn, session_id)
+        if not summary:
+            raise ValueError("This session has no summary yet -- end the debate first.")
+    file_bytes = build_session_summary_excel(session, summary)
+    return StreamingResponse(
+        io.BytesIO(file_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="debate_summary_{session_id}.xlsx"'},
+    )
+
+
+@app.get("/api/sessions/{session_id}/export/pdf")
+def export_session_pdf(session_id: int, user=Depends(get_current_user)):
+    with get_connection() as conn:
+        session = row_to_dict(conn.execute("SELECT * FROM debate_sessions WHERE id = ?", (session_id,)).fetchone())
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+        if not can_manage_session(user, session):
+            raise HTTPException(status_code=403, detail="Not allowed")
+        summary = get_session_summary(conn, session_id)
+        if not summary:
+            raise ValueError("This session has no summary yet -- end the debate first.")
+    file_bytes = build_session_summary_pdf(session, summary)
+    return StreamingResponse(
+        io.BytesIO(file_bytes),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="debate_summary_{session_id}.pdf"'},
+    )
+
+
+@app.get("/api/admin/export/excel")
+def export_platform_excel(user=Depends(get_current_user)):
+    if user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Administrator access required")
+    admin_data = admin_overview(user)
+    file_bytes = build_platform_report_excel(admin_data)
+    return StreamingResponse(
+        io.BytesIO(file_bytes),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": 'attachment; filename="platform_report.xlsx"'},
+    )
 
 @app.get("/api/profile")
 def get_profile(user=Depends(get_current_user)):
@@ -498,6 +635,40 @@ def update_profile(data: ProfileUpdateRequest, user=Depends(get_current_user)):
             (*values, user["id"]),
         )
     return get_profile(user)
+
+
+
+
+
+@app.post("/api/tools/analyze")
+def tool_analyze(data: ToolTextRequest, user=Depends(get_current_user)):
+    text = data.text.strip()
+    if not text:
+        raise ValueError("Paste an argument first.")
+    from services.scoring_agent import score_argument
+    return score_argument(text).dict()
+
+
+@app.post("/api/tools/fallacy")
+def tool_fallacy(data: ToolTextRequest, user=Depends(get_current_user)):
+    text = data.text.strip()
+    if not text:
+        raise ValueError("Paste an argument first.")
+    from services.fallacy_agent import analyze_argument
+    return analyze_argument(text).dict()
+
+
+@app.post("/api/tools/counterargument")
+def tool_counterargument(data: ToolTextRequest, user=Depends(get_current_user)):
+    text = data.text.strip()
+    if not text:
+        raise ValueError("Paste an argument first.")
+    from services.opponent_agent import generate_opponent_reply
+    rebuttal = generate_opponent_reply(
+        topic="General Debate Practice", debate_format="AI Debate Simulation",
+        position="For", history=[], user_message=text, fallacy_report=None, difficulty="Advanced",
+    )
+    return rebuttal.dict()
 
 
 @app.post("/api/coach/chat")
@@ -536,6 +707,11 @@ def create_task_route(data: TaskCreateRequest, user=Depends(get_current_user)):
         if not learner:
             raise HTTPException(status_code=404, detail="Learner not found.")
         create_task(conn, user["id"], data.learner_id, title, (data.description or "").strip())
+        create_notification(
+            conn, data.learner_id, "task_assigned",
+            "New task assigned",
+            f'{user["name"]} assigned you: "{title}"',
+        )
         tasks = get_tasks_assigned_by(conn, user["id"])
     return {"tasks": tasks}
 
@@ -564,6 +740,17 @@ def update_skills(data: SkillsUpdateRequest, user=Depends(get_current_user)):
         detail="Skill scores can't be edited directly. They're updated by your coach/educator as you practice.",
     )
 
+@app.get("/api/reports")
+def get_reports(user=Depends(get_current_user)):
+    with get_connection() as conn:
+        sessions = visible_sessions(conn, user)
+        completed = [s for s in sessions if s["status"] == "completed"]
+        avg_score = round(sum(s["overall_score"] for s in completed if s["overall_score"] is not None) / max(len([s for s in completed if s["overall_score"] is not None]), 1))
+    return {
+        "completedSessions": completed,
+        "totalCompleted": len(completed),
+        "averageScore": avg_score if completed else 0,
+    }
 
 @app.get("/api/sessions")
 def get_sessions(user=Depends(get_current_user)):
@@ -652,6 +839,12 @@ def end_session(session_id: int, user=Depends(get_current_user)):
 
     with get_connection() as conn:
         save_session_summary(conn, session_id, stats, summary)
+        create_notification(
+            conn, session["owner_id"], "session_completed",
+            "Debate session completed",
+            f'Your debate on "{session["topic"]}" scored {stats["avg_overall"]}/100.',
+            related_session_id=session_id,
+        )
         conn.execute("UPDATE debate_sessions SET status = 'completed' WHERE id = ?", (session_id,))
         updated_session = row_to_dict(
             conn.execute("SELECT * FROM debate_sessions WHERE id = ?", (session_id,)).fetchone()
@@ -923,6 +1116,7 @@ async def debate_turn(
         user_text=user_text,
         duration_seconds=duration_seconds,
         difficulty=session.get("difficulty", "Advanced"),
+        is_audio=audio is not None,
     )
     elapsed = time.time() - start_time
     logger.info("Turn processed for session %s in %.2fs", session_id, elapsed)
@@ -932,11 +1126,14 @@ async def debate_turn(
     opponent_rebuttal: OpponentRebuttal = result["opponent_rebuttal"]
     words_per_minute = result["words_per_minute"]
     pace_status = result["pace_status"]
+    presentation_metrics: PresentationMetrics = result["presentation_metrics"]
+
 
     with get_connection() as conn:
         save_debate_turn(
             conn, session_id, "user", user_text, fallacy_report, argument_score,
             words_per_minute=words_per_minute, pace_status=pace_status, audio_path=audio_path,
+            presentation_metrics=presentation_metrics,
         )
         save_debate_turn(
             conn, session_id, "opponent", opponent_rebuttal.rebuttal_text, None, None,
@@ -956,6 +1153,7 @@ async def debate_turn(
         "wordsPerMinute": words_per_minute,
         "paceStatus": pace_status,
         "audioPath": audio_path,
+        "presentationMetrics": presentation_metrics.dict() if presentation_metrics else None,
         "opponentReply": opponent_rebuttal.rebuttal_text,
         "rebuttalType": opponent_rebuttal.rebuttal_type,
         "challengeQuestion": opponent_rebuttal.challenge_question,

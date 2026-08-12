@@ -1,5 +1,6 @@
 const app = document.querySelector("#app");
 const difficultyLevels = ["Novice", "Advanced", "Master"];
+const presRecorder = { mediaRecorder: null, chunks: [], isRecording: false };
 
 const state = {
   token: localStorage.getItem("dc_token"),
@@ -18,6 +19,8 @@ const state = {
   coachBusy: false,
   coachLastFallacy: null,
   coachLastScore: null,
+  notifOpen: false,
+  notifications: [],
 };
 
 const roleOptions = [
@@ -25,6 +28,12 @@ const roleOptions = [
   ["coach", "Debate Coach"],
   ["educator", "Educator"],
 ];
+
+const toolConfig = {
+  toolAnalyze:  { title: "Argument Analyzer", endpoint: "/api/tools/analyze", placeholder: "Paste an argument to score it..." },
+  toolFallacy:  { title: "Fallacy Detector", endpoint: "/api/tools/fallacy", placeholder: "Paste an argument to check for logical fallacies..." },
+  toolCounter:  { title: "Counterargument Generator", endpoint: "/api/tools/counterargument", placeholder: "Paste an argument to get a counterargument..." },
+};
 
 const debateFormats = [
   "One-on-One Debate",
@@ -113,6 +122,10 @@ function render() {
     ${state.user.role==="learner" ? navButton("skills","📈 Skill Tracking") : ""}
     ${navButton("reports","📊 Reports")}
     ${navButton("coach","🤖 AI Debate Coach")}
+    ${navButton("toolAnalyze","🔍 Argument Analyzer")}
+    ${navButton("toolFallacy","⚠️ Fallacy Detector")}
+    ${navButton("toolCounter","💬 Counterargument Generator")}
+    ${navButton("toolPresentation","🎤 Presentation Analysis")}
     ${["learner","coach","educator"].includes(state.user.role) ? navButton("tasks", state.user.role==="learner" ? "✅ My Tasks" : "✅ Assign Tasks") : ""}
 
     ${["coach","educator","admin"].includes(state.user.role) ? `
@@ -124,6 +137,11 @@ function render() {
     <span class="nav-group-label">Account</span>
     ${navButton("profile","👤 Profile")}
 </nav>
+<button class="notif-bell" onclick="setView('notifications')">
+  🔔 Notifications
+  <span id="notifBadge" class="notif-badge" style="display:none;">0</span>
+</button>
+<div class="notif-panel" id="notifPanel"></div>
         <div class="sidebar-footer">
             <div class="user-info">
                 <strong>${escapeHtml(state.user.name)}</strong>
@@ -141,7 +159,14 @@ ${renderAssistantWidget()}
 
   attachAssistantFormHandler();
   loadView();
+  refreshNotifBadge();
 }
+
+setInterval(async () => {
+  if (state.token && state.user) {
+    try { await api("/api/sessions"); } catch (e) {}
+  }
+}, 30000); // every 30 seconds
 
 function navButton(view,label){
     return `
@@ -361,6 +386,11 @@ async function loadView() {
       const sessionsData = await api(`/api/users/${id}/sessions`);
       return renderPersonProfile(view, profileData, sessionsData);
     }
+    if (state.view === "notifications") {
+  const data = await api("/api/notifications");
+  return renderNotifications(view, data);
+}
+    if (state.view === "toolPresentation") return renderPresentationTool(view);
     if (state.view === "topics") return renderTopics(view, await api("/api/topics"));
     if (state.view === "skills") {
       if (state.user.role !== "learner") {
@@ -369,7 +399,7 @@ async function loadView() {
       }
       return renderSkills(view, await api("/api/skills"));
     }
-    if (state.view === "reports") return renderReports(view, await api("/api/dashboard"));
+    if (state.view === "reports") return renderReports(view, await api("/api/reports"));
     if (state.view === "debateRoom") {
       const id = state.activeSessionId;
       if (!id) {
@@ -386,6 +416,7 @@ async function loadView() {
       }
       return renderSkillGap(view, await api("/api/coach/skill-gap"));
     }
+    if (["toolAnalyze","toolFallacy","toolCounter"].includes(state.view)) return renderToolPage(view, state.view);
     if (state.view === "coach") return renderCoachPage(view);
     if (state.view === "tasks") {
   const tasksData = await api("/api/tasks");
@@ -397,305 +428,453 @@ async function loadView() {
   }
 }
 
+function renderPresentationTool(view) {
+  view.innerHTML = html`
+    <div class="dash-header">
+      <span class="dash-header-role">${escapeHtml(state.user.roleLabel)}</span>
+      <h1>Presentation Analysis</h1>
+      <p>Record a clip or upload an audio file to check your speaking pace, filler words, confidence, and clarity.</p>
+    </div>
+    <section class="panel">
+      <div class="pres-input-tabs">
+        <button class="pres-tab active" id="presTabRecord" onclick="switchPresInputMode('record')">🎙 Record</button>
+        <button class="pres-tab" id="presTabUpload" onclick="switchPresInputMode('upload')">📁 Upload File</button>
+      </div>
+
+      <div id="presRecordSection">
+        <div class="room-controls">
+          <button id="presRecordBtn" class="primary" onclick="togglePresentationRecording()">🎙 Start speaking</button>
+        </div>
+      </div>
+
+      <div id="presUploadSection" style="display:none;">
+        <div class="field">
+          <label for="presFileInput">Choose an audio file (.mp3, .wav, .m4a, .webm)</label>
+          <input id="presFileInput" type="file" accept="audio/*" />
+        </div>
+        <button class="primary" onclick="submitPresentationFile()">Analyze File</button>
+      </div>
+
+      <div id="presStatus" class="muted" style="margin-top:10px;"></div>
+      <div id="presResult" style="margin-top:14px;"></div>
+    </section>
+  `;
+}
+
+function switchPresInputMode(mode) {
+  const recordSection = document.querySelector("#presRecordSection");
+  const uploadSection = document.querySelector("#presUploadSection");
+  const recordTab = document.querySelector("#presTabRecord");
+  const uploadTab = document.querySelector("#presTabUpload");
+
+  if (mode === "record") {
+    recordSection.style.display = "";
+    uploadSection.style.display = "none";
+    recordTab.classList.add("active");
+    uploadTab.classList.remove("active");
+  } else {
+    recordSection.style.display = "none";
+    uploadSection.style.display = "";
+    recordTab.classList.remove("active");
+    uploadTab.classList.add("active");
+  }
+}
+
+async function submitPresentationFile() {
+  const fileInput = document.querySelector("#presFileInput");
+  const file = fileInput.files[0];
+  if (!file) {
+    document.querySelector("#presStatus").textContent = "Choose a file first.";
+    return;
+  }
+  // Duration isn't known upfront for an uploaded file without decoding it client-side,
+  // so pace (WPM) is skipped for uploads -- delivery scores still work fine.
+  await submitPresentationAudio(file, null);
+}
+
+async function togglePresentationRecording() {
+  if (presRecorder.isRecording) {
+    presRecorder.mediaRecorder.stop();
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const mediaRecorder = new MediaRecorder(stream);
+    presRecorder.mediaRecorder = mediaRecorder;
+    presRecorder.chunks = [];
+    presRecorder.isRecording = true;
+    presRecordingStart = Date.now();
+    updatePresRecordButton();
+
+    mediaRecorder.addEventListener("dataavailable", (e) => { if (e.data.size > 0) presRecorder.chunks.push(e.data); });
+    mediaRecorder.addEventListener("stop", async () => {
+      presRecorder.isRecording = false;
+      updatePresRecordButton();
+      stream.getTracks().forEach((t) => t.stop());
+      const durationSeconds = presRecordingStart ? (Date.now() - presRecordingStart) / 1000 : null;
+      presRecordingStart = null;
+
+      const blob = new Blob(presRecorder.chunks, { type: "audio/webm" });
+      if (blob.size === 0) {
+        document.querySelector("#presStatus").textContent = "Didn't catch any audio -- try again.";
+        return;
+      }
+      await submitPresentationAudio(blob, durationSeconds);
+    });
+
+    mediaRecorder.start();
+    document.querySelector("#presStatus").textContent = "Recording... click again to stop.";
+  } catch (error) {
+    document.querySelector("#presStatus").textContent = "Microphone access was denied.";
+  }
+}
+
+function updatePresRecordButton() {
+  const btn = document.querySelector("#presRecordBtn");
+  if (!btn) return;
+  btn.textContent = presRecorder.isRecording ? "⏹ Stop & analyze" : "🎙 Start speaking";
+  btn.classList.toggle("recording", presRecorder.isRecording);
+}
+
+async function submitPresentationAudio(blob, durationSeconds) {
+  const statusEl = document.querySelector("#presStatus");
+  const resultEl = document.querySelector("#presResult");
+  statusEl.textContent = "Analyzing your delivery...";
+  try {
+    const formData = new FormData();
+    const filename = blob.name || "clip.webm"; // uploaded File objects carry their own name
+    formData.append("audio", blob, filename);
+    formData.append("audio", blob, "clip.webm");
+    if (durationSeconds) formData.append("duration_seconds", durationSeconds);
+    const headers = {};
+    if (state.token) headers.Authorization = `Bearer ${state.token}`;
+    const response = await fetch("/api/tools/presentation", { method: "POST", body: formData, headers });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || "Something went wrong");
+
+    statusEl.textContent = "";
+    const m = result.metrics;
+    resultEl.innerHTML = html`
+      <div class="summary-block"><h4>Transcript</h4><p>${escapeHtml(result.transcript)}</p></div>
+      ${result.wordsPerMinute ? `<div class="summary-block"><h4>Pace</h4><p>${result.wordsPerMinute} WPM (${escapeHtml(result.paceStatus)})</p></div>` : ""}
+      <div class="summary-block">
+        <h4>Delivery Scores</h4>
+        <div class="criteria-grid">
+          <div class="criteria-cell"><span class="criteria-label">Confidence</span><span class="criteria-value">${m.confidence_score}%</span></div>
+          <div class="criteria-cell"><span class="criteria-label">Clarity</span><span class="criteria-value">${m.clarity_score}%</span></div>
+          <div class="criteria-cell"><span class="criteria-label">Engagement</span><span class="criteria-value">${m.engagement_score}%</span></div>
+        </div>
+      </div>
+      <div class="summary-block"><h4>Filler Words</h4><p>${m.filler_word_count} detected${m.filler_words_found.length ? ": " + m.filler_words_found.map(escapeHtml).join(", ") : ""}</p></div>
+      ${m.feedback ? `<div class="summary-block"><h4>Feedback</h4><p>${escapeHtml(m.feedback)}</p></div>` : ""}
+    `;
+  } catch (error) {
+    statusEl.textContent = "";
+    resultEl.innerHTML = `<div class="message error">${escapeHtml(error.message)}</div>`;
+  }
+}
+
 function renderDashboard(view, data, recommendation = null) {
   const stats = data.stats;
+  const role = state.user.role;
+
+  const roleHeading =
+    role === "learner" ? "Learner Dashboard"
+    : role === "coach" ? "Coach Dashboard"
+    : role === "educator" ? "Educator Dashboard"
+    : "Admin Dashboard";
+
+  const roleSubtitle =
+    role === "learner"
+      ? "Track your debate skills, prepare for upcoming sessions, and review AI coaching feedback."
+    : role === "coach"
+      ? "Monitor your assigned learners' progress and evaluate their debates."
+    : role === "educator"
+      ? "Review class-wide debate performance and presentation outcomes."
+    : "Platform-wide usage, users, and system health.";
+
+  const headerHtml = html`
+    <div class="dash-header">
+      <span class="dash-header-role">${escapeHtml(state.user.roleLabel)}</span>
+      <h1>${roleHeading}</h1>
+      <p>${roleSubtitle}</p>
+    </div>
+  `;
+
+  let statsHtml = "";
+  if (role === "learner") {
+    statsHtml = html`<div class="grid four">
+      ${statCard("Average Skill", `${stats.averageSkill}%`, "tone-brand")}
+      ${statCard("Visible Sessions", stats.visibleSessions, "tone-violet")}
+      ${statCard("Scheduled", stats.scheduledSessions, "tone-accent")}
+      ${statCard("Completed", stats.completedSessions, "tone-green")}
+    </div>`;
+  } else if (role === "coach") {
+    statsHtml = html`<div class="grid four">
+      ${statCard("Learners", stats.learners, "tone-brand")}
+      ${statCard("Pending Evaluations", (data.pendingFeedback || []).length, "tone-red")}
+      ${statCard("Scheduled", stats.scheduledSessions, "tone-accent")}
+      ${statCard("Completed", stats.completedSessions, "tone-green")}
+    </div>`;
+  } else if (role === "educator") {
+    statsHtml = html`<div class="grid four">
+      ${statCard("Students", stats.learners, "tone-brand")}
+      ${statCard("Visible Sessions", stats.visibleSessions, "tone-violet")}
+      ${statCard("Scheduled", stats.scheduledSessions, "tone-accent")}
+      ${statCard("Completed", stats.completedSessions, "tone-green")}
+    </div>`;
+  } else {
+    statsHtml = html`<div class="grid four">
+      ${statCard("Platform Users", stats.platformUsers, "tone-brand")}
+      ${statCard("Learners", stats.learners, "tone-violet")}
+      ${statCard("Visible Sessions", stats.visibleSessions, "tone-accent")}
+      ${statCard("Completed", stats.completedSessions, "tone-green")}
+    </div>`;
+  }
+
+  let bodyHtml = "";
+
+ if (role === "learner") {
+  bodyHtml = html`
+    <div class="dash-cols" style="margin-top:20px;">
+      <div class="dash-col">
+        <section class="panel">
+          <h2 class="section-title">Skill Progress</h2>
+          <p class="section-subtitle">Computed from your scored debate turns.</p>
+          ${radarChartSvg(data.skills)}
+          ${data.skills.map(skill => skillDisplay(skill.skill_name, skill.score)).join("")}
+        </section>
+        <section class="panel">
+          <h2 class="section-title">Recent Sessions</h2>
+          <p class="section-subtitle">Your latest debate activity.</p>
+          ${recentSessionsListHtml(data.recentSessions)}
+        </section>
+      </div>
+      <div class="dash-col">
+        <section class="panel">
+          <h2 class="section-title">Quick Actions</h2>
+          <p class="section-subtitle">Jump back into practice.</p>
+          <div class="action-list">
+            <button class="action-row" onclick="setView('newSession')">
+              <div><span class="action-row-label">Schedule a Debate</span><div class="action-row-desc">Start a new practice session</div></div>
+              <span class="action-row-arrow">→</span>
+            </button>
+            <button class="action-row" onclick="setView('topics')">
+              <div><span class="action-row-label">Practice Topics</span><div class="action-row-desc">Browse or add debate topics</div></div>
+              <span class="action-row-arrow">→</span>
+            </button>
+            <button class="action-row" onclick="setView('profile')">
+              <div><span class="action-row-label">Update Profile</span><div class="action-row-desc">Preferences and coach selection</div></div>
+              <span class="action-row-arrow">→</span>
+            </button>
+            <button class="action-row" onclick="setView('reports')">
+              <div><span class="action-row-label">View Progress</span><div class="action-row-desc">Session history and completion rate</div></div>
+              <span class="action-row-arrow">→</span>
+            </button>
+          </div>
+        </section>
+        ${recommendation ? html`<section class="panel">
+          <h2 class="section-title">Coaching Recommendation</h2>
+          ${recommendationPanelInnerHtml(recommendation)}
+        </section>` : `<section class="panel"><div class="empty">No recommendation yet.</div></section>`}
+      </div>
+    </div>
+  `;
+}
+   else if (role === "coach") {
+    bodyHtml = html`
+      <div class="grid two" style="margin-top:20px;">
+        <section class="panel">
+          <h2 class="section-title">Evaluation Queue</h2>
+          <p class="section-subtitle">Completed debates awaiting your feedback.</p>
+          ${queueListHtml(data.pendingFeedback)}
+        </section>
+        <section class="panel">
+          <h2 class="section-title">Top Learners</h2>
+          <p class="section-subtitle">Ranked by average debate score.</p>
+          ${rankListHtml(data.topLearners)}
+        </section>
+      </div>
+      <div class="grid two" style="margin-top:14px;">
+        <section class="panel">
+          <h2 class="section-title">Your Learners</h2>
+          <div class="action-list">
+            <button class="action-row" onclick="setView('people')">
+              <div><span class="action-row-label">View Learners</span><div class="action-row-desc">${stats.learners} assigned learner${stats.learners === 1 ? "" : "s"}</div></div>
+              <span class="action-row-arrow">→</span>
+            </button>
+            <button class="action-row" onclick="setView('skillGap')">
+              <div><span class="action-row-label">Skill Gap Analysis</span><div class="action-row-desc">Class-wide strengths and weaknesses</div></div>
+              <span class="action-row-arrow">→</span>
+            </button>
+          </div>
+        </section>
+        <section class="panel">
+          <h2 class="section-title">Recent Activity</h2>
+          <p class="section-subtitle">Latest sessions from your learners.</p>
+          ${recentSessionsListHtml(data.recentSessions)}
+        </section>
+      </div>
+    `;
+  } else if (role === "educator") {
+    bodyHtml = html`
+      <div class="grid two" style="margin-top:20px;">
+        <section class="panel">
+          <h2 class="section-title">Student Rankings</h2>
+          <p class="section-subtitle">Ranked by average debate score.</p>
+          ${rankListHtml(data.topLearners)}
+        </section>
+        <section class="panel">
+          <h2 class="section-title">Performance Reports</h2>
+          <h3 class="compact-title" style="margin-top:0;">Debate Performance</h3>
+          <ul class="report-list">
+            <li>Overall class participation</li>
+            <li>Debate completion rate</li>
+            <li>Student engagement</li>
+          </ul>
+          <h3 class="compact-title">Presentation Assessment</h3>
+          <ul class="report-list">
+            <li>Communication skills</li>
+            <li>Critical thinking</li>
+            <li>Content delivery</li>
+          </ul>
+        </section>
+      </div>
+      <section class="panel" style="margin-top:14px;">
+        <h2 class="section-title">Recent Class Activity</h2>
+        ${recentSessionsListHtml(data.recentSessions)}
+      </section>
+    `;
+  } else {
+    bodyHtml = html`
+      <div class="grid two" style="margin-top:20px;">
+        <section class="panel">
+          <h2 class="section-title">Top Active Debates</h2>
+          <p class="section-subtitle">Most-practiced topics on the platform.</p>
+          ${topTopicsListHtml(data.topTopics)}
+        </section>
+        <section class="panel">
+          <h2 class="section-title">System Status</h2>
+          <ul class="report-list">
+            <li>Authentication Service — Operational</li>
+            <li>Database — Connected</li>
+            <li>Debate Sessions — Active</li>
+            <li>Reports — Available</li>
+          </ul>
+          <h3 class="compact-title">Administrator Actions</h3>
+          <div class="action-list">
+            <button class="action-row" onclick="setView('people')">
+              <div><span class="action-row-label">Manage Users</span></div><span class="action-row-arrow">→</span>
+            </button>
+            <button class="action-row" onclick="setView('sessions')">
+              <div><span class="action-row-label">View Sessions</span></div><span class="action-row-arrow">→</span>
+            </button>
+          </div>
+        </section>
+      </div>
+    `;
+  }
 
   view.innerHTML = html`
     <div class="dashboard">
+      ${headerHtml}
+      ${statsHtml}
+      ${bodyHtml}
+    </div>
+  `;
+}
 
-      <section class="hero">
-        <div>
-          <h1>Welcome, ${escapeHtml(state.user.name)} 👋</h1>
-
-          <p>
-            ${
-              state.user.role === "learner"
-                ? "Continue practising and improve your debate skills."
-                : state.user.role === "coach"
-                ? "Review learner progress and provide valuable feedback."
-                : state.user.role === "educator"
-                ? "Monitor student participation and performance."
-                : "Manage users, sessions, and platform activities."
-            }
-          </p>
+function recentSessionsListHtml(sessions) {
+  if (!sessions || !sessions.length) return `<div class="empty">No sessions yet.</div>`;
+  return html`
+    <div class="recent-list">
+      ${sessions.map((s) => html`
+        <div class="recent-row">
+          <div class="recent-row-title">${escapeHtml(s.topic)}</div>
+          <div class="recent-row-meta">
+            ${escapeHtml(s.owner_name || "")} ${s.owner_name ? "· " : ""}${escapeHtml(s.format)} · ${escapeHtml(s.status)}
+          </div>
         </div>
-      </section>
+      `).join("")}
+    </div>
+  `;
+}
 
-      <div class="grid four">
-        ${
-          state.user.role === "learner"
-            ? statCard("Average Skill", `${stats.averageSkill}%`)
-            : state.user.role === "coach"
-            ? statCard("Learners", stats.learners)
-            : state.user.role === "educator"
-            ? statCard("Students", stats.learners)
-            : statCard("Platform Users", stats.platformUsers)
-        }
+function rankListHtml(learners) {
+  if (!learners || !learners.length) return `<div class="empty">No scored debates yet.</div>`;
+  return html`
+    <div class="rank-list">
+      ${learners.map((l, i) => html`
+        <div class="rank-row">
+          <span class="rank-number">${i + 1}</span>
+          <span class="rank-name">${escapeHtml(l.name)}</span>
+          <span class="rank-meta">${l.sessions_count} debate${l.sessions_count === 1 ? "" : "s"}</span>
+          <span class="rank-score">${l.avg_score}%</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
 
-        ${statCard("Visible Sessions", stats.visibleSessions)}
-        ${statCard("Scheduled", stats.scheduledSessions)}
-        ${statCard("Completed", stats.completedSessions)}
-      </div>
+function queueListHtml(pending) {
+  if (!pending || !pending.length) return `<div class="empty">Nothing pending — you're all caught up.</div>`;
+  return html`
+    <div class="recent-list">
+      ${pending.map((p) => html`
+        <div class="queue-row">
+          <div>
+            <div class="recent-row-title">${escapeHtml(p.topic)}</div>
+            <div class="recent-row-meta">${escapeHtml(p.owner_name)}</div>
+          </div>
+          <button class="ghost" onclick="openDebateRoom(${p.id})">Review</button>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
 
-      ${
-        state.user.role === "learner"
-          ? `
-            <div class="grid two">
-
-              <section class="panel">
-                <h2 class="section-title">Skill Progress</h2>
-
-                ${radarChartSvg(data.skills)}
-
-                ${data.skills
-                  .map((skill) =>
-                    skillDisplay(skill.skill_name, skill.score)
-                  )
-                  .join("")}
-              </section>
-
-              <section class="panel">
-                <h2 class="section-title">Quick Actions</h2>
-
-                <div class="quick-actions">
-
-                  <button
-                    class="card"
-                    onclick="setView('newSession')"
-                  >
-                    <h3>🎤</h3>
-                    <p>Schedule Debate</p>
-                  </button>
-
-                  <button
-                    class="card"
-                    onclick="setView('topics')"
-                  >
-                    <h3>📚</h3>
-                    <p>Practice Topics</p>
-                  </button>
-
-                  <button
-                    class="card"
-                    onclick="setView('profile')"
-                  >
-                    <h3>👤</h3>
-                    <p>Update Profile</p>
-                  </button>
-
-                  <button
-                    class="card"
-                    onclick="setView('reports')"
-                  >
-                    <h3>📈</h3>
-                    <p>View Progress</p>
-                  </button>
-
-                </div>
-              </section>
-
-            </div>
-
-            ${
-              recommendation
-                ? recommendationPanelHtml(recommendation)
-                : ""
-            }
-          `
-
-          : state.user.role === "coach"
-          ? `
-            <div class="grid two">
-
-              <section class="panel">
-                <h2 class="section-title">Learner Overview</h2>
-
-                <div class="grid two">
-                  ${statCard("Learners", stats.learners)}
-                  ${statCard("Scheduled", stats.scheduledSessions)}
-                  ${statCard("Completed", stats.completedSessions)}
-                  ${statCard("Visible", stats.visibleSessions)}
-                </div>
-              </section>
-
-              <section class="panel">
-                <h2 class="section-title">Coaching Activities</h2>
-
-                <ul class="report-list">
-                  <li>Review learner debate sessions</li>
-                  <li>Provide constructive feedback</li>
-                  <li>Monitor debate completion</li>
-                  <li>Track learner improvement</li>
-                  <li>Guide presentation skills</li>
-                </ul>
-              </section>
-
-            </div>
-          `
-
-          : state.user.role === "educator"
-          ? `
-            <div class="grid two">
-
-              <section class="panel">
-                <h2 class="section-title">Class Analytics</h2>
-
-                <div class="grid two">
-                  ${statCard("Students", stats.learners)}
-                  ${statCard("Scheduled", stats.scheduledSessions)}
-                  ${statCard("Completed", stats.completedSessions)}
-                  ${statCard("Visible", stats.visibleSessions)}
-                </div>
-              </section>
-
-              <section class="panel">
-                <h2 class="section-title">Performance Reports</h2>
-
-                <div class="card">
-                  <h3 class="compact-title">
-                    Debate Performance
-                  </h3>
-
-                  <ul class="report-list">
-                    <li>Overall class participation</li>
-                    <li>Debate completion rate</li>
-                    <li>Student engagement</li>
-                    <li>Speaking confidence</li>
-                  </ul>
-                </div>
-
-                <br>
-
-                <div class="card">
-                  <h3 class="compact-title">
-                    Presentation Assessment
-                  </h3>
-
-                  <ul class="report-list">
-                    <li>Communication Skills</li>
-                    <li>Critical Thinking</li>
-                    <li>Organization</li>
-                    <li>Content Delivery</li>
-                  </ul>
-                </div>
-              </section>
-
-            </div>
-          `
-
-          : `
-            <div class="grid two">
-
-              <section class="panel">
-                <h2 class="section-title">
-                  Platform Overview
-                </h2>
-
-                <div class="grid two">
-                  ${statCard("Users", stats.platformUsers)}
-                  ${statCard("Learners", stats.learners)}
-                  ${statCard("Sessions", stats.visibleSessions)}
-                  ${statCard("Completed", stats.completedSessions)}
-                </div>
-              </section>
-
-              <section class="panel">
-                <h2 class="section-title">
-                  System Status
-                </h2>
-
-                <div class="card">
-                  <h3 class="compact-title">
-                    Platform Health
-                  </h3>
-
-                  <ul class="report-list">
-                    <li>🟢 Authentication Service</li>
-                    <li>🟢 Database Connected</li>
-                    <li>🟢 Debate Sessions Active</li>
-                    <li>🟢 Reports Available</li>
-                  </ul>
-                </div>
-
-                <br>
-
-                <div class="card">
-                  <h3 class="compact-title">
-                    Administrator Actions
-                  </h3>
-
-                  <div class="quick-actions">
-
-                    <button
-                      class="card"
-                      onclick="setView('people')"
-                    >
-                      <h3>👥</h3>
-                      <p>Manage Users</p>
-                    </button>
-
-                    <button
-                      class="card"
-                      onclick="setView('sessions')"
-                    >
-                      <h3>🎤</h3>
-                      <p>View Sessions</p>
-                    </button>
-
-                    <button
-                      class="card"
-                      onclick="setView('reports')"
-                    >
-                      <h3>📊</h3>
-                      <p>Reports</p>
-                    </button>
-
-                    <button
-                      class="card"
-                      onclick="setView('people')"
-                    >
-                      <h3>⚙️</h3>
-                      <p>System</p>
-                    </button>
-
-                  </div>
-                </div>
-              </section>
-
-            </div>
-          `
-      }
-
+function topTopicsListHtml(topics) {
+  if (!topics || !topics.length) return `<div class="empty">No sessions yet.</div>`;
+  return html`
+    <div class="rank-list">
+      ${topics.map((t, i) => html`
+        <div class="rank-row">
+          <span class="rank-number">${i + 1}</span>
+          <span class="rank-name">${escapeHtml(t.topic)}</span>
+          <span class="rank-score">${t.session_count}</span>
+        </div>
+      `).join("")}
     </div>
   `;
 }
 
 function recommendationPanelHtml(recommendation) {
+  return html`<section class="panel" style="margin-top:14px;"><h2 class="section-title">Coaching Recommendation</h2>${recommendationPanelInnerHtml(recommendation)}</section>`;
+}
+
+function recommendationPanelInnerHtml(recommendation) {
   return html`
-    <section class="panel" style="margin-top:14px;">
-      <h2 class="section-title">Coaching Recommendation</h2>
-      <div class="summary-block">
-        <h4>Focus Area</h4>
-        <p>${escapeHtml(recommendation.focus_area)}</p>
-      </div>
-      <div class="summary-block">
-        <h4>Insight</h4>
-        <p>${escapeHtml(recommendation.insight)}</p>
-      </div>
-      <div class="summary-block">
-        <h4>Recommended Drills</h4>
-        <ul>${(recommendation.recommended_drills || []).map((d) => `<li>${escapeHtml(d)}</li>`).join("")}</ul>
-      </div>
-      <div class="summary-block">
-        <h4>Recommended Topics</h4>
-        <ul>${(recommendation.recommended_topics || []).map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul>
-      </div>
-    </section>
+    <div class="summary-block">
+      <h4>Focus Area</h4>
+      <p>${escapeHtml(recommendation.focus_area)}</p>
+    </div>
+    <div class="summary-block">
+      <h4>Insight</h4>
+      <p>${escapeHtml(recommendation.insight)}</p>
+    </div>
+    <div class="summary-block">
+      <h4>Recommended Drills</h4>
+      <ul>${(recommendation.recommended_drills || []).map((d) => `<li>${escapeHtml(d)}</li>`).join("")}</ul>
+    </div>
+    <div class="summary-block">
+      <h4>Recommended Topics</h4>
+      <ul>${(recommendation.recommended_topics || []).map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul>
+    </div>
   `;
 }
 
-function statCard(label, value) {
-  return `<article class="card stat"><span class="muted">${label}</span><strong>${value}</strong></article>`;
+function statCard(label, value, tone = "") {
+  return `<article class="card stat ${tone}"><span class="muted">${label}</span><strong>${value}</strong></article>`;
 }
 
 function skillDisplay(name, score) {
@@ -1056,6 +1235,9 @@ function renderAdminOverview(data) {
   return html`
     <section class="panel">
       <h2 class="section-title">Platform Overview</h2>
+      <div class="export-actions">
+  <a class="ghost" href="/api/admin/export/excel" target="_blank">📊 Export Report</a>
+</div>
 
       <div class="admin-stat-grid">
         ${adminStatCard("👥", "purple", "Total Users", data.totalUsers)}
@@ -1272,38 +1454,53 @@ function renderSkills(view, skillsData) {
   `;
 }
 
-function renderReports(view, dashboardData) {
-  const stats = dashboardData.stats;
-  const completionRate = stats.visibleSessions > 0
-    ? Math.round((stats.completedSessions / stats.visibleSessions) * 100)
-    : 0;
+function renderReports(view, data) {
+  const sessions = data.completedSessions || [];
 
   view.innerHTML = html`
-    <div class="dashboard">
-      <section class="panel">
-        <h2 class="section-title">Performance Reports</h2>
-        <p class="muted">A snapshot built from your current session data.</p>
-      </section>
-      <div class="grid four">
-        ${statCard("Total Sessions", stats.visibleSessions)}
-        ${statCard("Completed", stats.completedSessions)}
-        ${statCard("Scheduled", stats.scheduledSessions)}
-        ${statCard("Completion Rate", `${completionRate}%`)}
+    <div class="dash-header">
+      <span class="dash-header-role">${escapeHtml(state.user.roleLabel)}</span>
+      <h1>Reports</h1>
+      <p>Completed debate reports, scores, and exportable summaries.</p>
+    </div>
+
+    <div class="grid three" style="margin-bottom:16px;">
+      ${statCard("Completed Debates", data.totalCompleted, "tone-brand")}
+      ${statCard("Average Score", `${data.averageScore}/100`, "tone-green")}
+      ${statCard("This View", state.user.roleLabel, "tone-violet")}
+    </div>
+
+    <section class="panel">
+      <h2 class="section-title">Debate Reports</h2>
+      <p class="section-subtitle">Click a report to view or export it.</p>
+      ${
+        sessions.length
+          ? html`<div class="report-row-list">
+              ${sessions.map((s) => reportRowHtml(s)).join("")}
+            </div>`
+          : `<div class="empty">No completed debates yet.</div>`
+      }
+    </section>
+  `;
+}
+
+function reportRowHtml(session) {
+  return html`
+    <div class="report-row">
+      <div class="report-row-main" onclick="openDebateRoom(${session.id})">
+        <div class="report-row-title">${escapeHtml(session.topic)}</div>
+        <div class="report-row-meta">
+          ${escapeHtml(session.owner_name || "")} ${session.owner_name ? "· " : ""}${escapeHtml(session.format)} · ${escapeHtml(session.scheduled_for)}
+        </div>
+      </div>
+      <div class="report-row-side">
+        ${session.overall_score != null ? `<span class="badge session-score-badge">${session.overall_score}/100</span>` : ""}
+        <a class="ghost" href="/api/sessions/${session.id}/export/pdf?token=${encodeURIComponent(state.token)}" target="_blank" onclick="event.stopPropagation()">PDF</a>
+        <a class="ghost" href="/api/sessions/${session.id}/export/excel?token=${encodeURIComponent(state.token)}" target="_blank" onclick="event.stopPropagation()">Excel</a>
       </div>
     </div>
   `;
 }
-
-/* ---------------------------------------------------------------------- */
-/* Debate Room                                                              */
-/* ---------------------------------------------------------------------- */
-
-const recorder = {
-  mediaRecorder: null,
-  chunks: [],
-  isRecording: false,
-};
-let recordingStartTime = null;
 
 function openDebateRoom(sessionId) {
   state.activeSessionId = sessionId;
@@ -1433,6 +1630,10 @@ function renderSessionSummaryPanel(summary) {
   return html`
     <section class="panel" style="margin-top:14px;">
       <h2 class="section-title">Debate Summary</h2>
+      <div class="export-actions">
+  <a class="ghost" href="/api/sessions/${state.activeSessionId}/export/pdf?token=${encodeURIComponent(state.token)}" target="_blank">📄 Export PDF</a>
+<a class="ghost" href="/api/sessions/${state.activeSessionId}/export/excel?token=${encodeURIComponent(state.token)}" target="_blank">📊 Export Excel</a>
+</div>
 
       <div class="summary-block">
         <h4>Overall Score</h4>
@@ -1539,6 +1740,16 @@ function transcriptRow(turn) {
           isUser && turn.words_per_minute
             ? `<p class="muted">🗣 ${turn.words_per_minute} WPM (${escapeHtml(turn.pace_status || "")})</p>`
             : ""
+        }
+
+        ${
+          isUser && turn.confidence_score_delivery != null
+            ? `<div class="presentation-flag">
+            <strong>Delivery:</strong> Confidence ${turn.confidence_score_delivery} · Clarity ${turn.clarity_score_delivery} · Engagement ${turn.engagement_score}
+            ${turn.filler_word_count ? `<span class="muted"> · ${turn.filler_word_count} filler word${turn.filler_word_count === 1 ? "" : "s"}</span>` : ""}
+            ${turn.presentation_feedback ? `<p class="muted">${escapeHtml(turn.presentation_feedback)}</p>` : ""}
+            </div>`
+           : ""
         }
 
         ${
@@ -2098,6 +2309,135 @@ function radarChartSvg(skills, size = 280) {
   `;
 }
 
+function renderNotifications(view, data) {
+  const notifications = data.notifications || [];
+  updateNotifBadge(0); // viewing the page marks the badge visually clear; actual read-state handled per-row
+
+  view.innerHTML = html`
+    <div class="dash-header">
+      <span class="dash-header-role">${escapeHtml(state.user.roleLabel)}</span>
+      <h1>Notifications</h1>
+      <p>Reminders, feedback alerts, and updates.</p>
+    </div>
+    <section class="panel">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button class="ghost" onclick="markAllNotifsRead()">Mark all read</button>
+      </div>
+      ${
+        notifications.length
+          ? html`<div class="notif-list">
+              ${notifications.map((n) => html`
+                <div class="notif-row ${n.is_read ? "" : "unread"}" onclick="handleNotifClick(${n.id}, ${n.related_session_id || "null"})">
+                  <div class="notif-row-title">${escapeHtml(n.title)}</div>
+                  <div class="notif-row-body">${escapeHtml(n.body)}</div>
+                  <div class="notif-row-time">${escapeHtml(n.created_at)}</div>
+                </div>
+              `).join("")}
+            </div>`
+          : `<div class="empty">No notifications yet.</div>`
+      }
+    </section>
+  `;
+}
+
+async function markAllNotifsRead() {
+  try {
+    await api("/api/notifications/read-all", { method: "PUT" });
+    await loadView();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function handleNotifClick(id, sessionId) {
+  try {
+    await api(`/api/notifications/${id}/read`, { method: "PUT" });
+  } catch (e) {}
+  if (sessionId) openDebateRoom(sessionId);
+  else loadView();
+}
+
+function renderToolPage(view, key) {
+  const cfg = toolConfig[key];
+  view.innerHTML = html`
+    <div class="dash-header">
+      <span class="dash-header-role">${escapeHtml(state.user.roleLabel)}</span>
+      <h1>${cfg.title}</h1>
+      <p>Standalone tool — analyze any text without starting a full debate session.</p>
+    </div>
+    <section class="panel">
+      <form id="toolForm">
+        <div class="field">
+          <textarea id="toolInput" rows="4" placeholder="${cfg.placeholder}" required></textarea>
+        </div>
+        <button class="primary" type="submit">Analyze</button>
+      </form>
+      <div id="toolResult" style="margin-top:14px;"></div>
+    </section>
+  `;
+
+  document.querySelector("#toolForm").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const text = document.querySelector("#toolInput").value.trim();
+    const resultEl = document.querySelector("#toolResult");
+    if (!text) return;
+    resultEl.innerHTML = `<div class="empty">Analyzing...</div>`;
+    try {
+      const result = await api(cfg.endpoint, { method: "POST", body: JSON.stringify({ text }) });
+      resultEl.innerHTML = toolResultHtml(key, result);
+    } catch (error) {
+      resultEl.innerHTML = `<div class="message error">${escapeHtml(error.message)}</div>`;
+    }
+  });
+}
+
+
+
+
+
+async function refreshNotifBadge() {
+  try {
+    const data = await api("/api/notifications");
+    updateNotifBadge(data.unreadCount);
+  } catch (e) {}
+}
+
+
+
+function updateNotifBadge(count) {
+  const badge = document.querySelector("#notifBadge");
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 9 ? "9+" : count;
+    badge.style.display = "inline-block";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+function toolResultHtml(key, result) {
+  if (key === "toolAnalyze") {
+    return html`
+      <div class="summary-block"><h4>Overall Score</h4><p>${result.overall_score}/100</p></div>
+      <div class="summary-block"><h4>Main Claim</h4><p>${escapeHtml(result.main_claim)}</p></div>
+      <div class="summary-block"><h4>Feedback</h4><p>${escapeHtml(result.feedback || "")}</p></div>
+    `;
+  }
+  if (key === "toolFallacy") {
+    return result.fallacy_detected
+      ? `<div class="fallacy-flag"><strong>⚠ ${escapeHtml(result.fallacy_type)}</strong><p>${escapeHtml(result.explanation || "")}</p><p class="muted">Try instead: ${escapeHtml(result.correction_suggestion || "")}</p></div>`
+      : `<div class="message ok">No logical fallacy detected.</div>`;
+  }
+  if (key === "toolCounter") {
+    return html`
+      <div class="rebuttal-tag rebuttal-tag-${(result.rebuttal_type || "").toLowerCase().replace(/[^a-z]/g,"-")}">${escapeHtml(result.rebuttal_type)} Rebuttal</div>
+      <div class="summary-block" style="margin-top:8px;"><h4>Counterargument</h4><p>${escapeHtml(result.rebuttal_text)}</p></div>
+      <div class="challenge-flag"><strong>Challenge:</strong> ${escapeHtml(result.challenge_question)}</div>
+    `;
+  }
+  return "";
+}
+
 window.logout = logout;
 window.setView = setView;
 window.switchAuth = switchAuth;
@@ -2117,5 +2457,10 @@ window.toggleAssistantMaximize = toggleAssistantMaximize;
 window.markTaskComplete = markTaskComplete;
 window.browseCoaches = browseCoaches;
 window.chooseCoach = chooseCoach;
+window.togglePresentationRecording = togglePresentationRecording;
+window.handleNotifClick = handleNotifClick;
+window.markAllNotifsRead = markAllNotifsRead;
+
 
 render();
+
