@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bot, 
   Mic, 
+  MicOff,
   Send, 
   AlertTriangle, 
   CheckCircle2, 
@@ -9,6 +10,7 @@ import {
   RefreshCw, 
   Zap, 
   Volume2, 
+  VolumeX,
   ShieldAlert,
   Swords,
   RotateCcw,
@@ -17,6 +19,7 @@ import {
 } from 'lucide-react';
 import { DebateFormat, DebateTurnResponseSchema, ActiveDebateSession, ActiveDebateTurn } from '../../types';
 import { processDebateTurnApi } from '../../services/apiClient';
+import { SpeechEngine } from '../../services/speechService';
 
 interface AIDebateSimulationViewProps {
   activeTopic?: string;
@@ -159,16 +162,44 @@ export const AIDebateSimulationView: React.FC<AIDebateSimulationViewProps> = ({
     }
   };
 
-  const handleSimulateRecordSpeech = () => {
-    if (!isRecording) {
-      setIsRecording(true);
-      setRecordingSeconds(12);
-      setTimeout(() => {
-        setIsRecording(false);
-        handleProcessTurn("My opponent claims we need social media regulation, but he couldn't even manage his own campaign budget!");
-      }, 3500);
-    } else {
+  const [speakingTurnId, setSpeakingTurnId] = useState<string | null>(null);
+  const speechRecognitionRef = useRef<{ stop: () => void } | null>(null);
+
+  const handleToggleRecordSpeech = () => {
+    if (isRecording) {
+      if (speechRecognitionRef.current) {
+        speechRecognitionRef.current.stop();
+      }
       setIsRecording(false);
+    } else {
+      setIsRecording(true);
+      setRecordingSeconds(0);
+      
+      const rec = SpeechEngine.startSpeechRecognition(
+        (recognizedText) => {
+          setInputTurn(recognizedText);
+        },
+        (error) => {
+          console.warn('Speech recognition warning:', error);
+        },
+        () => {
+          setIsRecording(false);
+        }
+      );
+      speechRecognitionRef.current = rec;
+    }
+  };
+
+  const handleSpeakTurn = (turnId: string, text: string) => {
+    if (speakingTurnId === turnId) {
+      SpeechEngine.stopSpeaking();
+      setSpeakingTurnId(null);
+    } else {
+      SpeechEngine.stopSpeaking();
+      setSpeakingTurnId(turnId);
+      SpeechEngine.speakText(text, {
+        onEnd: () => setSpeakingTurnId(null)
+      });
     }
   };
 
@@ -369,22 +400,22 @@ export const AIDebateSimulationView: React.FC<AIDebateSimulationViewProps> = ({
 
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
           <button
-            onClick={handleSimulateRecordSpeech}
+            onClick={handleToggleRecordSpeech}
             disabled={isLoading}
-            className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+            className={`w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               isRecording
                 ? 'bg-rose-600 text-white animate-pulse shadow-lg shadow-rose-600/30'
                 : 'bg-slate-800 text-slate-200 hover:bg-slate-700 border border-slate-700'
             }`}
           >
-            <Mic className="w-4 h-4" />
-            {isRecording ? 'Recording Speech (12s)...' : 'Record Speech Input'}
+            {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4 text-indigo-400" />}
+            <span>{isRecording ? 'Listening... (Click to Stop)' : 'Record Speech Input (STT)'}</span>
           </button>
 
           <button
             onClick={() => handleProcessTurn()}
             disabled={!inputTurn.trim() || isLoading}
-            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all"
+            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold px-6 py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
           >
             {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             <span>{isLoading ? 'Agents Processing...' : 'Submit Turn to Dual Agents'}</span>
@@ -464,9 +495,22 @@ export const AIDebateSimulationView: React.FC<AIDebateSimulationViewProps> = ({
 
                 {/* Agent 2 Rebuttal */}
                 <div className="space-y-2 p-3 bg-amber-950/20 rounded-lg border border-amber-900/40">
-                  <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
-                    Agent 2 Rival Rebuttal
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block">
+                      Agent 2 Rival Rebuttal
+                    </span>
+                    <button
+                      onClick={() => handleSpeakTurn(turn.id, turn.aiRebuttal)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold border transition-all flex items-center gap-1 ${
+                        speakingTurnId === turn.id
+                          ? 'bg-amber-500 text-slate-950 border-amber-400 animate-pulse'
+                          : 'bg-amber-500/10 text-amber-300 border-amber-500/30 hover:bg-amber-500/20'
+                      }`}
+                    >
+                      {speakingTurnId === turn.id ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                      <span>{speakingTurnId === turn.id ? 'Stop Voice' : 'Listen Voice'}</span>
+                    </button>
+                  </div>
                   <p className="text-amber-100 italic font-serif leading-relaxed">
                     "{turn.aiRebuttal}"
                   </p>

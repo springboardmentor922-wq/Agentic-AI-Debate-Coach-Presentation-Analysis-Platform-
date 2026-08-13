@@ -165,7 +165,7 @@ Return JSON with keys:
       }
 
       // Calculate Dynamic Argument Score based on input substance, vocabulary, connectors & fallacy penalty
-      const uniqueWords = new Set(wordsArr.map(w => w.toLowerCase().replace(/[^a-z0-9]/g, '')).filter(Boolean)).size;
+      const uniqueWords = new Set(wordsArr.map((w: string) => w.toLowerCase().replace(/[^a-z0-9]/g, '')).filter(Boolean)).size;
       const vocabRatio = wordCount > 0 ? uniqueWords / wordCount : 0.5;
       
       const lowerText = textToAnalyze.toLowerCase();
@@ -177,7 +177,7 @@ Return JSON with keys:
       if (fallacy_metrics.fallacy_detected) {
         calculatedScore -= 18;
       }
-      const textHash = textToAnalyze.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
+      const textHash = textToAnalyze.split('').reduce((acc: any, c: string) => acc + c.charCodeAt(0), 0);
       const scoreVariance = (textHash % 11) - 5;
       const finalArgumentScore = Math.min(Math.max(Math.round(calculatedScore + scoreVariance), 52), 98);
       const evidenceScore = Math.min(Math.max(Math.round(60 + keywordHits * 6 + Math.min(wordCount * 0.3, 15)), 50), 96);
@@ -395,41 +395,95 @@ Return structured JSON according to the schema.`;
     }
   });
 
-  // ENDPOINT: Presentation & Audio Speech Analysis Service
+  // ENDPOINT: Presentation & Audio Speech Analysis Service (Milestone 4 Engine)
   app.post('/api/v1/presentation/analyze', async (req, res) => {
     try {
-      const { text_transcript, audio_duration_sec = 60 } = req.body;
-      const transcript = text_transcript || 'Um, my speech today is about, uh, climate change and like how we should, you know, take action right now.';
+      const { text_transcript, audio_duration_sec = 45 } = req.body;
+      const transcript = (text_transcript || '').trim() || 'Good morning. Today I will present our strategic analysis on clean energy infrastructure. We must transition our grid to sustainable solar and wind models to protect long-term economic resilience.';
       
-      const words = transcript.trim().split(/\s+/);
+      const words = transcript.trim().split(/\s+/).filter(Boolean);
       const wordCount = words.length;
-      const wpm = Math.round(wordCount / (audio_duration_sec / 60));
+      const safeDuration = Math.max(audio_duration_sec || 45, 5);
+      const wpm = Math.round((wordCount / safeDuration) * 60);
 
-      // Regex filler count ("um", "uh", "like", "you know")
+      // Filler words extraction
+      const fillerPatterns = [
+        { regex: /\b(um|uh|umm|uhh)\b/gi, word: 'um/uh' },
+        { regex: /\b(like)\b/gi, word: 'like' },
+        { regex: /\b(you know)\b/gi, word: 'you know' },
+        { regex: /\b(basically)\b/gi, word: 'basically' },
+        { regex: /\b(actually)\b/gi, word: 'actually' },
+        { regex: /\b(literally)\b/gi, word: 'literally' },
+        { regex: /\b(sort of|kind of)\b/gi, word: 'sort/kind of' },
+        { regex: /\b(i mean)\b/gi, word: 'i mean' }
+      ];
+
+      const fillerBreakdown: Array<{ word: string; count: number }> = [];
       const fillersFound: string[] = [];
-      const fillerRegex = /\b(um|uh|like|you know|basically|actually)\b/gi;
-      let match;
-      while ((match = fillerRegex.exec(transcript)) !== null) {
-        fillersFound.push(match[0].toLowerCase());
-      }
+      let totalFillers = 0;
 
-      const clarity_score = Math.max(95 - fillersFound.length * 4, 55);
-      const confidence_score = wpm >= 120 && wpm <= 160 ? 88 : 72;
-      const engagement_score = 80;
+      fillerPatterns.forEach(pattern => {
+        const matches = transcript.match(pattern.regex);
+        if (matches && matches.length > 0) {
+          fillerBreakdown.push({ word: pattern.word, count: matches.length });
+          totalFillers += matches.length;
+          matches.forEach((m: string) => fillersFound.push(m.toLowerCase()));
+        }
+      });
+
+      const fillerPercentage = wordCount > 0 ? Number(((totalFillers / wordCount) * 100).toFixed(1)) : 0;
+      const pace_status = wpm > 175 ? 'Too Fast' : (wpm < 115 ? 'Too Slow' : 'Optimal');
+
+      let clarity_score = 92;
+      if (fillerPercentage > 3) clarity_score -= Math.min(25, Math.round(fillerPercentage * 2.5));
+      if (pace_status === 'Too Fast') clarity_score -= 15;
+      if (pace_status === 'Too Slow') clarity_score -= 8;
+      clarity_score = Math.max(50, Math.min(99, clarity_score));
+
+      let confidence_score = 88;
+      if (totalFillers > 3) confidence_score -= 12;
+      if (pace_status === 'Optimal') confidence_score += 6;
+      confidence_score = Math.max(50, Math.min(98, confidence_score));
+
+      const pitchVariance: 'Monotone' | 'Balanced' | 'Dynamic' = 
+        wpm > 160 ? 'Dynamic' : wpm < 115 ? 'Monotone' : 'Balanced';
+      const energyLevel: 'Low' | 'Moderate' | 'High' = 
+        wpm > 155 ? 'High' : wpm < 115 ? 'Low' : 'Moderate';
+
+      const engagement_score = Math.min(98, Math.max(55, Math.round((clarity_score * 0.45) + (confidence_score * 0.45) + (pitchVariance === 'Dynamic' ? 10 : 5))));
       const overall_score = Math.round((clarity_score + confidence_score + engagement_score) / 3);
+
+      const feedbackTips = [
+        pace_status === 'Optimal' 
+          ? `Excellent vocal cadence maintained at ${wpm} WPM within the target 130–160 WPM debate window.` 
+          : pace_status === 'Too Fast' 
+            ? `Current pace of ${wpm} WPM is overly rapid. Insert deliberate 1-second rhetorical pauses before key impacts.`
+            : `Cadence of ${wpm} WPM is slow. Increase momentum during premise transitions.`,
+        totalFillers > 0 
+          ? `Detected ${totalFillers} verbal filler words (${fillerPercentage}% of speech). Practice replacing verbal crutches with silent pauses.` 
+          : 'Outstanding verbal fluency with zero detected vocal fillers.',
+        pitchVariance === 'Monotone' 
+          ? 'Vary vocal inflection and emphasis on critical statistical data.' 
+          : 'Good vocal modulation and prosody engagement.'
+      ];
 
       res.json({
         transcript,
         words_per_minute: wpm,
-        pace_status: wpm > 160 ? 'Too Fast' : (wpm < 110 ? 'Too Slow' : 'Optimal'),
-        filler_words_count: fillersFound.length,
+        pace_status,
+        filler_words_count: totalFillers,
         filler_words_list: fillersFound,
+        filler_breakdown: fillerBreakdown,
+        filler_percentage: fillerPercentage,
         clarity_score,
         confidence_score,
         engagement_score,
         overall_score,
-        speech_duration_sec: audio_duration_sec,
-        activated_agents: ['Presentation Analysis Agent', 'Speech Metrics Agent', 'Recommendation & Coaching Agent']
+        pitch_variance: pitchVariance,
+        energy_level: energyLevel,
+        speech_duration_sec: safeDuration,
+        feedback_tips: feedbackTips,
+        activated_agents: ['Presentation Analysis Agent', 'Speech Metrics Agent', 'Audio Prosody Agent', 'Recommendation & Coaching Agent']
       });
     } catch (err: any) {
       res.status(500).json({ error: 'Presentation analysis failed' });

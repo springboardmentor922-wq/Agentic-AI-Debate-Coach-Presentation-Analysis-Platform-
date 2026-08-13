@@ -57,14 +57,20 @@ export interface FallacyReportSchema {
 export interface PresentationMetricsSchema {
   transcript: string;
   words_per_minute: number;
-  pace_status: 'Too Fast' | 'Optimal' | 'Too Slow';
+  pace_status: 'Too Fast' | 'Optimal' | 'Too Slow' | 'Slow' | 'Fast';
   filler_words_count: number;
   filler_words_list: string[];
+  filler_breakdown?: Array<{ word: string; count: number }>;
+  filler_percentage?: number;
   clarity_score: number;
   confidence_score: number;
   engagement_score: number;
   overall_score: number;
+  pitch_variance?: 'Monotone' | 'Balanced' | 'Dynamic';
+  energy_level?: 'Low' | 'Moderate' | 'High';
   speech_duration_sec: number;
+  feedback_tips?: string[];
+  activated_agents?: string[];
 }
 
 export interface DebateTurnResponseSchema {

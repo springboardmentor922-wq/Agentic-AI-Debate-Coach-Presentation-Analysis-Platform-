@@ -189,7 +189,7 @@ export function App() {
   };
 
   const handleCreateUser = (newUser: UserProfile) => {
-    setUserProfiles(prev => {
+    setUserProfiles((prev: any) => {
       const updated = [...prev, newUser];
       // Save custom created users only
       const customOnly = updated.filter(u => u.isCustomAccount);
