@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeExternalLinks from 'rehype-external-links'
 import {
   MessageSquareText,
   X,
@@ -12,41 +15,26 @@ import {
   ThumbsDown,
   RotateCcw,
   Sparkles,
+  Square,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import coachChatApi from '../api/coachChat'
-import { resolvePageContext } from '../utils/chatPageContext'
+import { resolvePageContext, AGENT_LABELS } from '../utils/chatPageContext'
 
-// Very small markdown-lite renderer (bold + bullet lines + line breaks) so we
-// don't need an extra dependency for the chatbot's formatted replies.
+// Full Markdown rendering (GFM tables, fenced code blocks, bold/italic,
+// lists, links opened safely in a new tab with rel=noopener) rather than
+// the previous bold+bullets-only regex renderer — the chatbot's replies
+// can include tables (e.g. score breakdowns) and code-like quoted text, and
+// links must never inherit the current session/auth context.
 function Markdownish({ text }) {
-  const lines = (text || '').split('\n')
   return (
-    <div className="space-y-1.5">
-      {lines.map((line, i) => {
-        const trimmed = line.trim()
-        const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ')
-        const content = isBullet ? trimmed.slice(2) : trimmed
-        const parts = content.split(/(\*\*[^*]+\*\*)/g).map((part, j) =>
-          part.startsWith('**') && part.endsWith('**') ? (
-            <strong key={j} className="font-semibold text-ink-900 dark:text-white">
-              {part.slice(2, -2)}
-            </strong>
-          ) : (
-            <span key={j}>{part}</span>
-          )
-        )
-        if (isBullet) {
-          return (
-            <div key={i} className="flex gap-1.5 pl-1">
-              <span className="text-brand-500">•</span>
-              <span>{parts}</span>
-            </div>
-          )
-        }
-        if (!trimmed) return <div key={i} className="h-1" />
-        return <p key={i}>{parts}</p>
-      })}
+    <div className="chat-markdown space-y-1.5 text-[13px] leading-snug [&_p]:my-1 [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-4 [&_strong]:font-semibold [&_a]:text-brand-600 [&_a]:underline dark:[&_a]:text-brand-300 [&_table]:my-2 [&_table]:w-full [&_table]:border-collapse [&_table]:text-[12px] [&_th]:border [&_th]:border-black/10 [&_th]:bg-black/5 [&_th]:px-1.5 [&_th]:py-1 [&_td]:border [&_td]:border-black/10 [&_td]:px-1.5 [&_td]:py-1 dark:[&_th]:border-white/15 dark:[&_th]:bg-white/10 dark:[&_td]:border-white/15 [&_code]:rounded [&_code]:bg-black/10 [&_code]:px-1 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[12px] dark:[&_code]:bg-white/10 [&_pre]:my-1.5 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:bg-ink-900 [&_pre]:p-2.5 [&_pre]:text-white [&_pre_code]:bg-transparent [&_pre_code]:p-0">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[[rehypeExternalLinks, { target: '_blank', rel: ['noopener', 'noreferrer'] }]]}
+      >
+        {text || ''}
+      </ReactMarkdown>
     </div>
   )
 }
@@ -62,6 +50,7 @@ export default function GlobalChatbot() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const scrollRef = useRef(null)
+  const abortControllerRef = useRef(null)
 
   const pageContext = resolvePageContext(location.pathname)
   const initializedRef = useRef(false)
@@ -160,7 +149,13 @@ export default function GlobalChatbot() {
     setSending(true)
 
     const placeholderId = `tmp-${Date.now()}`
-    setMessages((prev) => [...prev, { id: placeholderId, role: 'user', text, agents_used: [], suggested_questions: [] }])
+    setMessages((prev) => [
+      ...prev,
+      { id: placeholderId, role: 'user', text, agents_used: [], suggested_questions: [], created_at: new Date().toISOString() },
+    ])
+
+    const controller = new AbortController()
+    abortControllerRef.current = controller
 
     try {
       const sid = await ensureSession()
@@ -172,6 +167,7 @@ export default function GlobalChatbot() {
       ])
 
       await coachChatApi.streamMessage(sid, text, pageContext.key, null, {
+        signal: controller.signal,
         onUserMessage: (realUserMsg) => {
           setMessages((prev) => prev.map((m) => (m.id === placeholderId ? realUserMsg : m)))
         },
@@ -184,7 +180,16 @@ export default function GlobalChatbot() {
         },
       })
       loadSessions()
-    } catch {
+    } catch (err) {
+      if (err?.name === 'AbortError') {
+        // User clicked Stop — keep whatever text streamed in so far as the
+        // final message rather than discarding it or falling back to a
+        // fresh (non-streaming) request that would ignore the cancellation.
+        setMessages((prev) =>
+          prev.map((m) => (m.streaming ? { ...m, streaming: false, stopped: true } : m))
+        )
+        return
+      }
       // Streaming failed (e.g. proxy buffering, network hiccup) — fall back
       // to the plain request/response endpoint so the user still gets a real answer.
       try {
@@ -203,12 +208,18 @@ export default function GlobalChatbot() {
             text: "I couldn't reach the server just now — please try again in a moment.",
             agents_used: [],
             suggested_questions: [],
+            created_at: new Date().toISOString(),
           },
         ])
       }
     } finally {
+      abortControllerRef.current = null
       setSending(false)
     }
+  }
+
+  const stopGenerating = () => {
+    abortControllerRef.current?.abort()
   }
 
   const regenerate = () => {
@@ -327,7 +338,33 @@ export default function GlobalChatbot() {
                           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-900/40 dark:bg-white/40 [animation-delay:0.2s]" />
                         </div>
                       ) : (
-                        <Markdownish text={m.text} />
+                        <>
+                          <Markdownish text={m.text} />
+                          {m.stopped && (
+                            <p className="mt-1 text-[10px] italic text-ink-900/40 dark:text-white/40">Generation stopped</p>
+                          )}
+                        </>
+                      )}
+                      {m.created_at && (
+                        <p
+                          className={`mt-1 text-[10px] ${
+                            m.role === 'user' ? 'text-white/60' : 'text-ink-900/40 dark:text-white/40'
+                          }`}
+                        >
+                          {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      )}
+                      {m.role === 'assistant' && m.agents_used?.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {m.agents_used.map((a) => (
+                            <span
+                              key={a}
+                              className="rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-medium text-brand-600 dark:text-brand-300"
+                            >
+                              {AGENT_LABELS[a] || a}
+                            </span>
+                          ))}
+                        </div>
                       )}
                       {m.role === 'assistant' && !m.id?.startsWith('err-') && !m.streaming && (
                         <div className="mt-1.5 flex items-center gap-2 text-ink-900/40 dark:text-white/40">
@@ -408,10 +445,12 @@ export default function GlobalChatbot() {
                 />
                 <button
                   type="submit"
-                  disabled={sending || !input.trim()}
+                  onClick={sending ? (e) => { e.preventDefault(); stopGenerating() } : undefined}
+                  disabled={!sending && !input.trim()}
+                  title={sending ? 'Stop generating' : 'Send'}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white disabled:opacity-40"
                 >
-                  <Send size={15} />
+                  {sending ? <Square size={13} fill="currentColor" /> : <Send size={15} />}
                 </button>
               </form>
             </>

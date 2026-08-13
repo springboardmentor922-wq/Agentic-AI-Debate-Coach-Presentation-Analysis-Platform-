@@ -31,7 +31,7 @@ export const coachChatApi = {
    * persisted user + assistant messages. Falls back to the caller catching
    * the rejected promise (widget then retries with sendMessage/sendQuickMessage).
    */
-  async streamMessage(sessionId, text, pageKey, argumentText, { onChunk, onUserMessage, onDone }) {
+  async streamMessage(sessionId, text, pageKey, argumentText, { onChunk, onUserMessage, onDone, signal }) {
     const token = localStorage.getItem('access_token')
     const res = await fetch(`${API_BASE}/coach-chat/sessions/${sessionId}/messages/stream`, {
       method: 'POST',
@@ -40,6 +40,7 @@ export const coachChatApi = {
         Authorization: token ? `Bearer ${token}` : '',
       },
       body: JSON.stringify({ text, page_key: pageKey, argument_text: argumentText || null }),
+      signal,
     })
     if (!res.ok || !res.body) throw new Error('Streaming request failed')
 

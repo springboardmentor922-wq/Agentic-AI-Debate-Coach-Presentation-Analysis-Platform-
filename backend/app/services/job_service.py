@@ -1,13 +1,13 @@
 """
 Processing Jobs (Milestone 3, Part 3-4 optimization). Backs the async
-audio upload pipeline: upload returns immediately with a job id,
+audio/video upload pipeline: upload returns immediately with a job id,
 heavy work (transcription, argument/fallacy/presentation analysis, scoring,
 report/notification creation) runs in a FastAPI background task, and the
 frontend polls GET /api/v1/jobs/{job_id} for real stage-by-stage progress
 instead of the client faking a progress bar around one long request.
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -30,11 +30,10 @@ def _oid(value: str) -> ObjectId | None:
 
 
 async def create_job(user_id: str, kind: str) -> dict:
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     doc = {
         "user_id": user_id,
-        "kind": kind,  # always "audio" — kept as a field rather than a bare bool in case a
-        # non-audio processing pipeline (e.g. text-only) is added later
+        "kind": kind,  # "audio" | "video"
         "status": "queued",
         "progress": STAGE_PROGRESS["queued"],
         "message": "Queued for processing…",
@@ -55,7 +54,7 @@ async def set_stage(job_id: str, stage: str, message: str | None = None) -> None
     update = {
         "status": stage,
         "progress": STAGE_PROGRESS.get(stage, 0),
-        "updated_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     if message:
         update["message"] = message
@@ -74,7 +73,7 @@ async def complete_job(job_id: str, result_id: str, message: str = "Complete") -
                 "progress": 100,
                 "message": message,
                 "result_id": result_id,
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             }
         },
     )
@@ -92,7 +91,7 @@ async def fail_job(job_id: str, error: str) -> None:
                 "status": "error",
                 "message": error,
                 "error": error,
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
             }
         },
     )

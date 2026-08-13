@@ -61,22 +61,30 @@ export default function Reports() {
     })
   }, [search, format, reports])
 
-  const handleDownload = async (id) => {
+  const [downloadingFormat, setDownloadingFormat] = useState(null)
+
+  const handleDownload = async (id, format = 'pdf') => {
     setDownloadingId(id)
+    setDownloadingFormat(format)
+    const mimeType = format === 'pdf'
+      ? 'application/pdf'
+      : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    const extension = format === 'pdf' ? 'pdf' : 'xlsx'
     try {
-      const res = await api.get(`/reports/${id}/pdf`, { responseType: 'blob' })
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+      const res = await api.get(`/reports/${id}/${format}`, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: mimeType }))
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', `debate_report_${id}.pdf`)
+      link.setAttribute('download', `debate_report_${id}.${extension}`)
       document.body.appendChild(link)
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
     } catch (err) {
-      setError(err.response?.data?.detail || 'Could not download this report.')
+      setError(err.response?.data?.detail || `Could not download this report as ${extension.toUpperCase()}.`)
     } finally {
       setDownloadingId(null)
+      setDownloadingFormat(null)
     }
   }
 
@@ -135,12 +143,20 @@ export default function Reports() {
                 ) : null}
                 <Badge tone="neutral">{r.debate_format}</Badge>
                 <button
-                  onClick={() => handleDownload(r.id)}
+                  onClick={() => handleDownload(r.id, 'pdf')}
                   disabled={downloadingId === r.id}
                   className="btn-secondary !py-1.5 text-xs"
                 >
-                  {downloadingId === r.id ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-                  {downloadingId === r.id ? 'Preparing…' : 'PDF'}
+                  {downloadingId === r.id && downloadingFormat === 'pdf' ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                  {downloadingId === r.id && downloadingFormat === 'pdf' ? 'Preparing…' : 'PDF'}
+                </button>
+                <button
+                  onClick={() => handleDownload(r.id, 'excel')}
+                  disabled={downloadingId === r.id}
+                  className="btn-secondary !py-1.5 text-xs"
+                >
+                  {downloadingId === r.id && downloadingFormat === 'excel' ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                  {downloadingId === r.id && downloadingFormat === 'excel' ? 'Preparing…' : 'Excel'}
                 </button>
               </div>
             ))}

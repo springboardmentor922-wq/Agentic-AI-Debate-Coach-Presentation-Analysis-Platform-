@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import logging
 import random
 import secrets
@@ -6,9 +6,11 @@ from urllib.parse import urlencode
 
 import httpx
 from bson import ObjectId
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 
-from app.core.database import users_collection, otp_codes_collection, password_reset_tokens_collection, retry_query
+from app.core.rate_limit import limiter, AUTH_RATE_LIMIT
+
+from app.core.database import users_collection, otp_codes_collection, password_reset_tokens_collection
 from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from bson.errors import InvalidId
 
@@ -71,7 +73,7 @@ async def _issue_registration_otp(email: str) -> tuple[str, dict]:
     with a 5-minute expiry. Returns the raw code (for dev-mode echoing) and
     the notification delivery result."""
     code = _generate_registration_otp()
-    expires_at = datetime.utcnow() + timedelta(minutes=settings.REGISTRATION_OTP_EXPIRE_MINUTES)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.REGISTRATION_OTP_EXPIRE_MINUTES)
 
     await otp_codes_collection.insert_one(
         {
@@ -80,7 +82,7 @@ async def _issue_registration_otp(email: str) -> tuple[str, dict]:
             "code_hash": hash_password(code),
             "expires_at": expires_at.isoformat(),
             "verified": False,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
 
@@ -97,7 +99,8 @@ async def _issue_registration_otp(email: str) -> tuple[str, dict]:
 
 
 @router.post("/register", response_model=RegisterResponse, status_code=status.HTTP_201_CREATED)
-async def register(payload: UserRegister):
+@limiter.limit(AUTH_RATE_LIMIT)
+async def register(request: Request, payload: UserRegister):
     """
     Public self-service signup. Always creates a Learner account, regardless of
     what `role` value the client sends — Debate Coach, Educator, and Administrator
@@ -154,7 +157,7 @@ async def register(payload: UserRegister):
             "is_active": True,
             "auth_provider": "local",
             "google_id": None,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         result = await users_collection.insert_one(doc)
         user_id = result.inserted_id
@@ -178,12 +181,9 @@ async def register(payload: UserRegister):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(payload: UserLogin):
-    # Wrapped with retry_query: login is the single highest-traffic, most
-    # user-visible Mongo call in the app — a transient AutoReconnect here
-    # (e.g. mid replica-set election) shouldn't surface as a hard failure
-    # when a bounded retry would succeed.
-    user = await retry_query(users_collection.find_one, {"email": payload.email})
+@limiter.limit(AUTH_RATE_LIMIT)
+async def login(request: Request, payload: UserLogin):
+    user = await users_collection.find_one({"email": payload.email})
     if not user or not verify_password(payload.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not user.get("is_active", True):
@@ -266,7 +266,7 @@ async def forgot_password(payload: ForgotPasswordRequest):
         return {"message": "If that email is registered, a reset link has been sent."}
 
     token = secrets.token_urlsafe(32)
-    expires_at = datetime.utcnow() + timedelta(minutes=settings.PASSWORD_RESET_EXPIRE_MINUTES)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.PASSWORD_RESET_EXPIRE_MINUTES)
 
     await password_reset_tokens_collection.insert_one(
         {
@@ -274,7 +274,7 @@ async def forgot_password(payload: ForgotPasswordRequest):
             "token": token,
             "expires_at": expires_at.isoformat(),
             "used": False,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
 
@@ -306,7 +306,7 @@ async def reset_password(payload: ResetPasswordRequest):
     record = await password_reset_tokens_collection.find_one({"token": payload.token, "used": False})
     if not record:
         raise HTTPException(status_code=400, detail="Invalid or already-used reset token")
-    if datetime.fromisoformat(record["expires_at"]) < datetime.utcnow():
+    if datetime.fromisoformat(record["expires_at"]) < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Reset token has expired")
 
     await users_collection.update_one(
@@ -322,7 +322,8 @@ async def reset_password(payload: ResetPasswordRequest):
 # --------------------------------------------------------------------------
 
 @router.post("/verify-email-otp", response_model=TokenResponse)
-async def verify_registration_email_otp(payload: VerifyRegistrationOTPRequest):
+@limiter.limit(AUTH_RATE_LIMIT)
+async def verify_registration_email_otp(request: Request, payload: VerifyRegistrationOTPRequest):
     """
     Confirms the 6-digit code emailed at registration, activates the account
     (email_verified = true), and — since the account is now legitimate and
@@ -345,7 +346,7 @@ async def verify_registration_email_otp(payload: VerifyRegistrationOTPRequest):
     )
     if not record:
         raise HTTPException(status_code=400, detail="No pending verification code. Please request a new one.")
-    if datetime.fromisoformat(record["expires_at"]) < datetime.utcnow():
+    if datetime.fromisoformat(record["expires_at"]) < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Code has expired. Please request a new one.")
     if not verify_password(payload.otp, record["code_hash"]):
         raise HTTPException(status_code=400, detail="Incorrect verification code.")
@@ -366,7 +367,8 @@ async def verify_registration_email_otp(payload: VerifyRegistrationOTPRequest):
 
 
 @router.post("/resend-email-otp")
-async def resend_registration_email_otp(payload: ResendRegistrationOTPRequest):
+@limiter.limit(AUTH_RATE_LIMIT)
+async def resend_registration_email_otp(request: Request, payload: ResendRegistrationOTPRequest):
     """Issues a brand-new 5-minute OTP for a pending (unverified) signup."""
     user = await users_collection.find_one({"email": payload.email})
     if not user:
@@ -394,7 +396,8 @@ async def resend_registration_email_otp(payload: ResendRegistrationOTPRequest):
 # --------------------------------------------------------------------------
 
 @router.post("/google-login", response_model=TokenResponse)
-async def google_login(payload: GoogleLoginRequest):
+@limiter.limit(AUTH_RATE_LIMIT)
+async def google_login(request: Request, payload: GoogleLoginRequest):
     """
     Verifies the ID token ("credential") produced client-side by Google
     Identity Services, then logs the user in — creating a Learner account on
@@ -451,7 +454,7 @@ async def google_login(payload: GoogleLoginRequest):
             "is_active": True,
             "auth_provider": "google",
             "google_id": google_id,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         result = await users_collection.insert_one(doc)
         doc["_id"] = result.inserted_id
@@ -493,7 +496,7 @@ async def request_email_otp(payload: EmailOTPRequest, current_user: dict = Depen
         raise HTTPException(status_code=403, detail="You can only request an OTP for your own account")
 
     code = _generate_otp()
-    expires_at = datetime.utcnow() + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
 
     await otp_codes_collection.insert_one(
         {
@@ -502,7 +505,7 @@ async def request_email_otp(payload: EmailOTPRequest, current_user: dict = Depen
             "code_hash": hash_password(code),
             "expires_at": expires_at.isoformat(),
             "verified": False,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
 
@@ -529,7 +532,7 @@ async def verify_email_otp(payload: EmailOTPVerify, current_user: dict = Depends
     )
     if not record:
         raise HTTPException(status_code=400, detail="No pending verification code. Please request a new one.")
-    if datetime.fromisoformat(record["expires_at"]) < datetime.utcnow():
+    if datetime.fromisoformat(record["expires_at"]) < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Code has expired. Please request a new one.")
     if not verify_password(payload.code, record["code_hash"]):
         raise HTTPException(status_code=400, detail="Incorrect verification code")
@@ -547,7 +550,7 @@ async def verify_email_otp(payload: EmailOTPVerify, current_user: dict = Depends
 @router.post("/otp/mobile/request")
 async def request_mobile_otp(payload: MobileOTPRequest, current_user: dict = Depends(get_current_user)):
     code = _generate_otp()
-    expires_at = datetime.utcnow() + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
 
     await otp_codes_collection.insert_one(
         {
@@ -557,7 +560,7 @@ async def request_mobile_otp(payload: MobileOTPRequest, current_user: dict = Dep
             "code_hash": hash_password(code),
             "expires_at": expires_at.isoformat(),
             "verified": False,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
 
@@ -585,7 +588,7 @@ async def verify_mobile_otp(payload: MobileOTPVerify, current_user: dict = Depen
     )
     if not record:
         raise HTTPException(status_code=400, detail="No pending verification code. Please request a new one.")
-    if datetime.fromisoformat(record["expires_at"]) < datetime.utcnow():
+    if datetime.fromisoformat(record["expires_at"]) < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Code has expired. Please request a new one.")
     if not verify_password(payload.code, record["code_hash"]):
         raise HTTPException(status_code=400, detail="Incorrect verification code")
@@ -632,7 +635,8 @@ async def google_oauth_login():
 
 
 @router.get("/oauth/google/callback")
-async def google_oauth_callback(code: str):
+@limiter.limit(AUTH_RATE_LIMIT)
+async def google_oauth_callback(request: Request, code: str):
     """
     Exchanges the authorization code for tokens, fetches the Google profile,
     and logs the user in — creating a Learner account on first sign-in
@@ -690,7 +694,7 @@ async def google_oauth_callback(code: str):
             "email_verified": True,  # Google already verified this email
             "phone_verified": False,
             "is_active": True,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
         result = await users_collection.insert_one(doc)
         doc["_id"] = result.inserted_id

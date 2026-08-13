@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -54,13 +54,12 @@ async def _log_action(actor: dict, action: str, target: str | None = None, detai
             "action": action,
             "target": target,
             "details": details or {},
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
 
 
-@router.on_event("startup")
-async def _backfill_non_learner_email_verified():
+async def backfill_non_learner_email_verified():
     """
     One-time data fix, safe to run on every startup (it's a no-op once
     everything is backfilled): any Debate Coach, Educator, or Administrator
@@ -69,6 +68,10 @@ async def _backfill_non_learner_email_verified():
     `False` — permanently blocking that account behind the Learner-only
     "please verify your email" OTP message. This repairs every such
     existing account without requiring a manual database edit.
+
+    Called from app/main.py's lifespan handler (not a router-level
+    @router.on_event, which is deprecated in FastAPI) so every startup task
+    lives in one place.
     """
     await users_collection.update_many(
         {
@@ -122,7 +125,7 @@ async def admin_create_user(
         # email" — violating the platform's core auth rule.
         "email_verified": True,
         "auth_provider": "local",
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
     result = await users_collection.insert_one(doc)
     user = await users_collection.find_one({"_id": result.inserted_id})
@@ -214,7 +217,7 @@ async def platform_analytics(current_user: dict = Depends(require_roles(UserRole
     total_fallacies = await fallacy_reports_collection.count_documents({"report.fallacy_detected": True})
     total_reports = await debate_feedback_reports_collection.count_documents({})
 
-    today = datetime.utcnow().date()
+    today = datetime.now(timezone.utc).date()
     sessions_by_day = []
     signups_by_day = []
     for i in range(6, -1, -1):
@@ -282,7 +285,7 @@ async def list_topics(current_user: dict = Depends(require_roles(UserRole.admini
                 difficulty=t.get("difficulty", "beginner"),
                 debate_format=t.get("debate_format", "one_on_one"),
                 popularity=t.get("popularity", 50),
-                created_at=t.get("created_at", datetime.utcnow().isoformat()),
+                created_at=t.get("created_at", datetime.now(timezone.utc).isoformat()),
             )
         )
     return out
@@ -290,7 +293,7 @@ async def list_topics(current_user: dict = Depends(require_roles(UserRole.admini
 
 @router.post("/content/topics", response_model=DebateTopicOut, status_code=status.HTTP_201_CREATED)
 async def create_topic(payload: DebateTopicIn, current_user: dict = Depends(require_roles(UserRole.administrator))):
-    doc = {**payload.model_dump(), "created_at": datetime.utcnow().isoformat()}
+    doc = {**payload.model_dump(), "created_at": datetime.now(timezone.utc).isoformat()}
     result = await debate_topics_collection.insert_one(doc)
     await _log_action(current_user, "create_topic", target=str(result.inserted_id), details={"title": payload.title})
     return DebateTopicOut(id=str(result.inserted_id), **payload.model_dump(), created_at=doc["created_at"])
@@ -313,7 +316,7 @@ async def update_topic(
         difficulty=updated["difficulty"],
         debate_format=updated["debate_format"],
         popularity=updated["popularity"],
-        created_at=updated.get("created_at", datetime.utcnow().isoformat()),
+        created_at=updated.get("created_at", datetime.now(timezone.utc).isoformat()),
     )
 
 
@@ -338,7 +341,7 @@ async def broadcast_notification(
     if not user_ids:
         raise HTTPException(status_code=400, detail="No users match that target")
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     docs = [
         {
             "user_id": str(uid),
@@ -398,7 +401,7 @@ async def get_platform_settings(current_user: dict = Depends(require_roles(UserR
             "support_email": "support@ai-debate-coach.local",
             "maintenance_mode": False,
             "allow_public_registration": True,
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
         }
         await platform_settings_collection.insert_one(doc)
     return PlatformSettingsOut(**{k: v for k, v in doc.items() if k != "_id"})
@@ -408,7 +411,7 @@ async def get_platform_settings(current_user: dict = Depends(require_roles(UserR
 async def update_platform_settings(
     payload: PlatformSettingsIn, current_user: dict = Depends(require_roles(UserRole.administrator))
 ):
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     doc = {**payload.model_dump(), "updated_at": now}
     await platform_settings_collection.update_one({"_id": "singleton"}, {"$set": doc}, upsert=True)
     await _log_action(current_user, "update_platform_settings", details=payload.model_dump())
@@ -503,7 +506,7 @@ async def backup_collections_summary(current_user: dict = Depends(require_roles(
         "fallacy_reports": await fallacy_reports_collection.count_documents({}),
         "debate_feedback_reports": await debate_feedback_reports_collection.count_documents({}),
         "audit_logs": await audit_logs_collection.count_documents({}),
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -522,7 +525,7 @@ async def export_core_data(current_user: dict = Depends(require_roles(UserRole.a
     topics = [_clean(t) async for t in debate_topics_collection.find({})]
     await _log_action(current_user, "export_core_data", details={"user_count": len(users), "topic_count": len(topics)})
     return {
-        "exported_at": datetime.utcnow().isoformat(),
+        "exported_at": datetime.now(timezone.utc).isoformat(),
         "users": users,
         "debate_topics": topics,
     }

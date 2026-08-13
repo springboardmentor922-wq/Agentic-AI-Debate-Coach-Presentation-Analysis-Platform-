@@ -10,9 +10,21 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
+    # --- OpenAI ---
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
     OPENAI_WHISPER_MODEL: str = "whisper-1"
+    OPENAI_TIMEOUT: float = 30.0
+
+    # --- Groq ---
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "mixtral-8x7b-32768"
+    GROQ_TIMEOUT: float = 60.0
+
+    # --- Anthropic ---
+    ANTHROPIC_API_KEY: str = ""
+    ANTHROPIC_MODEL: str = "claude-sonnet-4-6"
+    ANTHROPIC_TIMEOUT: float = 30.0
 
     # --- Multi-provider LLM support (Milestone 2 fix) ---------------------
     # LLM_PROVIDER is tried first for every text-generation call (argument
@@ -24,11 +36,9 @@ class Settings(BaseSettings):
     # configured), the app falls back to a deterministic, rule-based NLP
     # analysis engine so the pipeline always produces meaningful, non-empty
     # output — see app/services/deterministic_analysis.py.
-    LLM_PROVIDER: str = "openai"
-    LLM_FALLBACK_PROVIDER: str = "anthropic"
+    LLM_PROVIDER: str = "groq"
+    LLM_FALLBACK_PROVIDER: str = ""  # Empty since we're using only Groq
 
-    ANTHROPIC_API_KEY: str = ""
-    ANTHROPIC_MODEL: str = "claude-sonnet-4-6"
     # Local faster-whisper fallback, used automatically whenever the OpenAI
     # Whisper call fails (quota, auth, network, timeout, etc). Options:
     # tiny, base, small, medium, large-v3 — "base" balances speed/accuracy
@@ -39,13 +49,13 @@ class Settings(BaseSettings):
     # make an upload feel stuck. Override via LOCAL_WHISPER_MODEL if desired.
     LOCAL_WHISPER_MODEL: str = "tiny"
 
-
-    # --- Milestone 3: media uploads for audio debate recordings ---
+    # --- Milestone 3: media uploads for audio/video debate recordings ---
     UPLOAD_DIR: str = "uploads"
     MAX_UPLOAD_MB: int = 100
     # webm is included so in-browser MediaRecorder captures (live mic turns)
     # can reuse the same upload/validation path as mp3/wav/m4a file uploads.
     ALLOWED_AUDIO_EXT: str = "mp3,wav,m4a,webm"
+    ALLOWED_VIDEO_EXT: str = "mp4,mov,avi"
 
     FRONTEND_ORIGIN: str = "http://localhost:5173"
 

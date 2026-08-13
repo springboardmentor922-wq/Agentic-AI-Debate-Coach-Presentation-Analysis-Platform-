@@ -14,6 +14,7 @@ from app.core.database import (
     debate_sessions_collection,
     presentation_analysis_collection,
     debate_topics_collection,
+    rubrics_collection,
     announcements_collection,
     users_collection,
     notifications_collection,
@@ -29,7 +30,7 @@ from app.services import educator_analytics_service as svc
 from app.services import coach_review_service, skill_gap_service
 from app.routers.coaching_plans import generate_and_store_plan
 from app.routers.notifications import create_notification
-from datetime import datetime
+from datetime import datetime, timezone
 from bson import ObjectId
 from bson.errors import InvalidId
 from pydantic import BaseModel, Field
@@ -283,7 +284,7 @@ async def list_rubrics(current_user: dict = Depends(require_roles(UserRole.educa
 
 @router.post("/rubrics", status_code=status.HTTP_201_CREATED)
 async def create_rubric(payload: RubricIn, current_user: dict = Depends(require_roles(UserRole.educator))):
-    doc = {**payload.model_dump(), "educator_id": current_user["id"], "created_at": datetime.utcnow().isoformat()}
+    doc = {**payload.model_dump(), "educator_id": current_user["id"], "created_at": datetime.now(timezone.utc).isoformat()}
     result = await rubrics_collection.insert_one(doc)
     return {"id": str(result.inserted_id), **payload.model_dump(), "created_at": doc["created_at"]}
 
@@ -311,7 +312,7 @@ async def list_announcements(current_user: dict = Depends(require_roles(UserRole
 @router.post("/announcements", status_code=status.HTTP_201_CREATED)
 async def create_announcement(payload: AnnouncementIn, current_user: dict = Depends(require_roles(UserRole.educator))):
     learner_ids = [u["_id"] async for u in users_collection.find({"role": UserRole.learner.value}, {"_id": 1})]
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     if learner_ids:
         await notifications_collection.insert_many(
             [

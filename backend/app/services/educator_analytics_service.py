@@ -7,6 +7,7 @@ set) as fields already collected on the user profile. There is no separate
 classroom-membership model to invent — grouping uses real profile data.
 """
 from collections import defaultdict
+from datetime import datetime, timezone
 
 from app.core.database import (
     users_collection,
@@ -96,7 +97,7 @@ async def assign_topic(educator_id: str, learner_id: str, topic: str, debate_for
         "debate_format": debate_format,
         "note": note,
         "due_at": due_at,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
         "completed": False,
     }
     result = await educator_assignments_collection.insert_one(doc)

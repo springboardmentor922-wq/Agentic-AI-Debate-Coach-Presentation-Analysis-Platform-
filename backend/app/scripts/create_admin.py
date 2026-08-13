@@ -19,7 +19,7 @@ you should not need to run this script again.
 import asyncio
 import getpass
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 
 sys.path.append(".")
 
@@ -77,7 +77,7 @@ async def main():
         "phone_number": None,
         "bio": None,
         "is_active": True,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await users_collection.insert_one(doc)
     print(f"\n✅ Administrator account created for {email}.")

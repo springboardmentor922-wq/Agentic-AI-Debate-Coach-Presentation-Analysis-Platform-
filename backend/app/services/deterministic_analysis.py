@@ -193,6 +193,14 @@ _FALLACY_PATTERNS: list[tuple[str, list[str], str]] = [
         "attacks the person or their character instead of addressing their argument",
     ),
     (
+        "Straw Man",
+        [r"\bso you'?re saying\b.*\b(should just|want to just|basically want)\b",
+         r"\bwhat you'?re really saying is\b",
+         r"\byou'?re basically (saying|arguing|claiming)\b.*\b(should|want|advocate)\b",
+         r"\bso (basically|essentially) you (think|believe|want)\b.*\b(everyone|no one|nobody|everything)\b"],
+        "misrepresents the opponent's actual position as a more extreme claim, then attacks that instead",
+    ),
+    (
         "False Dilemma",
         [r"\beither .+ or\b.*\bnothing\b", r"\bonly (two|2) (options|choices)\b",
          r"\byou'?re either .+ or\b"],

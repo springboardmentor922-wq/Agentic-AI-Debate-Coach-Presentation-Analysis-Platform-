@@ -4,7 +4,7 @@ coaching feedback (Part 7). Generated fresh after every debate from the
 learner's real recorded evidence and stored in MongoDB with progress
 tracking.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -64,7 +64,7 @@ async def generate_coaching(session_id: str | None = None, current_user: dict = 
     evidence = await _gather_evidence(current_user["id"], session_id)
     feedback = await generate_coaching_feedback(evidence)
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     doc = {"session_id": session_id, "user_id": current_user["id"], "feedback": feedback.model_dump(), "created_at": now}
     result = await coach_feedback_collection.insert_one(doc)
     doc["id"] = str(result.inserted_id)
@@ -89,7 +89,7 @@ async def generate_plan(session_id: str | None = None, current_user: dict = Depe
     evidence = await _gather_evidence(current_user["id"], session_id)
     plan = await generate_learning_plan(evidence)
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     doc = {
         "user_id": current_user["id"],
         "based_on_session_id": session_id,
@@ -130,7 +130,7 @@ async def update_progress(plan_id: str, payload: LearningPlanProgressUpdate, cur
     if not doc or doc["user_id"] != current_user["id"]:
         raise HTTPException(status_code=404, detail="Learning plan not found")
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     await learning_plans_collection.update_one(
         {"_id": oid},
         {"$set": {f"progress.{payload.task_key}": payload.completed, "updated_at": now}},

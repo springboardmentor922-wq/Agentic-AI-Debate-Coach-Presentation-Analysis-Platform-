@@ -1,6 +1,6 @@
 """My Notes — simple personal note-taking for learners, referenced in the
 mentor's sidebar reference (Learner Dashboard → Resources → My Notes)."""
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -46,7 +46,7 @@ async def list_notes(current_user: dict = Depends(require_roles(UserRole.learner
 
 @router.post("", response_model=NoteOut, status_code=status.HTTP_201_CREATED)
 async def create_note(payload: NoteIn, current_user: dict = Depends(require_roles(UserRole.learner))):
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     doc = {**payload.model_dump(), "user_id": current_user["id"], "created_at": now, "updated_at": now}
     result = await learner_notes_collection.insert_one(doc)
     doc["_id"] = result.inserted_id
@@ -57,7 +57,7 @@ async def create_note(payload: NoteIn, current_user: dict = Depends(require_role
 async def update_note(note_id: str, payload: NoteIn, current_user: dict = Depends(require_roles(UserRole.learner))):
     updated = await learner_notes_collection.find_one_and_update(
         {"_id": _oid(note_id), "user_id": current_user["id"]},
-        {"$set": {**payload.model_dump(), "updated_at": datetime.utcnow().isoformat()}},
+        {"$set": {**payload.model_dump(), "updated_at": datetime.now(timezone.utc).isoformat()}},
         return_document=True,
     )
     if not updated:

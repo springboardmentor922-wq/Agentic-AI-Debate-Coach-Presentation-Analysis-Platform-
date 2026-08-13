@@ -112,3 +112,4 @@ messages_collection = db["messages"]
 
 # --- Module #5: Educator Dashboard ---
 announcements_collection = db["announcements"]  # real class-wide announcements an educator has sent
+rubrics_collection = db["rubrics"]

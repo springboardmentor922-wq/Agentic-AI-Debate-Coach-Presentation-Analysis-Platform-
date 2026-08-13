@@ -3,7 +3,7 @@ Notification & Engagement System (Module 12, Milestone 3 Part 12).
 Real, MongoDB-backed notifications with a working unread count — no
 placeholder/mock notification lists.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -31,7 +31,7 @@ async def create_notification(
         "message": message,
         "read": False,
         "related_session_id": related_session_id,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
     result = await notifications_collection.insert_one(doc)
     doc["_id"] = result.inserted_id

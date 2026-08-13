@@ -7,7 +7,7 @@ learning_plan_service.py — then persisted so completion can be tracked.
 Difficulty is derived from the learner's real average score rather than
 fixed, so it adapts automatically as performance changes.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 import logging
 
 from app.core.database import practice_exercises_collection, performance_scores_collection
@@ -91,7 +91,7 @@ async def generate_practice_exercises(user_id: str, evidence: dict) -> list[dict
         logger.exception("generate_practice_exercises: unexpected error, using deterministic fallback")
         result = _fallback_exercises(skill_level, evidence)
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     docs = []
     for ex in result.exercises:
         doc = {

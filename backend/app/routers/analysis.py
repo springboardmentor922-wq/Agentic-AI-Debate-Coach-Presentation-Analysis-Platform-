@@ -1,8 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+
+from app.core.rate_limit import limiter, LLM_RATE_LIMIT
 
 from app.core.database import (
     fallacy_reports_collection,
@@ -39,7 +41,8 @@ def _object_id(value: str) -> ObjectId:
 
 
 @router.post("/fallacy", response_model=FallacyReport)
-async def analyze_fallacy(payload: FallacyAnalysisRequest, current_user: dict = Depends(require_roles(UserRole.learner))):
+@limiter.limit(LLM_RATE_LIMIT)
+async def analyze_fallacy(request: Request, payload: FallacyAnalysisRequest, current_user: dict = Depends(require_roles(UserRole.learner))):
     """Module 5: Logical Fallacy Detection Engine — Agent 1: The Auditor."""
     report = await detect_fallacy(payload.text)
 
@@ -49,14 +52,15 @@ async def analyze_fallacy(payload: FallacyAnalysisRequest, current_user: dict = 
             "user_id": current_user["id"],
             "input_text": payload.text,
             "report": report.model_dump(),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
     return report
 
 
 @router.post("/argument", response_model=ArgumentAnalysis)
-async def analyze_argument_endpoint(payload: ArgumentAnalysisRequest, current_user: dict = Depends(require_roles(UserRole.learner))):
+@limiter.limit(LLM_RATE_LIMIT)
+async def analyze_argument_endpoint(request: Request, payload: ArgumentAnalysisRequest, current_user: dict = Depends(require_roles(UserRole.learner))):
     """Module 4: Argument Analysis Engine — Agent 1: The Auditor."""
     result = await analyze_argument(payload.text)
 
@@ -66,15 +70,16 @@ async def analyze_argument_endpoint(payload: ArgumentAnalysisRequest, current_us
             "user_id": current_user["id"],
             "input_text": payload.text,
             "analysis": result.model_dump(),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
     return result
 
 
 @router.post("/counterargument", response_model=CounterargumentBundle)
+@limiter.limit(LLM_RATE_LIMIT)
 async def generate_counterargument_endpoint(
-    payload: ArgumentAnalysisRequest, current_user: dict = Depends(require_roles(UserRole.learner))
+    request: Request, payload: ArgumentAnalysisRequest, current_user: dict = Depends(require_roles(UserRole.learner))
 ):
     """Module 6: Counterargument Generation Engine — standalone tool, backs
     the Counterargument Generator sidebar page (also reused by the global
@@ -87,7 +92,7 @@ async def generate_counterargument_endpoint(
             "user_id": current_user["id"],
             "input_text": payload.text,
             "result": result.model_dump(),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
     )
     return result
@@ -115,7 +120,7 @@ async def process_turn(payload: DebateTurnRequest, current_user: dict = Depends(
     argument_report = await analyze_argument(payload.text)
     fallacy_report = await detect_fallacy(payload.text, argument_analysis=argument_report)
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
 
     await fallacy_reports_collection.insert_one(
         {
@@ -281,7 +286,7 @@ async def generate_session_feedback_report(
 
     report = await generate_feedback_report(topic=session["topic"], turns=turns)
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     await debate_feedback_reports_collection.update_one(
         {"session_id": session_id},
         {

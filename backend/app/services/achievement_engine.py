@@ -9,7 +9,7 @@ is idempotent: it only inserts an achievement the user doesn't already have.
 Rules are intentionally limited to milestones the platform can actually
 prove from stored data (session counts, average score, clean-debate streaks).
 """
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import (
     achievements_collection,
@@ -41,7 +41,7 @@ async def _unlock(user_id: str, key: str, title: str, description: str, evidence
         "title": title,
         "description": description,
         "evidence_session_ids": evidence_session_ids,
-        "unlocked_at": datetime.utcnow().isoformat(),
+        "unlocked_at": datetime.now(timezone.utc).isoformat(),
     }
     result = await achievements_collection.insert_one(doc)
     doc["id"] = str(result.inserted_id)

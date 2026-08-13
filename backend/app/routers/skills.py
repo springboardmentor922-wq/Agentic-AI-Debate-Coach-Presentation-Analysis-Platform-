@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -52,7 +52,7 @@ async def create_skill(payload: SkillCreate, current_user: dict = Depends(requir
         "level": payload.level,
         "category": payload.category,
         "notes": payload.notes,
-        "updated_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
     }
     result = await skills_collection.insert_one(doc)
     doc["_id"] = result.inserted_id
@@ -68,7 +68,7 @@ async def update_skill(skill_id: str, payload: SkillUpdate, current_user: dict =
 
     updates = {k: v for k, v in payload.dict(exclude_unset=True).items() if v is not None}
     if updates:
-        updates["updated_at"] = datetime.utcnow().isoformat()
+        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
         await skills_collection.update_one({"_id": oid}, {"$set": updates})
     doc = await skills_collection.find_one({"_id": oid})
     return _serialize(doc)

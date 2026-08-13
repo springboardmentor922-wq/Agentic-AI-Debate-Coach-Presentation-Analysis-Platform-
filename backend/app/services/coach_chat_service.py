@@ -5,7 +5,7 @@ exactly like the reference's "Conversation Memory / Session Memory /
 Chat History" feature list."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -56,7 +56,7 @@ async def _serialize_message(doc: dict) -> dict:
 
 
 async def create_session(user_id: str, page_key: str | None, title: str | None) -> dict:
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     doc = {
         "user_id": user_id,
         "title": title or f"Chat about {page_label(page_key or 'general')}",
@@ -122,7 +122,7 @@ async def append_message(
     agents_used: list[str] | None = None,
     suggested_questions: list[str] | None = None,
 ) -> dict:
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     doc = {
         "session_id": session_id,
         "role": role,

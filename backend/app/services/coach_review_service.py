@@ -7,7 +7,7 @@ AI-analyzed, it also becomes visible in every Debate Coach's review queue.
 Nothing here waits for a coach to manually pull data in; it is push-created
 against real debate data.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import (
     coach_reviews_collection,
@@ -29,7 +29,7 @@ async def create_review_entry(session_id: str, learner_id: str, topic: str, deba
     assignment = await coach_assignments_collection.find_one({"learner_id": learner_id})
     coach_id = assignment["coach_id"] if assignment else None
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     doc = {
         "session_id": session_id,
         "learner_id": learner_id,
@@ -109,7 +109,7 @@ async def get_review(review_id: str) -> dict | None:
 
 
 async def claim_review(review_id: str, coach_id: str) -> dict | None:
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     await coach_reviews_collection.update_one(
         {"_id": _oid(review_id)},
         {"$set": {"coach_id": coach_id, "status": "in_review", "updated_at": now}},
@@ -118,7 +118,7 @@ async def claim_review(review_id: str, coach_id: str) -> dict | None:
 
 
 async def submit_review(review_id: str, coach_id: str, payload: dict) -> dict | None:
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     update = {
         "coach_id": coach_id,
         "status": payload["mark_status"],
@@ -169,7 +169,7 @@ async def assign_learner(coach_id: str, learner_id: str) -> dict:
     existing = await coach_assignments_collection.find_one({"coach_id": coach_id, "learner_id": learner_id})
     if existing:
         return existing
-    doc = {"coach_id": coach_id, "learner_id": learner_id, "assigned_at": datetime.utcnow().isoformat()}
+    doc = {"coach_id": coach_id, "learner_id": learner_id, "assigned_at": datetime.now(timezone.utc).isoformat()}
     result = await coach_assignments_collection.insert_one(doc)
     doc["_id"] = result.inserted_id
     return doc
@@ -192,7 +192,7 @@ async def list_educator_queue(status: str | None = None) -> list[dict]:
 
 
 async def submit_educator_review(review_id: str, educator_id: str, payload: dict) -> dict | None:
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     update = {
         "educator_id": educator_id,
         "educator_score": payload["educator_score"],

@@ -8,7 +8,7 @@ Visibility follows the platform-wide rule: a learner sees only their own
 plans; their assigned Debate Coach, any Educator, and Administrators can
 see plans for learners under their purview.
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -121,7 +121,7 @@ async def generate_and_store_plan(user_id: str, session_id: str | None = None) -
     evidence, source = await _gather_evidence(user_id, session_id)
     plan = await generate_coaching_plan(evidence)
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     plan_dict = plan.model_dump()
     weeks_state = _attach_tracking_state(plan_dict, now)
 
@@ -214,7 +214,7 @@ async def update_progress(plan_id: str, payload: CoachingPlanProgressUpdate, cur
         raise HTTPException(status_code=404, detail="Exercise not found in this plan")
 
     completion = _completion_percent(weeks)
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     new_status = "completed" if completion >= 100 else "active"
 
     await coaching_plans_collection.update_one(

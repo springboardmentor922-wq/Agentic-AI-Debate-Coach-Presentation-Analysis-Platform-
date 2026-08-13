@@ -9,7 +9,7 @@ and finally to a deterministic, evidence-grounded answer if every provider
 is unavailable, so the Mentor never 500s or returns an empty reply.
 """
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import mentor_messages_collection
 from app.services.llm_provider import get_text_result_with_history, AllProvidersUnavailableError
@@ -107,7 +107,7 @@ async def ask_mentor(user_id: str, question: str, evidence: dict) -> str:
         logger.exception("ask_mentor: unexpected error, using deterministic fallback")
         answer = _deterministic_answer(question, evidence)
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     await mentor_messages_collection.insert_many([
         {"user_id": user_id, "role": "user", "text": question, "created_at": now},
         {"user_id": user_id, "role": "mentor", "text": answer, "created_at": now},

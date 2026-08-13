@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -76,7 +76,7 @@ async def _get_owned_session(session_id: str, current_user: dict) -> dict:
 
 @router.post("/sessions", response_model=DebateSessionOut, status_code=201)
 async def create_session(payload: DebateSessionCreate, current_user: dict = Depends(require_roles(UserRole.learner))):
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     doc = {
         "topic": payload.topic,
         "debate_format": payload.debate_format.value,
@@ -181,7 +181,7 @@ async def update_session(
     if "debate_format" in updates:
         updates["debate_format"] = updates["debate_format"].value
     if updates:
-        updates["updated_at"] = datetime.utcnow().isoformat()
+        updates["updated_at"] = datetime.now(timezone.utc).isoformat()
         await debate_sessions_collection.update_one({"_id": doc["_id"]}, {"$set": updates})
     doc = await debate_sessions_collection.find_one({"_id": doc["_id"]})
     return _serialize(doc)
@@ -205,7 +205,7 @@ async def update_session_status(
             detail=f"Cannot move session from '{current_status}' to '{target_status}'",
         )
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     await debate_sessions_collection.update_one(
         {"_id": doc["_id"]}, {"$set": {"status": target_status, "updated_at": now}}
     )
@@ -221,7 +221,7 @@ async def cancel_session(session_id: str, current_user: dict = Depends(require_r
     if "cancelled" not in _ALLOWED_TRANSITIONS.get(current_status, set()):
         raise HTTPException(status_code=400, detail=f"Cannot cancel a session that is already '{current_status}'")
 
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     await debate_sessions_collection.update_one(
         {"_id": doc["_id"]}, {"$set": {"status": "cancelled", "updated_at": now}}
     )
@@ -256,7 +256,7 @@ async def attach_recording(
     records the resulting metadata against the session.
     """
     doc = await _get_owned_session(session_id, current_user)
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     await debate_sessions_collection.update_one(
         {"_id": doc["_id"]},
         {"$set": {"recording": payload.model_dump(), "recorded_at": now, "updated_at": now}},

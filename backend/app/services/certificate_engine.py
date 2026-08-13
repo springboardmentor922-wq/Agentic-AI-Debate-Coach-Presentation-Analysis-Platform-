@@ -9,7 +9,7 @@ debate concept in this codebase) are intentionally NOT implemented as fake
 always-available buttons; they're left as documented gaps below rather than
 faked.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import (
     certificates_collection,
@@ -39,7 +39,7 @@ async def _issue(user_id: str, key: str, title: str, criteria_summary: str, evid
         "description": criteria_summary,
         "criteria_summary": criteria_summary,
         "evidence_session_ids": evidence_session_ids,
-        "issued_at": datetime.utcnow().isoformat(),
+        "issued_at": datetime.now(timezone.utc).isoformat(),
     }
     result = await certificates_collection.insert_one(doc)
     doc["id"] = str(result.inserted_id)

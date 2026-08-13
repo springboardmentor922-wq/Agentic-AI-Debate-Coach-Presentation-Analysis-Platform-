@@ -5,10 +5,11 @@ Backs the floating widget mounted on every page of the frontend.
 """
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
 
 from app.core.deps import get_current_user
+from app.core.rate_limit import limiter, LLM_RATE_LIMIT
 from app.schemas.coach_chat import (
     ChatSessionOut,
     ChatMessageOut,
@@ -45,10 +46,9 @@ async def get_messages(session_id: str, current_user: dict = Depends(get_current
     return await coach_chat_service.list_messages(current_user["id"], session_id)
 
 
-@router.post("/sessions/{session_id}/messages", response_model=SendMessageResponse)
-async def send_message_in_session(
-    session_id: str, payload: SendMessageRequest, current_user: dict = Depends(get_current_user)
-):
+async def _send_message_impl(
+    session_id: str, payload: SendMessageRequest, current_user: dict
+) -> SendMessageResponse:
     session = await coach_chat_service.get_session(current_user["id"], session_id)
     if not session:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Chat session not found")
@@ -74,9 +74,18 @@ async def send_message_in_session(
     return SendMessageResponse(session_id=session_id, user_message=user_msg, assistant_message=assistant_msg)
 
 
+@router.post("/sessions/{session_id}/messages", response_model=SendMessageResponse)
+@limiter.limit(LLM_RATE_LIMIT)
+async def send_message_in_session(
+    request: Request, session_id: str, payload: SendMessageRequest, current_user: dict = Depends(get_current_user)
+):
+    return await _send_message_impl(session_id, payload, current_user)
+
+
 @router.post("/sessions/{session_id}/messages/stream")
+@limiter.limit(LLM_RATE_LIMIT)
 async def send_message_streaming(
-    session_id: str, payload: SendMessageRequest, current_user: dict = Depends(get_current_user)
+    request: Request, session_id: str, payload: SendMessageRequest, current_user: dict = Depends(get_current_user)
 ):
     """Server-Sent Events endpoint: streams the assistant's reply token by
     token (real streaming, not a simulated delay), then persists both the
@@ -111,12 +120,13 @@ async def send_message_streaming(
 
 
 @router.post("/message", response_model=SendMessageResponse)
-async def send_message_quick(payload: SendMessageRequest, current_user: dict = Depends(get_current_user)):
+@limiter.limit(LLM_RATE_LIMIT)
+async def send_message_quick(request: Request, payload: SendMessageRequest, current_user: dict = Depends(get_current_user)):
     """Convenience endpoint the floating widget uses by default: auto-attaches
     to (or creates) the user's most recent session so the frontend doesn't
     have to manage session lifecycle before the first message."""
     session = await coach_chat_service.get_or_create_default_session(current_user["id"], payload.page_key)
-    return await send_message_in_session(session["id"], payload, current_user)
+    return await _send_message_impl(session["id"], payload, current_user)
 
 
 @router.patch("/sessions/{session_id}/messages/{message_id}/feedback", response_model=ChatMessageOut)

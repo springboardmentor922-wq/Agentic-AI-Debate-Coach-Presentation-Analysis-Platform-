@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from app.schemas.user import UserRole
 
 
@@ -40,6 +40,22 @@ class DebateTopicIn(BaseModel):
     difficulty: str = Field(pattern="^(beginner|intermediate|advanced)$")
     debate_format: str = "one_on_one"
     popularity: int = Field(default=50, ge=0, le=100)
+
+    @field_validator("difficulty", mode="before")
+    @classmethod
+    def _normalize_difficulty(cls, v):
+        """Normalize case/whitespace before the pattern constraint runs.
+
+        Existing MongoDB documents (and some legacy admin-panel writes) may
+        contain "Beginner", "Intermediate", "Advanced", or all-caps
+        variants. The API contract (allowed values, response shape) is
+        unchanged — this only makes the boundary tolerant of case so
+        well-known equivalent values don't 500 on read, while still
+        rejecting genuinely invalid difficulty values.
+        """
+        if isinstance(v, str):
+            return v.strip().lower()
+        return v
 
 
 class DebateTopicOut(DebateTopicIn):

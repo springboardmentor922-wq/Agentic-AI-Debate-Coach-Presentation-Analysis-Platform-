@@ -8,7 +8,7 @@ empty, so once an admin/coach edits or adds topics through the database,
 those changes persist across restarts.
 """
 import random
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.core.database import debate_topics_collection
 
@@ -148,7 +148,7 @@ async def ensure_seeded() -> None:
     part of the curated list is removed. Existing docs whose title *is*
     curated are left untouched (so popularity/order edits made elsewhere
     aren't clobbered on every restart)."""
-    now = datetime.utcnow().isoformat()
+    now = datetime.now(timezone.utc).isoformat()
     allowed_formats = set(_SEED_TOPICS.keys())
 
     # Drop any format that is no longer part of the approved set.
