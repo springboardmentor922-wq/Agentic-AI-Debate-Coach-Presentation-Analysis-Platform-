@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 600" width="100%" height="100%" style="background-color: #0f172a; font-family: 'Segoe UI', Arial, sans-serif;">
+  <text x="475" y="40" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="bold">AI Debate Session &amp; Fallacy Engine Workflow</text>
+  <text x="475" y="65" text-anchor="middle" fill="#94a3b8" font-size="13">Interactive Multi-Turn Simulation &amp; Real-Time Feedback Loop</text>
+
+  <!-- Box 1: User submits debate argument -->
+  <rect x="50" y="110" width="240" height="140" rx="10" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+  <text x="170" y="140" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="bold">1. Learner Debate Turn</text>
+  <text x="170" y="170" text-anchor="middle" fill="#cbd5e1" font-size="11">User Types or Speaks Argument</text>
+  <text x="170" y="190" text-anchor="middle" fill="#cbd5e1" font-size="11">Select AI Persona Opponent</text>
+  <text x="170" y="210" text-anchor="middle" fill="#cbd5e1" font-size="11">(Socrates / Pragmatist / Aggressor)</text>
+
+  <line x1="290" y1="180" x2="360" y2="180" stroke="#3b82f6" stroke-width="2"/>
+
+  <!-- Box 2: NLP Fallacy Detection -->
+  <rect x="360" y="110" width="240" height="140" rx="10" fill="#1e293b" stroke="#ef4444" stroke-width="2"/>
+  <text x="480" y="140" text-anchor="middle" fill="#f87171" font-size="14" font-weight="bold">2. NLP Fallacy Engine</text>
+  <text x="480" y="170" text-anchor="middle" fill="#fca5a5" font-size="11">Detect Fallacy Patterns:</text>
+  <text x="480" y="190" text-anchor="middle" fill="#fca5a5" font-size="11">• Ad Hominem • Straw Man</text>
+  <text x="480" y="210" text-anchor="middle" fill="#fca5a5" font-size="11">• False Dilemma • Slippery Slope</text>
+
+  <line x1="600" y1="180" x2="670" y2="180" stroke="#ef4444" stroke-width="2"/>
+
+  <!-- Box 3: AI Persona Rebuttal Generation -->
+  <rect x="670" y="110" width="230" height="140" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+  <text x="785" y="140" text-anchor="middle" fill="#34d399" font-size="14" font-weight="bold">3. AI Opponent Rebuttal</text>
+  <text x="785" y="170" text-anchor="middle" fill="#a7f3d0" font-size="11">Synthesize Counterargument</text>
+  <text x="785" y="190" text-anchor="middle" fill="#a7f3d0" font-size="11">Inject Persona Specific Tone</text>
+  <text x="785" y="210" text-anchor="middle" fill="#a7f3d0" font-size="11">Return Dynamic Response</text>
+
+  <!-- Flow to bottom loop -->
+  <line x1="785" y1="250" x2="785" y2="330" stroke="#10b981" stroke-width="2"/>
+  <line x1="785" y1="330" x2="480" y2="330" stroke="#10b981" stroke-width="2"/>
+
+  <!-- Box 4: Evaluation & Scoring -->
+  <rect x="250" y="380" width="460" height="150" rx="12" fill="#1e293b" stroke="#f59e0b" stroke-width="2"/>
+  <text x="480" y="415" text-anchor="middle" fill="#fbbf24" font-size="15" font-weight="bold">4. Scoring &amp; Multi-Turn Session Log</text>
+  <text x="480" y="445" text-anchor="middle" fill="#fde68a" font-size="12">• Calculate Turn Clarity, Logic &amp; Delivery Score</text>
+  <text x="480" y="470" text-anchor="middle" fill="#fde68a" font-size="12">• Append Fallacy Badges &amp; Metrics to Session Log</text>
+  <text x="480" y="495" text-anchor="middle" fill="#fde68a" font-size="12">• Update Overall Learner Radar Growth Chart</text>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="100%" height="100%" style="background-color: #0f172a; font-family: 'Segoe UI', Arial, sans-serif;">
+  <text x="450" y="40" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="bold">User Profile &amp; Skill Initialization Workflow</text>
+  <text x="450" y="65" text-anchor="middle" fill="#94a3b8" font-size="13">Personalization &amp; Learning Goals Baseline Setup</text>
+
+  <rect x="50" y="110" width="230" height="320" rx="10" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+  <text x="165" y="140" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="bold">Frontend Setup Form</text>
+  <text x="165" y="175" text-anchor="middle" fill="#cbd5e1" font-size="11">• Select Experience Level</text>
+  <text x="165" y="195" text-anchor="middle" fill="#cbd5e1" font-size="11">(Novice / Intermediate / Advanced)</text>
+  <text x="165" y="225" text-anchor="middle" fill="#cbd5e1" font-size="11">• Set Debate Preferences</text>
+  <text x="165" y="255" text-anchor="middle" fill="#cbd5e1" font-size="11">• Choose Target Domains</text>
+  <text x="165" y="285" text-anchor="middle" fill="#cbd5e1" font-size="11">• Define Speech Goals</text>
+
+  <line x1="280" y1="270" x2="350" y2="270" stroke="#3b82f6" stroke-width="2"/>
+
+  <rect x="350" y="110" width="220" height="320" rx="10" fill="#1e293b" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="460" y="140" text-anchor="middle" fill="#c084fc" font-size="14" font-weight="bold">Profile Router &amp; Service</text>
+  <text x="460" y="175" text-anchor="middle" fill="#ddd6fe" font-size="11">PUT /api/profile</text>
+  <text x="460" y="205" text-anchor="middle" fill="#ddd6fe" font-size="11">Validate Schema &amp; Skill Baseline</text>
+  <text x="460" y="235" text-anchor="middle" fill="#ddd6fe" font-size="11">Initialize Communication Matrix</text>
+  <text x="460" y="265" text-anchor="middle" fill="#ddd6fe" font-size="11">Initialize Logic Matrix</text>
+
+  <line x1="570" y1="270" x2="640" y2="270" stroke="#8b5cf6" stroke-width="2"/>
+
+  <rect x="640" y="110" width="220" height="320" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+  <text x="750" y="140" text-anchor="middle" fill="#34d399" font-size="14" font-weight="bold">SQL Database persistence</text>
+  <text x="750" y="175" text-anchor="middle" fill="#a7f3d0" font-size="11">Save UserProfile Record</text>
+  <text x="750" y="205" text-anchor="middle" fill="#a7f3d0" font-size="11">Save UserSkill Scores</text>
+  <text x="750" y="235" text-anchor="middle" fill="#a7f3d0" font-size="11">Seed Default Recommendations</text>
+</svg>

@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%" style="background-color: #0f172a; font-family: 'Segoe UI', Arial, sans-serif;">
+  <defs>
+    <linearGradient id="primary-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+    <linearGradient id="card-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.9" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Title -->
+  <text x="500" y="45" text-anchor="middle" fill="#f8fafc" font-size="24" font-weight="bold">Agentic AI Debate Coach &amp; Presentation Analysis Platform</text>
+  <text x="500" y="70" text-anchor="middle" fill="#94a3b8" font-size="14">Master System Architecture Specification</text>
+
+  <!-- Layer 1: Presentation Layer -->
+  <rect x="40" y="95" width="920" height="90" rx="12" fill="url(#card-grad)" stroke="#3b82f6" stroke-width="2" filter="url(#shadow)"/>
+  <text x="60" y="125" fill="#3b82f6" font-size="14" font-weight="bold">1. PRESENTATION LAYER (React + Vite Frontend)</text>
+  <g transform="translate(60, 135)">
+    <rect x="0" y="0" width="135" height="36" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="67" y="22" fill="#e2e8f0" font-size="11" text-anchor="middle">Dashboard (RBAC)</text>
+    <rect x="145" y="0" width="135" height="36" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="212" y="22" fill="#e2e8f0" font-size="11" text-anchor="middle">Speech Studio</text>
+    <rect x="290" y="0" width="135" height="36" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="357" y="22" fill="#e2e8f0" font-size="11" text-anchor="middle">AI Debate Room</text>
+    <rect x="435" y="0" width="135" height="36" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="502" y="22" fill="#e2e8f0" font-size="11" text-anchor="middle">Audio Visualizer Canvas</text>
+    <rect x="580" y="0" width="135" height="36" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="647" y="22" fill="#e2e8f0" font-size="11" text-anchor="middle">Analytics &amp; Radar Charts</text>
+    <rect x="725" y="0" width="135" height="36" rx="6" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+    <text x="792" y="22" fill="#e2e8f0" font-size="11" text-anchor="middle">Educator / Admin Views</text>
+  </g>
+
+  <!-- Arrow -->
+  <line x1="500" y1="185" x2="500" y2="215" stroke="#3b82f6" stroke-width="3"/>
+
+  <!-- Layer 2: API Gateway Layer -->
+  <rect x="40" y="215" width="920" height="75" rx="12" fill="url(#card-grad)" stroke="#8b5cf6" stroke-width="2" filter="url(#shadow)"/>
+  <text x="60" y="240" fill="#8b5cf6" font-size="14" font-weight="bold">2. API GATEWAY &amp; SECURITY LAYER (FastAPI + JWT Auth)</text>
+  <g transform="translate(60, 250)">
+    <rect x="0" y="0" width="160" height="30" rx="6" fill="#2e1065" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="80" y="19" fill="#ddd6fe" font-size="11" text-anchor="middle">OAuth2 / JWT Handler</text>
+    <rect x="175" y="0" width="160" height="30" rx="6" fill="#2e1065" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="255" y="19" fill="#ddd6fe" font-size="11" text-anchor="middle">CORS &amp; Middleware</text>
+    <rect x="350" y="0" width="160" height="30" rx="6" fill="#2e1065" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="430" y="19" fill="#ddd6fe" font-size="11" text-anchor="middle">Role-Based Access Control</text>
+    <rect x="525" y="0" width="160" height="30" rx="6" fill="#2e1065" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="605" y="19" fill="#ddd6fe" font-size="11" text-anchor="middle">Pydantic DTO Validation</text>
+    <rect x="700" y="0" width="160" height="30" rx="6" fill="#2e1065" stroke="#8b5cf6" stroke-width="1"/>
+    <text x="780" y="19" fill="#ddd6fe" font-size="11" text-anchor="middle">FastAPI Router Dispatch</text>
+  </g>
+
+  <!-- Arrow -->
+  <line x1="500" y1="290" x2="500" y2="320" stroke="#8b5cf6" stroke-width="3"/>
+
+  <!-- Layer 3: Core AI & Business Logic Services -->
+  <rect x="40" y="320" width="920" height="155" rx="12" fill="url(#card-grad)" stroke="#10b981" stroke-width="2" filter="url(#shadow)"/>
+  <text x="60" y="345" fill="#10b981" font-size="14" font-weight="bold">3. AGENTIC AI &amp; NLP SERVICE LAYER</text>
+  <g transform="translate(60, 360)">
+    <rect x="0" y="0" width="200" height="45" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1"/>
+    <text x="100" y="20" fill="#a7f3d0" font-size="12" font-weight="bold" text-anchor="middle">NLP Fallacy Detector</text>
+    <text x="100" y="35" fill="#6ee7b7" font-size="10" text-anchor="middle">Regex + Pattern Classifier</text>
+    
+    <rect x="215" y="0" width="200" height="45" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1"/>
+    <text x="315" y="20" fill="#a7f3d0" font-size="12" font-weight="bold" text-anchor="middle">AI Debate Simulator</text>
+    <text x="315" y="35" fill="#6ee7b7" font-size="10" text-anchor="middle">Socrates / Pragmatist / Aggressor</text>
+    
+    <rect x="430" y="0" width="200" height="45" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1"/>
+    <text x="530" y="20" fill="#a7f3d0" font-size="12" font-weight="bold" text-anchor="middle">Counterargument Engine</text>
+    <text x="530" y="35" fill="#6ee7b7" font-size="10" text-anchor="middle">Rebuttal &amp; Evidence Synthesizer</text>
+
+    <rect x="645" y="0" width="215" height="45" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1"/>
+    <text x="752" y="20" fill="#a7f3d0" font-size="12" font-weight="bold" text-anchor="middle">Speech &amp; Pace Evaluator</text>
+    <text x="752" y="35" fill="#6ee7b7" font-size="10" text-anchor="middle">WPM + Filler Word Tracker</text>
+
+    <rect x="100" y="58" width="215" height="45" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1"/>
+    <text x="207" y="78" fill="#a7f3d0" font-size="12" font-weight="bold" text-anchor="middle">Performance Scoring</text>
+    <text x="207" y="93" fill="#6ee7b7" font-size="10" text-anchor="middle">Clarity, Logic &amp; Delivery Matrix</text>
+
+    <rect x="330" y="58" width="215" height="45" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1"/>
+    <text x="437" y="78" fill="#a7f3d0" font-size="12" font-weight="bold" text-anchor="middle">ReportLab &amp; Excel Exporter</text>
+    <text x="437" y="93" fill="#6ee7b7" font-size="10" text-anchor="middle">PDF &amp; OpenPyXL Report Builder</text>
+
+    <rect x="560" y="58" width="215" height="45" rx="8" fill="#064e3b" stroke="#10b981" stroke-width="1"/>
+    <text x="667" y="78" fill="#a7f3d0" font-size="12" font-weight="bold" text-anchor="middle">Chat &amp; Coaching Engine</text>
+    <text x="667" y="93" fill="#6ee7b7" font-size="10" text-anchor="middle">Multi-turn History Memory</text>
+  </g>
+
+  <!-- Arrow -->
+  <line x1="500" y1="475" x2="500" y2="505" stroke="#10b981" stroke-width="3"/>
+
+  <!-- Layer 4: Persistence Layer -->
+  <rect x="40" y="505" width="920" height="150" rx="12" fill="url(#card-grad)" stroke="#f59e0b" stroke-width="2" filter="url(#shadow)"/>
+  <text x="60" y="530" fill="#f59e0b" font-size="14" font-weight="bold">4. PERSISTENCE &amp; DATABASE LAYER</text>
+  <g transform="translate(60, 545)">
+    <rect x="0" y="0" width="260" height="90" rx="8" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="130" y="25" fill="#fef3c7" font-size="13" font-weight="bold" text-anchor="middle">Relational Database (SQLite / Postgres)</text>
+    <text x="130" y="45" fill="#fde68a" font-size="11" text-anchor="middle">• Users &amp; User Profiles (RBAC)</text>
+    <text x="130" y="62" fill="#fde68a" font-size="11" text-anchor="middle">• Debate Topics &amp; Practice Sessions</text>
+    <text x="130" y="79" fill="#fde68a" font-size="11" text-anchor="middle">• Fallacy Records &amp; Speech Metrics</text>
+
+    <rect x="295" y="0" width="260" height="90" rx="8" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="425" y="25" fill="#fef3c7" font-size="13" font-weight="bold" text-anchor="middle">SQLAlchemy ORM Layer</text>
+    <text x="425" y="45" fill="#fde68a" font-size="11" text-anchor="middle">• Declarative Model Mappings</text>
+    <text x="425" y="62" fill="#fde68a" font-size="11" text-anchor="middle">• Session &amp; DB Connection Pool</text>
+    <text x="425" y="79" fill="#fde68a" font-size="11" text-anchor="middle">• Automatic Schema Migrations</text>
+
+    <rect x="590" y="0" width="270" height="90" rx="8" fill="#451a03" stroke="#f59e0b" stroke-width="1"/>
+    <text x="725" y="25" fill="#fef3c7" font-size="13" font-weight="bold" text-anchor="middle">Extensible Storage (Mongo / Vector Store)</text>
+    <text x="725" y="45" fill="#fde68a" font-size="11" text-anchor="middle">• Raw Audio Recording Assets</text>
+    <text x="725" y="62" fill="#fde68a" font-size="11" text-anchor="middle">• Unstructured Multi-Turn Chat Logs</text>
+    <text x="725" y="79" fill="#fde68a" font-size="11" text-anchor="middle">• Debate Vector Context Embeddings</text>
+  </g>
+</svg>

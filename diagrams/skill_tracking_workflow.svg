@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="100%" height="100%" style="background-color: #0f172a; font-family: 'Segoe UI', Arial, sans-serif;">
+  <text x="450" y="40" text-anchor="middle" fill="#f8fafc" font-size="22" font-weight="bold">Skill Tracking &amp; Performance Analytics Workflow</text>
+  <text x="450" y="65" text-anchor="middle" fill="#94a3b8" font-size="13">Speech WPM, Fallacy Counts &amp; Skill Radar Growth Engine</text>
+
+  <rect x="50" y="110" width="230" height="320" rx="10" fill="#1e293b" stroke="#3b82f6" stroke-width="2"/>
+  <text x="165" y="140" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="bold">Speech &amp; Debate Inputs</text>
+  <text x="165" y="180" text-anchor="middle" fill="#cbd5e1" font-size="11">Web Audio FFT Frequency Data</text>
+  <text x="165" y="210" text-anchor="middle" fill="#cbd5e1" font-size="11">Speech-to-Text Transcripts</text>
+  <text x="165" y="240" text-anchor="middle" fill="#cbd5e1" font-size="11">Logical Fallacy Flags</text>
+  <text x="165" y="270" text-anchor="middle" fill="#cbd5e1" font-size="11">Debate Round Scores</text>
+
+  <line x1="280" y1="270" x2="350" y2="270" stroke="#3b82f6" stroke-width="2"/>
+
+  <rect x="350" y="110" width="220" height="320" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="2"/>
+  <text x="460" y="140" text-anchor="middle" fill="#34d399" font-size="14" font-weight="bold">Analytics Engine</text>
+  <text x="460" y="180" text-anchor="middle" fill="#a7f3d0" font-size="11">Words Per Minute (WPM)</text>
+  <text x="460" y="210" text-anchor="middle" fill="#a7f3d0" font-size="11">Filler Ratio ("um", "like")</text>
+  <text x="460" y="240" text-anchor="middle" fill="#a7f3d0" font-size="11">Fallacy Density Index</text>
+  <text x="460" y="270" text-anchor="middle" fill="#a7f3d0" font-size="11">Logic vs Delivery Weighting</text>
+
+  <line x1="570" y1="270" x2="640" y2="270" stroke="#10b981" stroke-width="2"/>
+
+  <rect x="640" y="110" width="220" height="320" rx="10" fill="#1e293b" stroke="#ec4899" stroke-width="2"/>
+  <text x="750" y="140" text-anchor="middle" fill="#f472b6" font-size="14" font-weight="bold">Radar Plot &amp; Export</text>
+  <text x="750" y="180" text-anchor="middle" fill="#fbcfe8" font-size="11">Communication Axis (0-100)</text>
+  <text x="750" y="210" text-anchor="middle" fill="#fbcfe8" font-size="11">Logic Axis (0-100)</text>
+  <text x="750" y="240" text-anchor="middle" fill="#fbcfe8" font-size="11">Delivery Axis (0-100)</text>
+  <text x="750" y="270" text-anchor="middle" fill="#fbcfe8" font-size="11">PDF &amp; Excel Report Export</text>
+</svg>
