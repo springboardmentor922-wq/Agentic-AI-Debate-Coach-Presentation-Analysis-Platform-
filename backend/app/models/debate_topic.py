@@ -15,7 +15,8 @@ from sqlalchemy import (
     String,
     Text,
     Boolean,
-    DateTime
+    DateTime,
+    ForeignKey
 )
 
 from sqlalchemy.orm import relationship
@@ -33,15 +34,15 @@ class DebateTopic(Base):
 
     title = Column(String(255), nullable=False)
 
-
+    description = Column(Text, nullable=True)
 
     category = Column(String(100))
 
     difficulty_level = Column(String(30))
 
     topic_type = Column(
-    String(30),
-    default="OFFICIAL"
+        String(30),
+        default="OFFICIAL"
     )
 
     visibility = Column(
@@ -61,7 +62,7 @@ class DebateTopic(Base):
 
     debate_format = Column(
         String(100),
-        nullable=False
+        default="Oxford Debate"
     )
 
     is_system_generated = Column(
@@ -71,10 +72,21 @@ class DebateTopic(Base):
 
     created_by = Column(
         Integer,
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True
+    )
+
+    updated_by = Column(
+        Integer,
+        ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True
     )
 
     is_active = Column(Boolean, default=True)
+
+    is_deleted = Column(Boolean, default=False)
+
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(
         DateTime(timezone=True),

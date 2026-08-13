@@ -14,14 +14,19 @@ import { extractReportScore, formatDate, formatDateTime, safeNumber, toArray } f
 
 import "./AdminDashboard.css";
 
+import { assignCoachToLearner } from "../../services/adminService";
+import { useToast } from "../../context/ToastContext";
+
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { showToast } = useToast();
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [overview, setOverview] = useState({
         users: [],
+        coaches: [],
         roles: [],
         analytics: null,
         platformMetrics: { topics: 0, sessions: 0, reports: 0 },
@@ -30,6 +35,11 @@ const AdminDashboard = () => {
         reports: [],
     });
     const [performance, setPerformance] = useState(null);
+
+    // Coach Assignment state
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [selectedCoachId, setSelectedCoachId] = useState("");
+    const [selectedLearnerId, setSelectedLearnerId] = useState("");
 
     useEffect(() => {
         let active = true;
@@ -192,7 +202,7 @@ const AdminDashboard = () => {
                         <div className="dashboard-card">
                             <div className="card-header">
                                 <h2>User Overview</h2>
-                                <button onClick={() => handleNavigate("/profile")}>View All →</button>
+                                <button onClick={() => handleNavigate("/users")}>View All →</button>
                             </div>
                             {overview.roles.length === 0 ? (
                                 <div className="empty-state">Role summary not available from backend.</div>
@@ -286,25 +296,72 @@ const AdminDashboard = () => {
                             <h2>Quick Actions</h2>
                         </div>
                         <section className="quick-actions">
+                            <button className="action-card" onClick={() => setShowAssignModal(true)}>
+                                <h3>Assign Debate Coach</h3>
+                                <p>Match a coach with a learner and balance workload.</p>
+                            </button>
                             <button className="action-card" onClick={() => handleNavigate("/topics")}>
                                 <h3>Manage Topics</h3>
                                 <p>Open the current topic library.</p>
                             </button>
-                            <button className="action-card" onClick={() => handleNavigate("/debate-sessions")}>
-                                <h3>Monitor Sessions</h3>
-                                <p>Inspect active and completed debate sessions.</p>
+                            <button className="action-card" onClick={() => handleNavigate("/users")}>
+                                <h3>User Management</h3>
+                                <p>Manage platform roles & active status.</p>
                             </button>
                             <button className="action-card" onClick={() => handleNavigate("/reports")}>
-                                <h3>Open Reports</h3>
+                                <h3>System Reports</h3>
                                 <p>Review AI results and report trends.</p>
-                            </button>
-                            <button className="action-card" onClick={() => handleNavigate("/settings")}>
-                                <h3>Platform Settings</h3>
-                                <p>Adjust account-level preferences.</p>
                             </button>
                         </section>
                     </section>
                 </>
+            )}
+
+            {/* Assign Coach Modal */}
+            {showAssignModal && (
+                <div className="modal-overlay">
+                    <div className="simulation-modal" style={{ maxWidth: "500px" }}>
+                        <h3>Assign Coach to Learner</h3>
+                        <form onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (!selectedCoachId || !selectedLearnerId) {
+                                showToast("Please select both a coach and a learner.", "warning");
+                                return;
+                            }
+                            try {
+                                await assignCoachToLearner(Number(selectedCoachId), Number(selectedLearnerId));
+                                showToast("Coach assigned successfully!", "success");
+                                setShowAssignModal(false);
+                            } catch (err) {
+                                console.error(err);
+                                showToast("Failed to assign coach.", "error");
+                            }
+                        }} style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "16px" }}>
+                            <div>
+                                <label>Select Debate Coach:</label>
+                                <select value={selectedCoachId} onChange={(e) => setSelectedCoachId(e.target.value)} required>
+                                    <option value="">-- Select Coach --</option>
+                                    {(overview.coaches?.length > 0 ? overview.coaches : overview.users).map((c) => (
+                                        <option key={c.id} value={c.id}>{c.full_name} ({c.workload_status || 'Light'} Workload)</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label>Select Learner:</label>
+                                <select value={selectedLearnerId} onChange={(e) => setSelectedLearnerId(e.target.value)} required>
+                                    <option value="">-- Select Learner --</option>
+                                    {overview.users.filter((u) => (u.role_name || u.role || '').toLowerCase().includes('learner') || true).map((l) => (
+                                        <option key={l.id} value={l.id}>{l.full_name} ({l.email})</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+                                <button type="button" className="btn-secondary" onClick={() => setShowAssignModal(false)}>Cancel</button>
+                                <button type="submit" className="btn-primary">Confirm Assignment</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             )}
         </MainLayout>
     );

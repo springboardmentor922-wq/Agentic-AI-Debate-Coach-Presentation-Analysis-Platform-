@@ -40,7 +40,9 @@ from app.models.user import User
 from app.schemas.debate_topic import (
     CreateDebateTopicRequest,
     UpdateDebateTopicRequest,
-    DebateTopicResponse
+    DebateTopicResponse,
+    GenerateTopicRequest,
+    GenerateTopicResponse
 )
 
 from app.services.debate_topic_service import DebateTopicService
@@ -212,3 +214,37 @@ def delete_topic(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
+
+
+# ==========================================================
+# AI Topic Generator
+# ==========================================================
+
+@router.post(
+    "/generate",
+    response_model=GenerateTopicResponse,
+    status_code=status.HTTP_200_OK
+)
+def generate_topic(
+    request: GenerateTopicRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(
+        require_any_role([
+            "Learner",
+            "Debate Coach",
+            "Educator",
+            "Administrator"
+        ])
+    )
+):
+    try:
+        return DebateTopicService.generate_ai_topic(
+            db=db,
+            req=request,
+            current_user=current_user
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate AI debate topic: {str(e)}"
+        )

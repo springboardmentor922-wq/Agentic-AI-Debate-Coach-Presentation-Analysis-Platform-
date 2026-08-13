@@ -101,33 +101,54 @@ const EducatorDashboard = () => {
     }, [overview.learners]);
 
     const radarData = useMemo(() => {
+        const classRadar = overview.classAnalytics?.class_radar;
+        if (Array.isArray(classRadar) && classRadar.length > 0) {
+            return classRadar.map((item) => ({
+                label: item.label,
+                score: safeNumber(item.score, 0),
+            }));
+        }
         const analytics = performance?.summary || overview.analytics || {};
         return [
-            { label: "Communication", score: safeNumber(analytics.communication_score) },
-            { label: "Confidence", score: safeNumber(analytics.confidence_score) },
-            { label: "Reasoning", score: safeNumber(analytics.critical_thinking_score) },
-            { label: "Argument", score: safeNumber(analytics.argument_score) },
-            { label: "Presentation", score: safeNumber(analytics.presentation_score) },
+            { label: "Communication", score: safeNumber(analytics.communication_score, 0) },
+            { label: "Confidence", score: safeNumber(analytics.confidence_score, 0) },
+            { label: "Reasoning", score: safeNumber(analytics.critical_thinking_score, 0) },
+            { label: "Argument", score: safeNumber(analytics.argument_score, 0) },
+            { label: "Presentation", score: safeNumber(analytics.presentation_score, 0) },
         ];
-    }, [overview.analytics, performance?.summary]);
+    }, [overview.classAnalytics, overview.analytics, performance?.summary]);
 
     const sessionTrend = useMemo(() => {
-        return overview.assignments
-            .slice()
-            .sort((first, second) => new Date(first.scheduled_at || first.date || 0) - new Date(second.scheduled_at || second.date || 0))
-            .slice(0, 6)
-            .map((session, index) => ({
-                label: `S${index + 1}`,
-                score: extractReportScore(session),
+        const trend = overview.classAnalytics?.session_trend;
+        if (Array.isArray(trend) && trend.length > 0) {
+            return trend.map((item) => ({
+                label: item.label,
+                score: safeNumber(item.score, 0),
             }));
-    }, [overview.assignments]);
+        }
+        if (Array.isArray(overview.reports) && overview.reports.length > 0) {
+            return overview.reports
+                .slice()
+                .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0))
+                .slice(0, 8)
+                .map((r, idx) => ({
+                    label: formatDate(r.created_at) !== "--" ? formatDate(r.created_at) : `S${idx + 1}`,
+                    score: safeNumber(r.overall_score || r.score || extractReportScore(r), 0),
+                }));
+        }
+        return [];
+    }, [overview.classAnalytics, overview.reports]);
 
     const topicCoverage = useMemo(() => {
-        return overview.rankings.slice(0, 8).map((topic, index) => ({
-            label: topic.title || `Topic ${index + 1}`,
-            score: safeNumber(topic.score || topic.available_sessions || 0),
-        }));
-    }, [overview.rankings]);
+        const coverage = overview.classAnalytics?.topic_coverage;
+        if (Array.isArray(coverage) && coverage.length > 0) {
+            return coverage.map((item, index) => ({
+                label: item.label || `Topic ${index + 1}`,
+                score: safeNumber(item.score, 0),
+            }));
+        }
+        return [];
+    }, [overview.classAnalytics]);
 
     const handleNavigate = (path) => navigate(path);
 
@@ -137,6 +158,14 @@ const EducatorDashboard = () => {
                 <div>
                     <h1>Welcome back, {user?.full_name || "Educator"}</h1>
                     <p>Monitor student performance, live debate sessions, and topic coverage from backend data.</p>
+                    <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
+                        <button type="button" className="btn-primary-sm" style={{ background: "#2563EB", color: "#FFF", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontWeight: 600 }} onClick={() => handleNavigate("/educator/evaluation-queue")}>
+                            Evaluation Queue →
+                        </button>
+                        <button type="button" className="btn-primary-sm" style={{ background: "#3B82F6", color: "#FFF", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer", fontWeight: 600 }} onClick={() => handleNavigate("/educator/resource-library")}>
+                            Resource Library →
+                        </button>
+                    </div>
                 </div>
                 <div className="banner-icon">
                     <FaChalkboardTeacher />
@@ -223,18 +252,36 @@ const EducatorDashboard = () => {
                     </section>
 
                     <section className="dashboard-row">
-                        <ChartShell title="Topic Coverage" description="How the current topic set is distributed.">
-                            <BarScoreChart data={topicCoverage} color="#F59E0B" />
+                        <ChartShell title="Topic Coverage" description="How current topics are distributed across enrolled student sessions.">
+                            {topicCoverage.length === 0 || topicCoverage.every((t) => t.score === 0) ? (
+                                <div className="empty-state" style={{ padding: "40px 20px", textAlign: "center", color: "#64748B" }}>
+                                    No topic coverage performance data available yet.
+                                </div>
+                            ) : (
+                                <BarScoreChart data={topicCoverage} color="#F59E0B" />
+                            )}
                         </ChartShell>
 
-                        <ChartShell title="Learner Radar" description="Core skill signals from the backend summary.">
-                            <RadarScoreChart data={radarData} />
+                        <ChartShell title="Learner Radar" description="Class average skill performance across enrolled students.">
+                            {radarData.length === 0 || radarData.every((r) => r.score === 0) ? (
+                                <div className="empty-state" style={{ padding: "40px 20px", textAlign: "center", color: "#64748B" }}>
+                                    No student skill data available yet.
+                                </div>
+                            ) : (
+                                <RadarScoreChart data={radarData} />
+                            )}
                         </ChartShell>
                     </section>
 
                     <section className="dashboard-row">
-                        <ChartShell title="Session Trend" description="Recent session analysis scores.">
-                            <LineScoreChart data={sessionTrend} />
+                        <ChartShell title="Session Trend" description="Historical student evaluation score trajectory over time.">
+                            {sessionTrend.length === 0 || sessionTrend.every((s) => s.score === 0) ? (
+                                <div className="empty-state" style={{ padding: "40px 20px", textAlign: "center", color: "#64748B" }}>
+                                    No session performance data available yet.
+                                </div>
+                            ) : (
+                                <LineScoreChart data={sessionTrend} />
+                            )}
                         </ChartShell>
 
                         <div className="dashboard-card">

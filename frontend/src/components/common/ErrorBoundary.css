@@ -1,0 +1,48 @@
+.error-boundary-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: 30px;
+}
+
+.error-card {
+    background: #ffffff;
+    border-radius: 20px;
+    border: 1px solid #fee2e2;
+    box-shadow: 0 10px 30px rgba(239, 68, 68, 0.1);
+    padding: 36px;
+    text-align: center;
+    max-width: 480px;
+}
+
+.error-icon {
+    font-size: 2.5rem;
+    color: #ef4444;
+    margin-bottom: 16px;
+}
+
+.error-card h2 {
+    font-size: 1.3rem;
+    color: #0f172a;
+    margin: 0 0 10px 0;
+}
+
+.error-card p {
+    color: #64748b;
+    font-size: 0.92rem;
+    margin-bottom: 24px;
+}
+
+.reload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+}

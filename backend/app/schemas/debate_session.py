@@ -53,6 +53,12 @@ class CreateDebateSessionRequest(BaseModel):
         description="Scheduled date and time"
     )
 
+    practice_assignment_id: Optional[int] = Field(
+        default=None,
+        description="Optional linked practice assignment ID"
+    )
+
+
 
 # =========================================================
 # Update Debate Session Request

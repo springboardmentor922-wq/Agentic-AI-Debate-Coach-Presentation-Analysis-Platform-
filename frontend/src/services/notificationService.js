@@ -1,7 +1,17 @@
+import apiClient from "./apiClient";
 import { getMySessions } from "./debateSessionService";
 import { getAllReports } from "./reportService";
 
 export const getNotifications = async () => {
+    try {
+        const response = await apiClient.get("/api/v1/notifications");
+        if (Array.isArray(response.data) && response.data.length > 0) {
+            return response.data;
+        }
+    } catch (err) {
+        console.warn("Backend notification endpoint error, falling back to local synthesis:", err);
+    }
+
     const [sessions, reports] = await Promise.all([
         getMySessions().catch(() => []),
         getAllReports().catch(() => ({ data: [] })),
@@ -30,6 +40,26 @@ export const getNotifications = async () => {
     });
 };
 
+export const markNotificationRead = async (id) => {
+    try {
+        const response = await apiClient.put(`/api/v1/notifications/${id}/read`);
+        return response.data;
+    } catch (err) {
+        console.warn("Mark read error:", err);
+    }
+};
+
+export const markAllNotificationsRead = async () => {
+    try {
+        const response = await apiClient.put("/api/v1/notifications/mark-all-read");
+        return response.data;
+    } catch (err) {
+        console.warn("Mark all read error:", err);
+    }
+};
+
 export default {
     getNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
 };

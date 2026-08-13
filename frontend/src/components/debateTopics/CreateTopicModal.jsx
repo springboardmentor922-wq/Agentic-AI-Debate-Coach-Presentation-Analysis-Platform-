@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import debateTopicService from "../../services/debateTopicService";
 import "./CreateTopicModal.css";
 
 const initialForm = {
@@ -20,29 +21,26 @@ const CreateTopicModal = ({
     loading = false,
 }) => {
   const [formData, setFormData] = useState(initialForm);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
 
  useEffect(() => {
-
     if (!isOpen) return;
 
     if (mode === "edit" && topic) {
-
         setFormData({
             title: topic.title || "",
             category: topic.category || "Technology",
             debate_format: topic.debate_format || "Public Forum Debate",
             difficulty_level: topic.difficulty || topic.difficulty_level,
-            estimated_duration: topic.estimated_duration,
+            estimated_duration: topic.estimated_duration || 20,
             learning_goal: topic.learning_goal || "",
             visibility: topic.visibility || "PUBLIC",
         });
-
     } else {
-
         setFormData(initialForm);
-
     }
-
+    setAiError("");
 }, [isOpen, mode, topic]);
 
   const handleChange = (e) => {
@@ -57,9 +55,51 @@ const CreateTopicModal = ({
     }));
   };
 
+  const [aiSuccess, setAiSuccess] = useState("");
+
+  const handleGenerateAITopic = async () => {
+    setAiLoading(true);
+    setAiError("");
+    setAiSuccess("");
+    try {
+      const generated = await debateTopicService.generateAITopic({
+        category: formData.category,
+        difficulty_level: formData.difficulty_level,
+        debate_format: formData.debate_format,
+      });
+
+      if (generated && generated.title) {
+        const cleanTitle = generated.title
+          .replace(/\s*[\(\[\{]?\s*(?:Ref|Reference|Seed)\s*#?\s*\d+\s*[\)\]\}]?/gi, "")
+          .replace(/\s+([?\!.,])/g, "$1")
+          .trim();
+        const cleanGoal = (generated.learning_goal || "")
+          .replace(/\s*[\(\[\{]?\s*(?:Ref|Reference|Seed)\s*#?\s*\d+\s*[\)\]\}]?/gi, "")
+          .replace(/\s+([?\!.,])/g, "$1")
+          .trim();
+
+        setFormData((prev) => ({
+          ...prev,
+          title: cleanTitle,
+          category: generated.category || prev.category,
+          difficulty_level: generated.difficulty_level || prev.difficulty_level,
+          debate_format: generated.debate_format || prev.debate_format,
+          estimated_duration: generated.estimated_duration || prev.estimated_duration || 20,
+          learning_goal: cleanGoal || prev.learning_goal || "",
+        }));
+        setAiSuccess("✨ New topic generated successfully! Review or edit below before saving.");
+        setTimeout(() => setAiSuccess(""), 4000);
+      }
+    } catch (err) {
+      console.error("AI Topic Generation error:", err);
+      setAiError("AI topic generation failed. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
     onSubmit(formData);
   };
 
@@ -77,6 +117,7 @@ const CreateTopicModal = ({
           </h2>
 
           <button
+            type="button"
             className="close-btn"
             onClick={onClose}
           >
@@ -99,7 +140,7 @@ const CreateTopicModal = ({
               placeholder="Example: Should AI replace teachers?"
               required
               minLength={3}
-              maxLength={150}
+              maxLength={255}
             />
 
           </div>
@@ -244,16 +285,35 @@ const CreateTopicModal = ({
 
           {/* AI Topic Generator - Only for Create */}
           {mode === "create" && (
-            <div className="future-ai-placeholder">
-
-              ✨ AI Topic Generator
-
-              <span>
-                Generate a debate topic automatically using AI
-                <br />
-                <small>(Milestone 3)</small>
-              </span>
-
+            <div className="ai-topic-generator-card">
+              <div className="ai-topic-generator-header">
+                <div>
+                  <h4 style={{ margin: 0, color: "#1d4ed8", fontSize: "15px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    ✨ AI Topic Generator
+                  </h4>
+                  <p style={{ margin: "4px 0 0 0", fontSize: "13px", color: "#4b5563" }}>
+                    Autofill a high-quality debate topic based on your selected category and difficulty level.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="generate-ai-btn"
+                  onClick={handleGenerateAITopic}
+                  disabled={aiLoading}
+                >
+                  {aiLoading ? "Generating..." : "Generate Topic with AI"}
+                </button>
+              </div>
+              {aiSuccess && (
+                <p className="ai-success-text" style={{ color: "#059669", fontSize: "13px", fontWeight: "600", marginTop: "8px" }}>
+                  {aiSuccess}
+                </p>
+              )}
+              {aiError && (
+                <p className="ai-error-text" style={{ color: "#dc2626", fontSize: "12px", marginTop: "6px" }}>
+                  {aiError}
+                </p>
+              )}
             </div>
           )}
 
@@ -271,7 +331,7 @@ const CreateTopicModal = ({
             <button
                 type="submit"
                 className="save-btn"
-                disabled={loading}
+                disabled={loading || aiLoading}
             >
                 {loading
                     ? (mode === "edit" ? "Updating..." : "Creating...")

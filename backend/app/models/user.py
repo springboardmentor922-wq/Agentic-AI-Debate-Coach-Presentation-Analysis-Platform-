@@ -87,17 +87,27 @@ class User(Base):
         default=True
     )
 
+    is_deleted = Column(
+        Boolean,
+        default=False
+    )
+
+    deleted_at = Column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
     # -----------------------------------------------------
     # Timestamps
     # -----------------------------------------------------
 
     created_at = Column(
-        DateTime,
+        DateTime(timezone=True),
         server_default=func.now()
     )
 
     updated_at = Column(
-        DateTime,
+        DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now()
     )
@@ -125,5 +135,6 @@ class User(Base):
 
     debate_sessions = relationship(
         "DebateSession",
+        foreign_keys="[DebateSession.user_id]",
         back_populates="user"
     )

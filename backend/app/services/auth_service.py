@@ -92,9 +92,15 @@ class AuthService:
                 "Email is already registered."
             )
 
+        requested_role = user_data.role or "Learner"
+        if requested_role.strip().lower() != "learner":
+            raise ValueError(
+                "Public registration is restricted to the Learner role. Privileged accounts must be assigned by an administrator."
+            )
+
         role = AuthService.get_role_by_name(
             db,
-            user_data.role
+            "Learner"
         )
 
         if role is None:

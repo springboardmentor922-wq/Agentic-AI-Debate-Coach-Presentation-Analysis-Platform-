@@ -13,6 +13,7 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
+    Boolean,
     DateTime,
     ForeignKey
 )
@@ -72,13 +73,23 @@ class SessionRound(Base):
         default="Pending"
     )
 
-    started_at = Column(DateTime)
+    started_at = Column(DateTime(timezone=True))
 
-    ended_at = Column(DateTime)
+    ended_at = Column(DateTime(timezone=True))
+
+    is_deleted = Column(Boolean, default=False)
+
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     created_at = Column(
-        DateTime,
+        DateTime(timezone=True),
         server_default=func.now()
+    )
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now()
     )
 
     # =====================================================

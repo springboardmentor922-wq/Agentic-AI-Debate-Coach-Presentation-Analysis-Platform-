@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaChartPie, FaFileAlt, FaEye, FaFilter } from "react-icons/fa";
+import { FaChartPie, FaFileAlt, FaEye, FaFilter, FaFileExcel, FaPrint, FaSearch } from "react-icons/fa";
 
 import MainLayout from "../../components/layout/MainLayout";
 import Breadcrumb from "../../components/common/Breadcrumb";
@@ -8,10 +8,10 @@ import ChartShell from "../../components/sharedCharts/ChartShell";
 import PieDistributionChart from "../../components/sharedCharts/PieDistributionChart";
 import LineScoreChart from "../../components/sharedCharts/LineScoreChart";
 import { useAuth } from "../../hooks/useAuth";
-import { getReportsByUser } from "../../services/reportService";
+import { getAllReports } from "../../services/reportService";
 import { getMySessions } from "../../services/debateSessionService";
 import { getAllTopics } from "../../services/debateTopicService";
-import { extractReportScore, formatDateTime, groupReportsByInputType, safeNumber, toArray } from "../../utils/learnerHelpers";
+import { extractReportScore, formatDate, formatDateTime, groupReportsByInputType, safeNumber, toArray } from "../../utils/learnerHelpers";
 
 import "./Reports.css";
 
@@ -25,6 +25,7 @@ const Reports = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
+    const [searchQuery, setSearchQuery] = useState("");
 
     useEffect(() => {
         let active = true;
@@ -33,7 +34,7 @@ const Reports = () => {
             try {
                 setLoading(true);
                 const [reportData, sessionData, topicData] = await Promise.all([
-                    getReportsByUser(user?.id).catch(() => []),
+                    getAllReports().catch(() => []),
                     getMySessions().catch(() => []),
                     getAllTopics().catch(() => []),
                 ]);
@@ -66,13 +67,13 @@ const Reports = () => {
 
     const filteredReports = useMemo(() => {
         return reports.filter((report) => {
-            if (statusFilter === "all") {
-                return true;
-            }
-
-            return String(report.input_type || "").toLowerCase() === statusFilter;
+            const matchesStatus = statusFilter === "all" || String(report.input_type || "").toLowerCase() === statusFilter;
+            const topic = topicMap.get(report.topic_id);
+            const title = (topic?.title || `Session #${report.session_id}`).toLowerCase();
+            const matchesSearch = title.includes(searchQuery.toLowerCase()) || String(report.session_id).includes(searchQuery);
+            return matchesStatus && matchesSearch;
         });
-    }, [reports, statusFilter]);
+    }, [reports, statusFilter, searchQuery, topicMap]);
 
     const chartData = useMemo(() => groupReportsByInputType(reports), [reports]);
 
@@ -81,15 +82,40 @@ const Reports = () => {
             .slice()
             .sort((first, second) => new Date(first.created_at || 0) - new Date(second.created_at || 0))
             .map((report, index) => ({
-                label: `R${index + 1}`,
+                label: formatDate(report.created_at) !== "--" ? formatDate(report.created_at) : `R${index + 1}`,
                 score: extractReportScore(report),
             }));
     }, [reports]);
 
     const selectedReport = reports.find((report) => (report.report_id || report.id) === selectedReportId) || reports[0];
-
     const selectedSession = selectedReport ? sessionMap.get(selectedReport.session_id) : null;
     const selectedTopic = selectedReport?.topic_id ? topicMap.get(selectedReport.topic_id) : null;
+
+    const handleExportCSV = () => {
+        const rows = [
+            ["Report ID", "Session ID", "Topic", "Input Type", "Overall Score", "Created At"],
+            ...filteredReports.map((r) => [
+                r.report_id || r.id,
+                r.session_id,
+                topicMap.get(r.topic_id)?.title || `Topic #${r.topic_id || "--"}`,
+                r.input_type || "Speech",
+                extractReportScore(r),
+                r.created_at || r.updated_at || ""
+            ])
+        ];
+        const csvContent = "data:text/csv;charset=utf-8," + rows.map((e) => e.join(",")).join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `debate_reports_export_${Date.now()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handlePrint = () => {
+        window.print();
+    };
 
     if (loading) {
         return (
@@ -109,7 +135,14 @@ const Reports = () => {
                         <h1>Debate Reports</h1>
                         <p>Review AI analysis outcomes from submitted debate sessions.</p>
                     </div>
-                    <div className="reports-header-icon"><FaChartPie /></div>
+                    <div className="header-actions">
+                        <button type="button" className="join-btn" onClick={handleExportCSV}>
+                            <FaFileExcel /> Export CSV / Excel
+                        </button>
+                        <button type="button" className="join-btn secondary" onClick={handlePrint}>
+                            <FaPrint /> Print Reports
+                        </button>
+                    </div>
                 </div>
 
                 {error && <div className="empty-state">{error}</div>}
@@ -118,25 +151,50 @@ const Reports = () => {
                     <div className="reports-count">
                         <FaFileAlt /> {filteredReports.length} Reports
                     </div>
-                    <label className="reports-filter">
-                        <FaFilter />
-                        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
-                            <option value="all">All Inputs</option>
-                            <option value="speech">Speech</option>
-                            <option value="audio">Audio</option>
-                            <option value="video">Video</option>
-                        </select>
-                    </label>
+
+                    <div className="search-filter-box">
+                        <div className="search-input-wrap">
+                            <FaSearch />
+                            <input
+                                type="text"
+                                placeholder="Search by topic or session..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+
+                        <label className="reports-filter">
+                            <FaFilter />
+                            <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                                <option value="all">All Inputs</option>
+                                <option value="speech">Speech</option>
+                                <option value="audio">Audio</option>
+                                <option value="video">Video</option>
+                            </select>
+                        </label>
+                    </div>
                 </div>
 
                 <div className="reports-layout">
                     <div className="reports-main">
                         <ChartShell title="Report Composition" description="Backend report distribution by input type.">
-                            <PieDistributionChart data={chartData} />
+                            {chartData.length === 0 ? (
+                                <div className="empty-state" style={{ padding: "30px 20px", textAlign: "center", color: "#64748B" }}>
+                                    No report composition data available yet.
+                                </div>
+                            ) : (
+                                <PieDistributionChart data={chartData} />
+                            )}
                         </ChartShell>
 
                         <ChartShell title="Report Score Trend" description="AI overall score extracted from recent reports.">
-                            <LineScoreChart data={lineData} />
+                            {lineData.length === 0 ? (
+                                <div className="empty-state" style={{ padding: "30px 20px", textAlign: "center", color: "#64748B" }}>
+                                    No report score trend data available yet.
+                                </div>
+                            ) : (
+                                <LineScoreChart data={lineData} />
+                            )}
                         </ChartShell>
 
                         <section className="reports-list-card">
@@ -145,39 +203,45 @@ const Reports = () => {
                             </div>
 
                             <div className="reports-table-wrap">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Session</th>
-                                            <th>Topic</th>
-                                            <th>Input</th>
-                                            <th>Score</th>
-                                            <th>Created</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredReports.map((report) => {
-                                            const reportKey = report.report_id || report.id;
-                                            const score = extractReportScore(report);
-                                            const reportTopic = topicMap.get(report.topic_id);
-                                            return (
-                                                <tr key={reportKey}>
-                                                    <td>#{report.session_id}</td>
-                                                    <td>{reportTopic?.title || `Topic #${report.topic_id || "--"}`}</td>
-                                                    <td>{report.input_type || "Unknown"}</td>
-                                                    <td>{safeNumber(score)}%</td>
-                                                    <td>{formatDateTime(report.created_at || report.updated_at)}</td>
-                                                    <td>
-                                                        <button type="button" className="join-btn" onClick={() => setSelectedReportId(reportKey)}>
-                                                            <FaEye /> View
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+                                {filteredReports.length === 0 ? (
+                                    <div className="empty-state" style={{ padding: "30px 20px", textAlign: "center", color: "#64748B" }}>
+                                        No debate analysis reports found for your authorized scope.
+                                    </div>
+                                ) : (
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Session</th>
+                                                <th>Topic</th>
+                                                <th>Input</th>
+                                                <th>Score</th>
+                                                <th>Created</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredReports.map((report) => {
+                                                const reportKey = report.report_id || report.id;
+                                                const score = extractReportScore(report);
+                                                const reportTopic = topicMap.get(report.topic_id);
+                                                return (
+                                                    <tr key={reportKey}>
+                                                        <td>#{report.session_id}</td>
+                                                        <td>{reportTopic?.title || `Topic #${report.topic_id || "--"}`}</td>
+                                                        <td>{report.input_type || "Unknown"}</td>
+                                                        <td>{safeNumber(score)}%</td>
+                                                        <td>{formatDateTime(report.created_at || report.updated_at)}</td>
+                                                        <td>
+                                                            <button type="button" className="join-btn" onClick={() => setSelectedReportId(reportKey)}>
+                                                                <FaEye /> View
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                )}
                             </div>
                         </section>
                     </div>
@@ -212,7 +276,7 @@ const Reports = () => {
                                             },
                                         })}
                                     >
-                                        Open Analysis
+                                        Open Full Analysis Report
                                     </button>
                                 </>
                             ) : (

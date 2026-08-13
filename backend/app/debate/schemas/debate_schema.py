@@ -47,6 +47,23 @@ class DebateTranscription(BaseModel):
     )
 
 
+class SpeechMetrics(BaseModel):
+    recording_id: int | None = None
+    gridfs_id: str | None = None
+    audio_duration_seconds: float | None = 0.0
+    speech_pace_wpm: float | None = 0.0
+    filler_words_count: int | None = 0
+    filler_words_details: dict | str | None = None
+    confidence_score: float | None = 0.0
+    clarity_score: float | None = 0.0
+    audience_engagement_score: float | None = 0.0
+    prosody_pitch_variance: float | None = 0.0
+    energy_variance: float | None = 0.0
+    pause_count: int | None = 0
+    overall_presentation_score: float | None = 0.0
+    processing_status: str | None = None
+
+
 class DebateAnalysisData(BaseModel):
     """
     Complete debate analysis generated for one debate turn.
@@ -68,6 +85,7 @@ class DebateAnalysisData(BaseModel):
     learning_path: LearningPathResponse | None = None
     progress_updated: bool | None = None
     observability: ObservabilityMetadata | None = None
+    speech_metrics: SpeechMetrics | None = None
 
 
 class DebateAnalysisResponse(BaseModel):

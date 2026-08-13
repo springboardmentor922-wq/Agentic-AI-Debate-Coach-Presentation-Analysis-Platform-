@@ -1,7 +1,8 @@
 .modal-overlay{
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,0.45);
+    background:rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(2px);
     display:flex;
     justify-content:center;
     align-items:center;
@@ -12,32 +13,47 @@
 .create-topic-modal{
     width:100%;
     max-width:700px;
-    background:#fff;
-    border-radius:14px;
-    padding:24px;
+    background:#FFFFFF;
+    border-radius:16px;
+    padding:28px;
     max-height:90vh;
     overflow-y:auto;
-    box-shadow:0 10px 30px rgba(0,0,0,0.2);
+    box-shadow:0 20px 40px rgba(15, 23, 42, 0.2);
+    border:1px solid #CBD5E1;
 }
 
 .modal-header{
     display:flex;
     justify-content:space-between;
     align-items:center;
-    margin-bottom:24px;
+    background:#0F172A;
+    padding:20px 24px;
+    margin:-28px -28px 24px -28px;
+    border-radius:16px 16px 0 0;
+    border-bottom:1px solid #334155;
 }
 
 .modal-header h2{
     margin:0;
-    color:#1f2937;
+    color:#FFFFFF !important;
+    font-size:22px;
+    font-weight:700;
 }
 
 .close-btn{
     border:none;
     background:none;
-    font-size:22px;
+    font-size:24px;
     cursor:pointer;
-    color:#6b7280;
+    color:#FFFFFF !important;
+    padding:4px 8px;
+    border-radius:6px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.close-btn:hover{
+    background:rgba(255,255,255,0.15);
+    color:#FFFFFF !important;
 }
 
 .form-group{
@@ -49,16 +65,28 @@
 .form-group label{
     margin-bottom:8px;
     font-weight:600;
-    color:#374151;
+    color:#0F172A;
+    font-size:14px;
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select{
-    padding:10px 12px;
-    border:1px solid #d1d5db;
-    border-radius:8px;
+    padding:11px 14px;
+    border:1px solid #94A3B8;
+    border-radius:10px;
     font-size:15px;
+    color:#0F172A;
+    background-color:#FFFFFF;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    outline:none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus{
+    border-color:#2563EB;
+    box-shadow:0 0 0 3px rgba(37, 99, 235, 0.2);
 }
 
 .form-group textarea{
@@ -71,23 +99,44 @@
     gap:18px;
 }
 
-.future-ai-placeholder{
-    margin:24px 0;
-    padding:16px;
-    border:2px dashed #93c5fd;
-    background:#eff6ff;
-    border-radius:10px;
-    text-align:center;
-    font-weight:600;
-    color:#2563eb;
+.ai-topic-generator-card {
+    margin: 20px 0;
+    padding: 18px;
+    border: 1.5px solid #BFDBFE;
+    background: #F0F9FF;
+    border-radius: 12px;
 }
 
-.future-ai-placeholder span{
-    display:block;
-    margin-top:6px;
-    font-size:14px;
-    color:#6b7280;
-    font-weight:400;
+.ai-topic-generator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.generate-ai-btn {
+    background: #2563EB;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.generate-ai-btn:hover {
+    background: #1D4ED8;
+    transform: translateY(-1px);
+}
+
+.generate-ai-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
 }
 
 .modal-actions{
@@ -95,34 +144,46 @@
     justify-content:flex-end;
     gap:12px;
     margin-top:24px;
+    padding-top:16px;
+    border-top:1px solid #E2E8F0;
 }
 
 .cancel-btn,
 .save-btn{
     border:none;
-    padding:10px 18px;
-    border-radius:8px;
+    padding:12px 20px;
+    border-radius:10px;
     cursor:pointer;
     font-weight:600;
+    font-size:15px;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
 
 .cancel-btn{
-    background:#e5e7eb;
-    color:#374151;
+    background:#E2E8F0;
+    color:#1E293B;
+}
+
+.cancel-btn:hover{
+    background:#CBD5E1;
+    color:#0F172A;
 }
 
 .save-btn{
-    background:#2563eb;
-    color:#fff;
+    background:#2563EB;
+    color:#FFFFFF;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
 }
 
 .save-btn:hover{
-    background:#1d4ed8;
+    background:#1D4ED8;
+    transform: translateY(-1px);
 }
 
 .save-btn:disabled{
-    opacity:0.7;
+    opacity:0.65;
     cursor:not-allowed;
+    transform: none;
 }
 
 @media(max-width:768px){

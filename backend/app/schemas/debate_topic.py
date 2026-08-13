@@ -141,3 +141,23 @@ class DebateTopicResponse(BaseModel):
     is_system_generated: bool
 
     created_by: Optional[int]
+
+
+# =========================================================
+# AI Topic Generation Schemas
+# =========================================================
+
+class GenerateTopicRequest(BaseModel):
+    category: Optional[str] = Field(default="Technology", max_length=100)
+    difficulty_level: Optional[str] = Field(default="Beginner", max_length=30)
+    debate_format: Optional[str] = Field(default="Public Forum Debate", max_length=100)
+    prompt: Optional[str] = Field(default=None, max_length=255)
+
+
+class GenerateTopicResponse(BaseModel):
+    title: str
+    category: str
+    difficulty_level: str
+    debate_format: str
+    estimated_duration: int
+    learning_goal: str

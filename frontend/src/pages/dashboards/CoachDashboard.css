@@ -235,25 +235,53 @@ tbody tr:hover{
 ========================================================== */
 
 .table-btn{
-
     background:#2563EB;
-
     color:white;
-
     border:none;
-
     padding:8px 16px;
-
     border-radius:8px;
-
     cursor:pointer;
-
 }
 
 .table-btn:hover{
-
     background:#1D4ED8;
+}
 
+.view-eval-btn {
+    background: #059669 !important;
+    color: #FFFFFF !important;
+    border: 1.5px solid #047857 !important;
+    font-weight: 600 !important;
+    padding: 6px 14px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25) !important;
+}
+
+.view-eval-btn:hover {
+    background: #047857 !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
+}
+
+.assign-practice-btn {
+    background: #FFFFFF !important;
+    color: #2563EB !important;
+    border: 1.5px solid #2563EB !important;
+    font-weight: 600 !important;
+    padding: 6px 14px !important;
+    font-size: 13px !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.assign-practice-btn:hover {
+    background: #2563EB !important;
+    color: #FFFFFF !important;
+    transform: translateY(-1px) !important;
 }
 
 /* ==========================================================

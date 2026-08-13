@@ -46,6 +46,11 @@ class ChatRequest(BaseModel):
 class ChatAgentOutput(BaseModel):
     agent: str = Field(..., description="Agent name.")
     content: Any = Field(..., description="Agent response content.")
+    selected_agents: Optional[List[str]] = Field(
+        default=None,
+        description="List of agents executed for this request.",
+    )
+
 
 
 class ChatResponseData(BaseModel):

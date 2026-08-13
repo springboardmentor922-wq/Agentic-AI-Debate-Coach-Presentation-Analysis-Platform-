@@ -339,13 +339,11 @@ const Login = () => {
                     </div>
 
                     <button
-
+                        type="button"
                         className="google-btn"
-
+                        onClick={() => setError("Google Single Sign-On is available for enterprise domain users. Please sign in with your email and password.")}
                     >
-
                         Continue with Google
-
                     </button>
 
                     <p className="register-text">

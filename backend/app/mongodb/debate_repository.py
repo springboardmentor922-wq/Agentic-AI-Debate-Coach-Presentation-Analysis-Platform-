@@ -112,60 +112,45 @@ class DebateRepository:
         """
         Retrieve a debate report using MongoDB ObjectId.
         """
-
         try:
             object_id = ObjectId(report_id)
         except (InvalidId, TypeError):
             return None
         report = self.collection.find_one({"_id": object_id})
-
         return report
 
     # =====================================================
-    # Get Reports By User
+    # Get Reports By User / User IDs / Session / All
     # =====================================================
 
     def get_reports_by_user(self, user_id: int):
         """
         Retrieve all reports submitted by a user.
         """
-
-        reports = self.collection.find(
-            {
-                "user_id": user_id
-            }
-        )
-
+        reports = self.collection.find({"user_id": user_id})
         return list(reports)
 
-    # =====================================================
-    # Get Reports By Session
-    # =====================================================
+    def get_reports_by_user_ids(self, user_ids: list[int]):
+        """
+        Retrieve all reports submitted by a list of user IDs.
+        """
+        if not user_ids:
+            return []
+        reports = self.collection.find({"user_id": {"$in": user_ids}})
+        return list(reports)
 
     def get_reports_by_session(self, session_id: int):
         """
         Retrieve all reports for a debate session.
         """
-
-        reports = self.collection.find(
-            {
-                "session_id": session_id
-            }
-        )
-
+        reports = self.collection.find({"session_id": session_id})
         return list(reports)
-
-        # =====================================================
-    # Get All Reports
-    # =====================================================
 
     def get_all_reports(self):
         """
         Retrieve all debate analysis reports.
         """
-
         reports = self.collection.find()
-
         return list(reports)
 
 

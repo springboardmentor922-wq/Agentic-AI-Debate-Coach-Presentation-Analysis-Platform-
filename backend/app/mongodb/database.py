@@ -30,6 +30,24 @@ class MongoDB:
 
         # Database Name
         self.database: Database = self.client[settings.MONGODB_DATABASE]
+        self._gridfs = None
+
+    @property
+    def gridfs(self):
+        """
+        Returns the MongoDB GridFS bucket for binary presentation audio storage.
+        """
+        if self._gridfs is None:
+            import gridfs
+            self._gridfs = gridfs.GridFS(self.database)
+        return self._gridfs
+
+    @property
+    def presentation_analysis_collection(self):
+        """
+        Returns the presentation_analysis collection.
+        """
+        return self.database["presentation_analysis"]
 
     @property
     def debate_analysis_collection(self):

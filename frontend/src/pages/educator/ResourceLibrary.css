@@ -1,0 +1,128 @@
+.resource-page {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.filters-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    background: #FFFFFF;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #E2E8F0;
+}
+
+.search-input-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #F8FAFC;
+    border: 1px solid #CBD5E1;
+    padding: 8px 14px;
+    border-radius: 8px;
+    flex: 1;
+    color: #64748B;
+}
+
+.search-input-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    font-size: 14px;
+}
+
+.filter-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #475569;
+    font-weight: 500;
+}
+
+.filter-label select {
+    border: 1px solid #CBD5E1;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+    background: #FFFFFF;
+}
+
+.resources-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
+
+.resource-card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.resource-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+}
+
+.card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.category-tag {
+    background: #EFF6FF;
+    color: #2563EB;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.difficulty-tag {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+.difficulty-tag.beginner { background: #ECFDF5; color: #059669; }
+.difficulty-tag.intermediate { background: #FEF3C7; color: #D97706; }
+.difficulty-tag.advanced { background: #FEE2E2; color: #DC2626; }
+
+.resource-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 8px 0;
+}
+
+.resource-card p {
+    font-size: 14px;
+    color: #64748B;
+    line-height: 1.5;
+    margin: 0 0 16px 0;
+}
+
+.card-footer {
+    border-top: 1px solid #F1F5F9;
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: #475569;
+}

@@ -13,6 +13,7 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
+    Boolean,
     DateTime,
     ForeignKey
 )
@@ -50,6 +51,18 @@ class DebateSession(Base):
 
     session_status = Column(String(30))
 
+    started_at = Column(DateTime(timezone=True))
+
+    ended_at = Column(DateTime(timezone=True))
+
+    is_deleted = Column(Boolean, default=False)
+
+    deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+    updated_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now()
@@ -61,15 +74,22 @@ class DebateSession(Base):
         onupdate=func.now()
     )
 
-    started_at = Column(DateTime)
-
-    ended_at = Column(DateTime)
-
     # Relationships
 
     user = relationship(
         "User",
+        foreign_keys=[user_id],
         back_populates="debate_sessions"
+    )
+
+    creator = relationship(
+        "User",
+        foreign_keys=[created_by]
+    )
+
+    updater = relationship(
+        "User",
+        foreign_keys=[updated_by]
     )
 
     topic = relationship(
@@ -78,9 +98,9 @@ class DebateSession(Base):
     )
 
     participants = relationship(
-    "SessionParticipant",
-    back_populates="session",
-    cascade="all, delete-orphan"
+        "SessionParticipant",
+        back_populates="session",
+        cascade="all, delete-orphan"
     )
 
     rounds = relationship(

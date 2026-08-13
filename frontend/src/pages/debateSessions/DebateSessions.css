@@ -409,6 +409,71 @@ Professional UI
    Empty State
 =========================== */
 
+.empty-state-card {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px 30px;
+    background: #ffffff;
+    border: 2px dashed #cbd5e1;
+    border-radius: 20px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.empty-state-card h3 {
+    font-size: 1.4rem;
+    color: #0f172a;
+    margin-bottom: 10px;
+}
+
+.empty-state-card p {
+    color: #64748b;
+    font-size: 0.98rem;
+    max-width: 540px;
+    margin: 0 auto 24px auto;
+    line-height: 1.6;
+}
+
+.empty-state-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.empty-state-actions .btn-primary,
+.empty-state-actions .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.empty-state-actions .btn-primary {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+}
+
+.empty-state-actions .btn-primary:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.empty-state-actions .btn-secondary {
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.empty-state-actions .btn-secondary:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
 .empty-state {
     grid-column: 1/-1;
     text-align: center;

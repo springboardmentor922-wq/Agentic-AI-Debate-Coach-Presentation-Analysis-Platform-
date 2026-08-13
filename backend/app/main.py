@@ -94,6 +94,13 @@ def health_check():
 # Register API Routers
 # =========================================================
 
+from app.api.coach import router as coach_router
+from app.api.admin import router as admin_router
+from app.api.educator import router as educator_router
+from app.api.simulation import router as simulation_router
+from app.api.notification import router as notification_router
+from app.presentation.api.presentation_api import router as presentation_router
+
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(debate_topic_router)
@@ -108,8 +115,34 @@ app.include_router(
     prefix="/api/v1",
 )
 app.include_router(
+    presentation_router,
+    prefix="/api/v1",
+)
+app.include_router(
     debate_router,
+    prefix="/api/v1",
+)
+app.include_router(
+    coach_router,
+    prefix="/api/v1",
+)
+app.include_router(
+    admin_router,
+    prefix="/api/v1",
+)
+app.include_router(
+    educator_router,
+    prefix="/api/v1",
+)
+app.include_router(
+    simulation_router,
+    prefix="/api/v1",
+)
+app.include_router(
+    notification_router,
     prefix="/api/v1",
 )
 
 app.include_router(report_router)
+
+

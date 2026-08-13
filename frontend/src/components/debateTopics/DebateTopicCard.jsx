@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FaEllipsisV, FaEdit, FaTrash } from "react-icons/fa";
+import React, { useState, useRef, useEffect } from "react";
+import { FaEllipsisV, FaEdit, FaTrash, FaInfoCircle } from "react-icons/fa";
 import "./DebateTopicCard.css";
 
 const DebateTopicCard = ({
@@ -11,8 +11,24 @@ const DebateTopicCard = ({
     showActions = false,
     onEdit,
     onDelete,
-})=> {
+}) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuOpen]);
+
   return (
     <div className="debate-topic-card">
      {/* Header */}
@@ -27,36 +43,64 @@ const DebateTopicCard = ({
     </span>
 
     {showActions && (
-      <div className="topic-menu">
+      <div className="topic-menu" ref={menuRef}>
         <button
+          type="button"
           className="menu-btn"
-          onClick={() => setMenuOpen((prev) => !prev)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen((prev) => !prev);
+          }}
+          aria-label="Topic Actions Menu"
+          aria-expanded={menuOpen}
         >
           <FaEllipsisV />
         </button>
 
         {menuOpen && (
           <div className="menu-dropdown">
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                onEdit?.(topic);
-              }}
-            >
-              <FaEdit />
-              <span>Edit Topic</span>
-            </button>
+            {onViewDetails && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuOpen(false);
+                  onViewDetails(topic);
+                }}
+              >
+                <FaInfoCircle style={{ color: "#2563eb" }} />
+                <span>View Details</span>
+              </button>
+            )}
 
-            <button
-              className="delete-option"
-              onClick={() => {
-                setMenuOpen(false);
-                onDelete?.(topic);
-              }}
-            >
-              <FaTrash />
-              <span>Delete Topic</span>
-            </button>
+            {onEdit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuOpen(false);
+                  onEdit(topic);
+                }}
+              >
+                <FaEdit style={{ color: "#059669" }} />
+                <span>Edit Topic</span>
+              </button>
+            )}
+
+            {onDelete && (
+              <button
+                type="button"
+                className="delete-option"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuOpen(false);
+                  onDelete(topic);
+                }}
+              >
+                <FaTrash />
+                <span>Delete Topic</span>
+              </button>
+            )}
           </div>
         )}
       </div>

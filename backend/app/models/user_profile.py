@@ -14,6 +14,7 @@ from sqlalchemy import (
     Integer,
     Text,
     String,
+    Boolean,
     DateTime,
     Date,
     ForeignKey
@@ -89,6 +90,16 @@ class UserProfile(Base):
 
     coaching_preferences = Column(
         Text
+    )
+
+    is_deleted = Column(
+        Boolean,
+        default=False
+    )
+
+    deleted_at = Column(
+        DateTime(timezone=True),
+        nullable=True
     )
 
     created_at = Column(

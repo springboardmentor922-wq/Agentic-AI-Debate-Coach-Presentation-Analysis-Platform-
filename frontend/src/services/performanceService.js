@@ -33,6 +33,9 @@ export const getPerformanceOverview = async () => {
     };
 };
 
+export const getPerformanceMetrics = getPerformanceOverview;
+
 export default {
     getPerformanceOverview,
+    getPerformanceMetrics,
 };

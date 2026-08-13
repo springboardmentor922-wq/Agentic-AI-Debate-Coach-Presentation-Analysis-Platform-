@@ -13,6 +13,8 @@ import OfficialTopicsSection from "../../components/debateTopics/OfficialTopicsS
 import RecommendedTopics from "../../components/debateTopics/RecommendedTopics";
 import MainLayout from "../../components/layout/MainLayout";
 import debateTopicService from "../../services/debateTopicService";
+import { getMySessions, createSession } from "../../services/debateSessionService";
+import { toArray } from "../../utils/learnerHelpers";
 import DeleteTopicModal from "../../components/debateTopics/DeleteTopicModal";
 import { useNavigate } from "react-router-dom";
 import { getRecommendedTopics } from "../../services/recommendationService";
@@ -306,9 +308,10 @@ const DebateTopics = () => {
         console.error(error);
 
         setError(
-            modalMode === "create"
+            error.response?.data?.detail ||
+            (modalMode === "create"
                 ? "Unable to create topic."
-                : "Unable to update topic."
+                : "Unable to update topic.")
         );
 
     } finally {
@@ -352,30 +355,79 @@ const handleConfirmDelete = async () => {
         setDeleteLoading(false);
     }
 };
-    const handleViewDetails = (topic) => {
-        navigate(`/topics/${topic.id}`, {
-    state: {
-        selectedTopic: topic,
-            source: "topic-details",
-    },
-});
-};
 
-const handleJoinDebate = (topic) => {
+    const handleViewDetails = (topic) => {
+        if (!topic?.id) return;
         navigate(`/topics/${topic.id}`, {
-    state: {
-        selectedTopic: topic,
-            source: "topic-details",
-    },
-});
-};
+            state: {
+                selectedTopic: topic,
+                source: "topic-details",
+            },
+        });
+    };
+
+    const handleJoinDebate = async (topic) => {
+        if (!topic?.id) {
+            setError("Invalid topic selected.");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError("");
+
+            const mySessions = await getMySessions().catch(() => []);
+            const sessionList = toArray(mySessions);
+
+            const existingSession = sessionList.find(
+                (s) => Number(s.topic_id) === Number(topic.id) && (s.status !== "Completed" && s.session_status !== "Completed")
+            ) || sessionList.find(
+                (s) => Number(s.topic_id) === Number(topic.id)
+            );
+
+            if (existingSession && existingSession.id) {
+                navigate(`/debate-room/${existingSession.id}`, {
+                    state: {
+                        selectedTopic: topic,
+                        selectedSession: existingSession,
+                    },
+                });
+                return;
+            }
+
+            const newSession = await createSession({
+                topic_id: Number(topic.id),
+                debate_format: topic.debate_format || "Public Forum Debate",
+                debate_position: "Affirmative",
+                scheduled_at: new Date().toISOString(),
+            });
+
+            if (newSession && newSession.id) {
+                navigate(`/debate-room/${newSession.id}`, {
+                    state: {
+                        selectedTopic: topic,
+                        selectedSession: newSession,
+                    },
+                });
+            } else {
+                setError("Unable to create a debate session for this topic.");
+            }
+        } catch (err) {
+            console.error("Error joining debate session:", err);
+            setError(
+                err.response?.data?.detail || "Unable to join debate session. Please try again."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
 
 const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
     setTopicToDelete(null);
 };
    const handleSelectTopic = (topic) => {
-    navigate(`/debate-sessions/topic/${topic.id}`, {
+    navigate(`/topics/${topic.id}`, {
         state: {
             selectedTopic: topic,
             source: "topic-details",

@@ -1,86 +1,129 @@
 const AI_COACH_CONTEXTS = [
     {
-        match: (pathname) =>
-            pathname.startsWith("/debate-sessions") ||
-            pathname.startsWith("/debate-room"),
-        title: "Debate Session Coach",
-        description:
-            "Live debate support for argument quality, rebuttals, and reasoning checks.",
-        agents: [
-            "Argument Analysis",
-            "Counterargument",
-            "Fallacy Detection"
-        ],
+        match: (pathname) => pathname === "/login" || pathname === "/register",
+        title: "AI Debate Assistant",
+        description: "General guidance on platform features, debate practice, and AI analysis.",
+        agents: ["General Debate Coach", "Orchestrator Agent"],
         starterPrompts: [
-            "Review my current argument for weaknesses.",
-            "Suggest a stronger counterargument.",
-            "Flag any logical fallacies in this exchange."
+            "What is this platform?",
+            "What can the AI Debate Coach do?",
+            "How does AI analysis work?",
+            "What features are available?"
         ]
     },
     {
-        match: (pathname) => pathname === "/ai-analysis-report",
-        title: "Presentation Analysis Coach",
-        description:
-            "Speech and presentation feedback for delivery, structure, and clarity.",
-        agents: ["Speech Analysis", "Presentation Analysis"],
+        match: (pathname) => pathname.startsWith("/debate-room") || pathname.startsWith("/debate-sessions"),
+        title: "Debate Room Assistant",
+        description: "Real-time debate assistant for counterarguments, argument strength, and fallacy detection.",
+        agents: ["Argument Analysis Agent", "Counterargument Agent", "Logical Fallacy Detection Agent", "Recommendation & Coaching Agent"],
         starterPrompts: [
-            "Summarize the strongest presentation issues.",
-            "Help me improve delivery and pacing.",
-            "Turn this transcript into speaking feedback."
+            "Give me a counterargument.",
+            "Check my argument for fallacies.",
+            "How can I make this argument stronger?"
         ]
     },
     {
-        match: (pathname) =>
-            pathname.endsWith("/dashboard") ||
-            pathname.includes("/dashboard"),
-        title: "Performance Dashboard Coach",
-        description:
-            "Progress tracking, learning insights, and next-step recommendations.",
-        agents: ["Performance Analytics", "Recommendation"],
+        match: (pathname) => pathname.startsWith("/coach"),
+        title: "Coach Management Assistant",
+        description: "Assists coaches in monitoring assigned learners, evaluations, and coaching plans.",
+        agents: ["Performance Analytics Agent", "Recommendation & Coaching Agent", "Report Generation Agent", "Argument Analysis Agent"],
         starterPrompts: [
-            "Highlight my biggest performance trends.",
-            "Recommend the next practice session.",
-            "Explain what to focus on this week."
+            "Which learner needs attention?",
+            "Show me learners with weak logical reasoning.",
+            "Summarize this learner's recent performance.",
+            "How should I coach this learner?"
         ]
     },
     {
-        match: (pathname) => pathname === "/topics",
+        match: (pathname) => pathname.startsWith("/educator"),
+        title: "Educator Class Assistant",
+        description: "Class batch analytics, cohort trends, and struggling student highlights.",
+        agents: ["Class Analytics Agent", "Performance Analytics Agent", "Recommendation & Coaching Agent"],
+        starterPrompts: [
+            "Which students are struggling?",
+            "Which topic has the weakest class performance?",
+            "Summarize my class performance.",
+            "Which learners need additional practice?"
+        ]
+    },
+    {
+        match: (pathname) => pathname.startsWith("/admin") || pathname.startsWith("/users"),
+        title: "Platform Admin Assistant",
+        description: "Platform health monitoring, role management, and AI system statistics.",
+        agents: ["System Analytics Agent", "Role Management Agent", "Orchestrator Agent"],
+        starterPrompts: [
+            "Show platform statistics.",
+            "What is the current system status?",
+            "Summarize AI usage."
+        ]
+    },
+    {
+        match: (pathname) => pathname === "/reports" || pathname === "/ai-analysis-report",
+        title: "AI Analysis Report Coach",
+        description: "Deep-dive multi-agent report breakdown, speech delivery, and score factor analysis.",
+        agents: ["Performance Analytics Agent", "Report Generation Agent", "Speech Analysis Agent", "Presentation Analysis Agent", "Recommendation & Coaching Agent"],
+        starterPrompts: [
+            "What were the biggest reasons for my score?",
+            "How can I improve my evidence score?",
+            "Compare my latest report with my average."
+        ]
+    },
+    {
+        match: (pathname) => pathname === "/skills",
+        title: "Performance & Skill Tracking",
+        description: "Skill breakdown across Communication, Logic, Argumentation, and Confidence.",
+        agents: ["Performance Analytics Agent", "Recommendation & Coaching Agent"],
+        starterPrompts: [
+            "What skill should I improve?",
+            "Why is my score decreasing?",
+            "Which skill should I improve first?"
+        ]
+    },
+    {
+        match: (pathname) => pathname.startsWith("/topics"),
         title: "Topic Strategy Coach",
-        description:
-            "Topic discovery, framing, and preparation guidance for debate topics.",
-        agents: ["Topic Strategy", "Argument Planning"],
+        description: "Topic discovery, affirmative/negative prep, and argument planning.",
+        agents: ["Topic Strategy Agent", "Argument Planning Agent", "Recommendation & Coaching Agent", "Counterargument Agent"],
         starterPrompts: [
-            "Help me choose the best topic angle.",
-            "What arguments should I prepare first?",
-            "Suggest likely objections to this topic."
+            "Give me some debate topics.",
+            "What arguments support this topic?",
+            "Which format fits this topic?"
         ]
     },
     {
-        match: (pathname) => pathname === "/profile",
-        title: "Profile Coach",
-        description:
-            "Personalized coaching suggestions based on your profile and goals.",
-        agents: ["Goal Planning", "Coaching Guidance"],
+        match: (pathname) => pathname === "/ai-simulation",
+        title: "AI Simulation Prep Assistant",
+        description: "Prep support for interactive AI debate simulations.",
+        agents: ["Topic Strategy Agent", "Argument Analysis Agent", "Counterargument Agent"],
         starterPrompts: [
-            "What should I update in my coaching profile?",
-            "Suggest goals based on my current progress.",
-            "How can I strengthen my debate habits?"
+            "Help me formulate opening arguments for this simulation.",
+            "Suggest strong counterarguments for my opponent.",
+            "Check my simulation turn for fallacies."
+        ]
+    },
+    {
+        match: (pathname) => pathname.endsWith("/dashboard") || pathname.includes("/dashboard"),
+        title: "Learner Overview Coach",
+        description: "Daily debate overview, skill metrics, and practice recommendations.",
+        agents: ["Performance Analytics Agent", "Recommendation & Coaching Agent"],
+        starterPrompts: [
+            "What should I practice today?",
+            "Summarize my recent progress.",
+            "What skill should I improve next?"
         ]
     }
 ];
 
 export const getAICoachContext = (pathname = "/") => {
-    const matchedContext =
-        AI_COACH_CONTEXTS.find((context) => context.match(pathname)) || null;
+    const matchedContext = AI_COACH_CONTEXTS.find((context) => context.match(pathname)) || null;
 
     return matchedContext || {
-        title: "General Debate Coach",
-        description:
-            "A context-aware assistant for debate strategy, practice, and improvement.",
-        agents: ["Debate Strategy", "Practice Guidance"],
+        title: "General AI Debate Coach",
+        description: "A context-aware assistant for debate strategy, practice, and overall improvement.",
+        agents: ["General Debate Coach", "Recommendation & Coaching Agent"],
         starterPrompts: [
-            "Help me get better at debate overall.",
-            "What should I work on next?",
+            "What should I practice today?",
+            "Summarize my recent progress.",
             "Give me a quick coaching plan for today."
         ]
     };

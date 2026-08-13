@@ -20,6 +20,7 @@ from app.models.debate_topic import DebateTopic
 from app.models.user import User
 from app.models.session_participant import SessionParticipant
 from app.models.session_round import SessionRound
+from app.models.practice_assignment import LearnerPracticeAssignment
 
 
 from app.schemas.debate_session import (
@@ -50,11 +51,45 @@ class DebateSessionService:
         session_data: CreateDebateSessionRequest
     ):
 
+        topic_id_to_use = session_data.topic_id
+        format_to_use = session_data.debate_format
+
+        practice_task = None
+        if hasattr(session_data, "practice_assignment_id") and session_data.practice_assignment_id:
+            practice_task = db.query(LearnerPracticeAssignment).filter(
+                LearnerPracticeAssignment.id == session_data.practice_assignment_id
+            ).first()
+            if practice_task:
+                if practice_task.topic_id:
+                    topic_id_to_use = practice_task.topic_id
+                if practice_task.debate_format:
+                    format_to_use = practice_task.debate_format
+
+                if practice_task.session_id:
+                    existing_session = db.query(DebateSession).filter(DebateSession.id == practice_task.session_id).first()
+                    if existing_session:
+                        practice_task.status = "In Progress"
+                        db.commit()
+                        return existing_session
+
+                # Check if user already created/started a session for this topic after assignment
+                user_session = db.query(DebateSession).filter(
+                    DebateSession.user_id == current_user.id,
+                    DebateSession.topic_id == topic_id_to_use,
+                    DebateSession.created_at >= practice_task.created_at
+                ).order_by(DebateSession.created_at.desc()).first()
+
+                if user_session:
+                    practice_task.session_id = user_session.id
+                    practice_task.status = "In Progress"
+                    db.commit()
+                    return user_session
+
         # Check whether topic exists and is active
         topic = (
             db.query(DebateTopic)
             .filter(
-                DebateTopic.id == session_data.topic_id,
+                DebateTopic.id == topic_id_to_use,
                 DebateTopic.is_active == True
             )
             .first()
@@ -64,28 +99,26 @@ class DebateSessionService:
             raise ValueError("Selected debate topic does not exist.")
 
         new_session = DebateSession(
-
             user_id=current_user.id,
-
-            topic_id=session_data.topic_id,
-
-            debate_format=session_data.debate_format,
-
-            debate_position=session_data.debate_position,
-
+            topic_id=topic_id_to_use,
+            debate_format=format_to_use,
+            debate_position=session_data.debate_position or "Affirmative",
             scheduled_at=session_data.scheduled_at,
-
-            session_status="Scheduled"
-
+            session_status="Scheduled",
+            created_by=current_user.id
         )
 
         db.add(new_session)
-
         db.commit()
-
         db.refresh(new_session)
 
+        if practice_task:
+            practice_task.session_id = new_session.id
+            practice_task.status = "In Progress"
+            db.commit()
+
         return new_session
+
 
     # =====================================================
     # Get All Debate Sessions

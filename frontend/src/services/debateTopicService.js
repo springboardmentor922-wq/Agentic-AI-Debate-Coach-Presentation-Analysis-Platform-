@@ -97,6 +97,20 @@ export const deleteTopic = async (topicId) => {
 };
 
 // =========================================================
+// Generate AI Debate Topic
+// =========================================================
+
+export const generateAITopic = async (payload = {}) => {
+    try {
+        const response = await apiClient.post(`${BASE_URL}/generate`, payload);
+        return response.data;
+    } catch (error) {
+        console.error("Error generating AI topic:", error);
+        throw error;
+    }
+};
+
+// =========================================================
 // Export Service
 // =========================================================
 
@@ -106,6 +120,7 @@ const debateTopicService = {
     createTopic,
     updateTopic,
     deleteTopic,
+    generateAITopic,
 };
 
 export default debateTopicService;

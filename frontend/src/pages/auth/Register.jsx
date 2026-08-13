@@ -340,40 +340,14 @@ const Register = () => {
                         </div>
 
                         <label>
-
-                            Select Role
-
+                            Account Role
                         </label>
-
-                        <select
-
-                            name="role"
-
-                            value={formData.role}
-
-                            onChange={handleChange}
-
-                        >
-
-                            <option>
-
-                                Learner
-
-                            </option>
-
-                            <option>
-
-                                Debate Coach
-
-                            </option>
-
-                            <option>
-
-                                Educator
-
-                            </option>
-
-                        </select>
+                        <input
+                            type="text"
+                            value="Learner"
+                            disabled
+                            style={{ background: "#F1F5F9", cursor: "not-allowed", fontWeight: 600 }}
+                        />
 
                         <div className="checkbox-row">
 

@@ -14,7 +14,6 @@ class ReportService:
         Retrieve all debate reports.
         """
         reports = debate_repository.get_all_reports()
-
         return [self._convert_document(report) for report in reports]
 
     def get_report_by_id(self, report_id: str) -> DebateReport | None:
@@ -22,10 +21,8 @@ class ReportService:
         Retrieve a report using its MongoDB ObjectId.
         """
         report = debate_repository.get_report_by_id(report_id)
-
         if report is None:
             return None
-
         return self._convert_document(report)
 
     def get_reports_by_session(self, session_id: int) -> List[DebateReport]:
@@ -33,7 +30,6 @@ class ReportService:
         Retrieve reports for a debate session.
         """
         reports = debate_repository.get_reports_by_session(session_id)
-
         return [self._convert_document(report) for report in reports]
 
     def get_reports_by_user(self, user_id: int) -> List[DebateReport]:
@@ -41,7 +37,13 @@ class ReportService:
         Retrieve reports for a user.
         """
         reports = debate_repository.get_reports_by_user(user_id)
+        return [self._convert_document(report) for report in reports]
 
+    def get_reports_by_user_ids(self, user_ids: List[int]) -> List[DebateReport]:
+        """
+        Retrieve reports for a list of user IDs.
+        """
+        reports = debate_repository.get_reports_by_user_ids(user_ids)
         return [self._convert_document(report) for report in reports]
 
     @staticmethod
@@ -49,7 +51,6 @@ class ReportService:
         """
         Convert a MongoDB document into a DebateReport schema.
         """
-
         return DebateReport(
             report_id=str(document["_id"]),
             session_id=document["session_id"],
