@@ -8,6 +8,7 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.0.1
 python-multipart==0.0.9
+python-3.11.9
 
 # LangChain packages - compatible versions
 langchain==0.2.6
