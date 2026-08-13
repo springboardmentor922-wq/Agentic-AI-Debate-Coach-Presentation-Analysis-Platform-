@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: podium_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: debate_user
+      POSTGRES_PASSWORD: debate_pass
+      POSTGRES_DB: debate_coach_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - podium_postgres_data:/var/lib/postgresql/data
+
+  mongodb:
+    image: mongo:7
+    container_name: podium_mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - podium_mongo_data:/data/db
+
+volumes:
+  podium_postgres_data:
+  podium_mongo_data:
