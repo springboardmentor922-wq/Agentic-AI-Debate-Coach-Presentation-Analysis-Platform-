@@ -69,7 +69,7 @@ const AppRoutes = () => {
             <Route path="/profile" element={<ProtectedRoute allowedRoles={ROLES}><UserProfile /></ProtectedRoute>} />
             <Route path="/topics" element={<ProtectedRoute allowedRoles={ROLES}><DebateTopics /></ProtectedRoute>} />
             <Route path="/topics/:topicId" element={<ProtectedRoute allowedRoles={ROLES}><TopicDetails /></ProtectedRoute>} />
-            <Route path="/unauthorized" element={<h1>Unauthorized</h1>} />
+            <Route path="/unauthorized" element={<RoleRedirect fallback="/login" />} />
             <Route path="/debate-sessions" element={<ProtectedRoute allowedRoles={ROLES}><DebateSessions /></ProtectedRoute>} />
             <Route path="/debate-sessions/topic/:topicId" element={<ProtectedRoute allowedRoles={ROLES}><DebateSessions /></ProtectedRoute>} />
             <Route path="/skills" element={<ProtectedRoute allowedRoles={ROLES}><SkillTracking /></ProtectedRoute>} />

@@ -146,11 +146,36 @@ def oauth2_login(
         )
 
     except ValueError as e:
-
         raise HTTPException(
-
             status_code=status.HTTP_401_UNAUTHORIZED,
-
             detail=str(e)
-
         )
+
+from app.dependencies.auth import get_current_user
+from app.models.user import User
+
+
+# =========================================================
+# Current Authenticated User Endpoint
+# =========================================================
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK
+)
+def get_me(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Returns the authoritative user profile and database role
+    for the current access token bearer.
+    """
+    return UserResponse(
+        id=current_user.id,
+        full_name=current_user.full_name,
+        email=current_user.email,
+        role=current_user.role.name,
+        is_active=current_user.is_active,
+        created_at=current_user.created_at
+    )

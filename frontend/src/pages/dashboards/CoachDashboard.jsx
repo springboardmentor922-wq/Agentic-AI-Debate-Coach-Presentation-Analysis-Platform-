@@ -22,6 +22,7 @@ const CoachDashboard = () => {
     const [error, setError] = useState("");
     const [overview, setOverview] = useState({
         assignedLearners: [],
+        eligibleLearners: [],
         pendingReviews: [],
         reports: [],
         sessions: [],
@@ -63,6 +64,7 @@ const CoachDashboard = () => {
             const [coachData, performanceData, topicsRes] = await Promise.all([
                 getCoachOverview().catch(() => ({
                     assignedLearners: [],
+                    eligibleLearners: [],
                     pendingReviews: [],
                     reports: [],
                     sessions: [],
@@ -75,6 +77,7 @@ const CoachDashboard = () => {
 
             setOverview({
                 assignedLearners: toArray(coachData.assignedLearners),
+                eligibleLearners: toArray(coachData.eligibleLearners),
                 pendingReviews: toArray(coachData.pendingReviews),
                 reports: toArray(coachData.reports),
                 sessions: toArray(coachData.sessions),
@@ -219,7 +222,8 @@ const CoachDashboard = () => {
     };
 
     const handleOpenTask = (learner) => {
-        setSelectedLearner(learner);
+        const targetLearner = learner || (overview.eligibleLearners.length > 0 ? overview.eligibleLearners[0] : (overview.assignedLearners.length > 0 ? overview.assignedLearners[0] : null));
+        setSelectedLearner(targetLearner);
         const initialTopicId = availableTopics.length > 0 ? availableTopics[0].id : "";
         const initialFormat = availableTopics.length > 0 ? (availableTopics[0].debate_format || "Oxford Debate") : "Oxford Debate";
         setTaskForm({
@@ -319,11 +323,36 @@ const CoachDashboard = () => {
                     <section className="dashboard-row">
                         {/* Assigned Learners & Practice Queue */}
                         <div className="dashboard-card" style={{ flex: 1.5 }}>
-                            <div className="card-header">
+                            <div className="card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                 <h2>Assigned Learners & Submissions Queue</h2>
+                                {(overview.eligibleLearners.length > 0 || overview.assignedLearners.length > 0) && (
+                                    <button
+                                        type="button"
+                                        className="btn-primary"
+                                        style={{ padding: "6px 14px", fontSize: "13px" }}
+                                        onClick={() => handleOpenTask(null)}
+                                    >
+                                        + Assign Debate Practice
+                                    </button>
+                                )}
                             </div>
                             {overview.assignedLearners.length === 0 ? (
-                                <div className="empty-state">No assigned learners were returned by the backend.</div>
+                                <div className="empty-state" style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", padding: "24px", textAlign: "center" }}>
+                                    <p style={{ margin: 0, fontWeight: 600, color: "#1E293B" }}>Assigned Learners: 0</p>
+                                    <p style={{ margin: 0, fontSize: "13px", color: "#64748B" }}>
+                                        {overview.eligibleLearners.length > 0
+                                            ? `No learners are currently assigned to your roster. ${overview.eligibleLearners.length} eligible learner account(s) are available in the database.`
+                                            : "No learners currently assigned."}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        className="btn-primary"
+                                        style={{ padding: "8px 18px", fontSize: "14px" }}
+                                        onClick={() => handleOpenTask(null)}
+                                    >
+                                        Assign Debate Practice to Learner
+                                    </button>
+                                </div>
                             ) : (
                                 overview.assignedLearners.map((learner) => {
                                     const tasks = learner.practice_tasks || [];
@@ -640,8 +669,38 @@ const CoachDashboard = () => {
                         <h3>Assign Debate Practice</h3>
                         <form onSubmit={handleSubmitTask} style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "16px" }}>
                             <div>
-                                <label style={{ fontSize: "13px", fontWeight: 600 }}>Learner:</label>
-                                <input type="text" value={selectedLearner?.full_name || selectedLearner?.name || ""} disabled style={{ background: "#F1F5F9", cursor: "not-allowed" }} />
+                                <label style={{ fontSize: "13px", fontWeight: 600 }}>Select Learner <span style={{ color: "red" }}>*</span>:</label>
+                                {(() => {
+                                    const learnerMap = new Map();
+                                    overview.assignedLearners.forEach((l) => learnerMap.set(l.id, l));
+                                    overview.eligibleLearners.forEach((l) => { if (!learnerMap.has(l.id)) learnerMap.set(l.id, l); });
+                                    const allLearners = Array.from(learnerMap.values());
+
+                                    if (allLearners.length === 0) {
+                                        return (
+                                            <input type="text" value="No eligible learners registered in database" disabled style={{ background: "#F1F5F9", cursor: "not-allowed" }} />
+                                        );
+                                    }
+
+                                    return (
+                                        <select
+                                            value={selectedLearner?.id || ""}
+                                            onChange={(e) => {
+                                                const selId = Number(e.target.value);
+                                                const found = allLearners.find((l) => l.id === selId);
+                                                setSelectedLearner(found || null);
+                                            }}
+                                            required
+                                        >
+                                            <option value="">-- Select Learner --</option>
+                                            {allLearners.map((l) => (
+                                                <option key={l.id} value={l.id}>
+                                                    {l.full_name} ({l.email}) — {l.experience_level || "Learner"}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    );
+                                })()}
                             </div>
 
                             <div>

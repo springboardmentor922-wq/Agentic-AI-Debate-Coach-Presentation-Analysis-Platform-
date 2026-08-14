@@ -342,12 +342,53 @@ const Register = () => {
                         <label>
                             Account Role
                         </label>
-                        <input
-                            type="text"
-                            value="Learner"
-                            disabled
-                            style={{ background: "#F1F5F9", cursor: "not-allowed", fontWeight: 600 }}
-                        />
+                        <select
+                            name="role"
+                            value={formData.role}
+                            onChange={handleChange}
+                            style={{
+                                width: "100%",
+                                padding: "12px",
+                                border: "1px solid #CBD5E1",
+                                borderRadius: "8px",
+                                marginBottom: "16px",
+                                background: "#FFFFFF",
+                                fontWeight: 600,
+                                fontSize: "14px",
+                                color: "#1E293B"
+                            }}
+                        >
+                            <option value="Learner">Learner</option>
+                            <option value="Debate Coach">Debate Coach</option>
+                            <option value="Educator">Educator</option>
+                        </select>
+
+                        {formData.role === "Learner" && (
+                            <>
+                                <label>
+                                    Experience Level
+                                </label>
+                                <select
+                                    name="experience_level"
+                                    value={formData.experience_level || "Beginner"}
+                                    onChange={handleChange}
+                                    style={{
+                                        width: "100%",
+                                        padding: "12px",
+                                        border: "1px solid #CBD5E1",
+                                        borderRadius: "8px",
+                                        marginBottom: "16px",
+                                        background: "#FFFFFF",
+                                        fontSize: "14px",
+                                        color: "#1E293B"
+                                    }}
+                                >
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                </select>
+                            </>
+                        )}
 
                         <div className="checkbox-row">
 

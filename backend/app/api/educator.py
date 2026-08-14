@@ -64,7 +64,8 @@ def get_enrolled_learners(
 ):
     """Retrieve all learners enrolled in the educator's classes."""
     if current_user.role.name == "Administrator":
-        learners = db.query(User).filter(User.role_id == 4).all()
+        learner_role = db.query(Role).filter(Role.name == "Learner").first()
+        learners = db.query(User).filter(User.role_id == learner_role.id).all() if learner_role else []
     else:
         classes = db.query(EducatorClass).filter(EducatorClass.educator_id == current_user.id).all()
         class_ids = [c.id for c in classes]

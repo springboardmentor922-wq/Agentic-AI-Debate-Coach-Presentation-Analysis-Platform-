@@ -1,4 +1,8 @@
+
+
+# =========================
 # Python
+# =========================
 venv/
 .venv/
 backend/venv/
@@ -7,25 +11,36 @@ backend/venv/
 .pytest_cache/
 *.db
 
-# Node
+# =========================
+# Node / Frontend
+# =========================
 node_modules/
 frontend/node_modules/
 dist/
 frontend/dist/
 .vite/
 
+# =========================
 # Environment files
+# =========================
 .env
 .env.*
 !.env.example
 
+# =========================
 # Logs
+# =========================
 *.log
 
-# Editor & OS files
+# =========================
+# Editor / OS files
+# =========================
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
 
+# =========================
+# Local AI / Vector data
+# =========================
 **/data/faiss/

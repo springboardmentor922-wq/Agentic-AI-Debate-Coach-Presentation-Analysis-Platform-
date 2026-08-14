@@ -48,8 +48,17 @@ class TestAuthRBAC(unittest.TestCase):
         self.coach_token = create_access_token({"sub": self.coach_email, "role": "Debate Coach"})
         self.admin_token = create_access_token({"sub": self.admin_email, "role": "Administrator"})
 
-    def test_public_registration_learner_only(self):
-        """Verify that public registration enforces Learner role and rejects privileged roles."""
+    def test_public_registration_roles(self):
+        """Verify that public registration allows Learner, Debate Coach, Educator and rejects Administrator."""
+        db = SessionLocal()
+        try:
+            existing = db.query(User).filter(User.email == "registered_coach_test2026@test.com").first()
+            if existing:
+                db.delete(existing)
+                db.commit()
+        finally:
+            db.close()
+
         res_admin = self.client.post("/auth/register", json={
             "full_name": "Attacker Admin",
             "email": "attackeradmin_unique4@test.com",
@@ -57,15 +66,16 @@ class TestAuthRBAC(unittest.TestCase):
             "role": "Administrator"
         })
         self.assertEqual(res_admin.status_code, 400)
-        self.assertIn("Public registration is restricted to the Learner role", res_admin.json()["detail"])
+        self.assertIn("Administrator accounts cannot be created via public registration", res_admin.json()["detail"])
 
         res_coach = self.client.post("/auth/register", json={
-            "full_name": "Attacker Coach",
-            "email": "attackercoach_unique4@test.com",
+            "full_name": "New Coach User",
+            "email": "registered_coach_test2026@test.com",
             "password": "Password123!",
             "role": "Debate Coach"
         })
-        self.assertEqual(res_coach.status_code, 400)
+        self.assertEqual(res_coach.status_code, 201)
+        self.assertEqual(res_coach.json()["role"], "Debate Coach")
 
     def test_rbac_endpoint_protection(self):
         """Verify that role-based access control blocks unauthorized role access across endpoints."""

@@ -7,6 +7,7 @@ import heroImage from "../../assets/hero.png";
 
 import { loginUser } from "../../services/authService";
 import { useAuth } from "../../hooks/useAuth";
+import { getDashboardRouteForRole } from "../../utils/roleRoutes";
 
 const Login = () => {
 
@@ -70,37 +71,8 @@ const Login = () => {
 
             );
 
-            switch (response.user.role) {
-
-                case "Learner":
-
-                    navigate("/learner/dashboard");
-
-                    break;
-
-                case "Debate Coach":
-
-                    navigate("/coach/dashboard");
-
-                    break;
-
-                case "Educator":
-
-                    navigate("/educator/dashboard");
-
-                    break;
-
-                case "Administrator":
-
-                    navigate("/admin/dashboard");
-
-                    break;
-
-                default:
-
-                    navigate("/");
-
-            }
+            const targetRoute = getDashboardRouteForRole(response.user.role);
+            navigate(targetRoute, { replace: true });
 
         }
 

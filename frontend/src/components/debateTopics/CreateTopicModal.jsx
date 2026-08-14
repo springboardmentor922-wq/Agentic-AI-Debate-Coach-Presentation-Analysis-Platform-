@@ -19,6 +19,7 @@ const CreateTopicModal = ({
     onClose,
     onSubmit,
     loading = false,
+    submitError = "",
 }) => {
   const [formData, setFormData] = useState(initialForm);
   const [aiLoading, setAiLoading] = useState(false);
@@ -81,8 +82,8 @@ const CreateTopicModal = ({
         setFormData((prev) => ({
           ...prev,
           title: cleanTitle,
-          category: generated.category || prev.category,
-          difficulty_level: generated.difficulty_level || prev.difficulty_level,
+          category: prev.category,
+          difficulty_level: prev.difficulty_level,
           debate_format: generated.debate_format || prev.debate_format,
           estimated_duration: generated.estimated_duration || prev.estimated_duration || 20,
           learning_goal: cleanGoal || prev.learning_goal || "",
@@ -315,6 +316,12 @@ const CreateTopicModal = ({
                 </p>
               )}
             </div>
+          )}
+
+          {submitError && (
+            <p className="modal-submit-error" style={{ color: "#dc2626", fontSize: "13px", fontWeight: "600", marginTop: "8px", marginBottom: "8px" }}>
+              ⚠️ {submitError}
+            </p>
           )}
 
           {/* Buttons */}

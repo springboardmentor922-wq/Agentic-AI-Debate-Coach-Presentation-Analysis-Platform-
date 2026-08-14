@@ -102,6 +102,7 @@ const DebateTopics = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [topicToDelete, setTopicToDelete] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
+    const [modalSubmitError, setModalSubmitError] = useState("");
     const [topics, setTopics] = useState([]);
     const [recommendedTopicData, setRecommendedTopicData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -278,7 +279,7 @@ const DebateTopics = () => {
   const handleSubmitTopic = async (data) => {
     try {
         setCreateLoading(true);
-        setError("");
+        setModalSubmitError("");
 
         if (modalMode === "create") {
 
@@ -303,16 +304,17 @@ const DebateTopics = () => {
 
         await refreshTopics();
 
-    } catch (error) {
+    } catch (err) {
 
-        console.error(error);
+        console.error("Topic submission error:", err);
 
-        setError(
-            error.response?.data?.detail ||
+        const errorMsg =
+            err.response?.data?.detail ||
             (modalMode === "create"
                 ? "Unable to create topic."
-                : "Unable to update topic.")
-        );
+                : "Unable to update topic.");
+
+        setModalSubmitError(errorMsg);
 
     } finally {
         setCreateLoading(false);
@@ -322,6 +324,7 @@ const DebateTopics = () => {
     const handleEditTopic = (topic) => {
     setSelectedTopic(topic);
     setModalMode("edit");
+    setModalSubmitError("");
     setIsCreateModalOpen(true);
 };
 
@@ -335,7 +338,6 @@ const handleConfirmDelete = async () => {
 
     try {
         setDeleteLoading(true);
-        setError("");
 
         await debateTopicService.deleteTopic(topicToDelete.id);
 
@@ -346,11 +348,8 @@ const handleConfirmDelete = async () => {
 
         await refreshTopics();
 
-    } catch (error) {
-        console.error(error);
-
-        setError("Unable to delete topic.");
-
+    } catch (err) {
+        console.error("Delete topic error:", err);
     } finally {
         setDeleteLoading(false);
     }
@@ -442,6 +441,7 @@ const handleCloseDeleteModal = () => {
     onCreateTopic={() => {
         setModalMode("create");
         setSelectedTopic(null);
+        setModalSubmitError("");
         setIsCreateModalOpen(true);
     }}
 />
@@ -509,6 +509,7 @@ const handleCloseDeleteModal = () => {
                                 onCreateTopic={() => {
                                     setModalMode("create");
                                     setSelectedTopic(null);
+                                    setModalSubmitError("");
                                     setIsCreateModalOpen(true);
                                 }}
                                 onViewDetails={handleViewDetails}
@@ -530,9 +531,13 @@ const handleCloseDeleteModal = () => {
                         isOpen={isCreateModalOpen}
                         mode={modalMode}
                         topic={selectedTopic}
-                        onClose={() => setIsCreateModalOpen(false)}
+                        onClose={() => {
+                            setIsCreateModalOpen(false);
+                            setModalSubmitError("");
+                        }}
                         onSubmit={handleSubmitTopic}
                         loading={createLoading}
+                        submitError={modalSubmitError}
                     />
 
                 <DeleteTopicModal

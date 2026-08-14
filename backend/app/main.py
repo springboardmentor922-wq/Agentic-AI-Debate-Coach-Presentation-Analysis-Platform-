@@ -39,6 +39,19 @@ app = FastAPI(
 )
 
 
+from app.db.init_db import init_db
+
+# =========================================================
+# Startup Event
+# =========================================================
+
+@app.on_event("startup")
+def on_startup():
+    try:
+        init_db()
+    except Exception as e:
+        print(f"Warning: init_db on startup encountered error: {e}")
+
 # =========================================================
 # CORS Middleware
 # =========================================================

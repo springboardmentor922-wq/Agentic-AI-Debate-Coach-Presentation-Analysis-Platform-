@@ -8,6 +8,7 @@ import {
     logoutUser
 } from "../services/tokenService";
 
+import apiClient from "../services/apiClient";
 import { getDashboardRouteForRole } from "../utils/roleRoutes";
 import { AuthContext } from "./authContext.js";
 
@@ -17,10 +18,34 @@ export const AuthProvider = ({ children }) => {
 
     const [token, setToken] = useState(() => getToken());
 
-    const [loading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        let active = true;
+
+        const syncCurrentUser = async () => {
+            const currentToken = getToken();
+            if (!currentToken) return;
+
+            try {
+                const res = await apiClient.get("/auth/me");
+                if (active && res?.data) {
+                    saveUser(res.data);
+                    setUser(res.data);
+                }
+            } catch (err) {
+                if (active) {
+                    logoutUser();
+                    setUser(null);
+                    setToken(null);
+                }
+            }
+        };
+
+        void syncCurrentUser();
+
         const handleUnauthorized = () => {
+            logoutUser();
             setUser(null);
             setToken(null);
         };
@@ -28,10 +53,9 @@ export const AuthProvider = ({ children }) => {
         window.addEventListener("auth:unauthorized", handleUnauthorized);
 
         return () => {
+            active = false;
             window.removeEventListener("auth:unauthorized", handleUnauthorized);
         };
-
-
     }, []);
 
     // ============================================

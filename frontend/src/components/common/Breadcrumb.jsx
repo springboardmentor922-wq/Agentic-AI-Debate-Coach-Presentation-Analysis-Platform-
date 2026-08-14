@@ -21,15 +21,12 @@ import { Link } from "react-router-dom";
 import { getDashboardRoute } from "../../utils/dashboardRoutes";
 import { FaChevronRight, FaHome } from "react-icons/fa";
 
+import { useAuth } from "../../hooks/useAuth";
 import "./Breadcrumb.css";
 
 const Breadcrumb = ({ items = [] }) => {
-
-        // Temporary role
-    // Later replace with Auth Context
-
-    const userRole = localStorage.getItem("userRole") || "Learner";
-
+    const { user } = useAuth();
+    const userRole = user?.role || "Learner";
     const dashboardRoute = getDashboardRoute(userRole);
 
     return (

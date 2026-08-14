@@ -92,21 +92,21 @@ class AuthService:
                 "Email is already registered."
             )
 
-        requested_role = user_data.role or "Learner"
-        if requested_role.strip().lower() != "learner":
+        requested_role = (user_data.role or "Learner").strip()
+        if requested_role.lower() == "administrator":
             raise ValueError(
-                "Public registration is restricted to the Learner role. Privileged accounts must be assigned by an administrator."
+                "Administrator accounts cannot be created via public registration."
             )
 
         role = AuthService.get_role_by_name(
             db,
-            "Learner"
+            requested_role
         )
 
         if role is None:
 
             raise ValueError(
-                "Invalid role selected."
+                f"Invalid role '{requested_role}' selected."
             )
 
         hashed_password = hash_password(

@@ -10,6 +10,7 @@ export const getDashboardRoute = (role) => {
             return "/admin/dashboard";
 
         case "Coach":
+        case "Debate Coach":
             return "/coach/dashboard";
 
         case "Educator":

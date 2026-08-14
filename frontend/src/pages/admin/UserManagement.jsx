@@ -83,8 +83,8 @@ const UserManagement = () => {
 
     const handleRoleChange = async (userItem, roleId, roleName) => {
         try {
-            await updateUserRole(userItem.id, roleId);
-            setUsers((prev) => prev.map((u) => u.id === userItem.id ? { ...u, role: roleName, role_id: roleId } : u));
+            await updateUserRole(userItem.id, roleId, roleName);
+            setUsers((prev) => prev.map((u) => u.id === userItem.id ? { ...u, role: roleName, role_name: roleName, role_id: roleId } : u));
             setEditingUserId(null);
             showToast(`User ${userItem.full_name} role updated to ${roleName}`, "success");
         } catch (err) {
@@ -187,17 +187,18 @@ const UserManagement = () => {
                                             <td>
                                                 {editingUserId === u.id ? (
                                                     <select
-                                                        defaultValue={u.role_id || 1}
+                                                        defaultValue={u.role_id || (u.role_name === "Administrator" ? 1 : u.role_name === "Educator" ? 2 : u.role_name === "Debate Coach" ? 3 : 4)}
                                                         onChange={(e) => {
                                                             const rid = Number(e.target.value);
-                                                            const rName = rid === 1 ? "Learner" : rid === 2 ? "Debate Coach" : rid === 3 ? "Educator" : "Administrator";
+                                                            const roleMap = { 1: "Administrator", 2: "Educator", 3: "Debate Coach", 4: "Learner" };
+                                                            const rName = roleMap[rid] || "Learner";
                                                             void handleRoleChange(u, rid, rName);
                                                         }}
                                                     >
-                                                        <option value={1}>Learner</option>
-                                                        <option value={2}>Debate Coach</option>
-                                                        <option value={3}>Educator</option>
-                                                        <option value={4}>Administrator</option>
+                                                        <option value={1}>Administrator</option>
+                                                        <option value={2}>Educator</option>
+                                                        <option value={3}>Debate Coach</option>
+                                                        <option value={4}>Learner</option>
                                                     </select>
                                                 ) : (
                                                     <span className="role-badge">{u.role || u.role_name || "User"}</span>

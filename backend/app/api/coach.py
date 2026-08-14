@@ -7,6 +7,7 @@ from sqlalchemy import func
 from app.db.database import get_db
 from app.dependencies.auth import get_current_user, require_any_role
 from app.models.user import User
+from app.models.role import Role
 from app.models.user_profile import UserProfile
 from app.models.user_skill import UserSkill
 from app.models.coach_assignment import CoachAssignment
@@ -32,6 +33,81 @@ from app.schemas.coach_schema import (
 )
 
 router = APIRouter(prefix="/coach", tags=["Coach Mentorship"])
+
+
+@router.get("/eligible-learners")
+def get_eligible_learners(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_any_role(["Debate Coach", "Administrator"]))
+):
+    """Retrieve all real PostgreSQL user accounts with canonical role 'Learner'."""
+    learner_role = db.query(Role).filter(Role.name == "Learner").first()
+    if not learner_role:
+        return []
+
+    learners = db.query(User).filter(
+        User.role_id == learner_role.id,
+        User.is_active == True
+    ).all()
+
+    assigned_records = db.query(CoachAssignment).filter(
+        CoachAssignment.coach_id == current_user.id,
+        CoachAssignment.status == "Active"
+    ).all()
+    assigned_learner_ids = {a.learner_id for a in assigned_records}
+
+    result = []
+    for learner in learners:
+        profile = db.query(UserProfile).filter(UserProfile.user_id == learner.id).first()
+        result.append({
+            "id": learner.id,
+            "full_name": learner.full_name,
+            "email": learner.email,
+            "institution": profile.institution if profile else "N/A",
+            "experience_level": profile.experience_level if profile else "Beginner",
+            "is_assigned_to_me": learner.id in assigned_learner_ids
+        })
+    return result
+
+
+class AssignLearnerRequest(BaseModel):
+    learner_id: int
+
+
+@router.post("/assign-learner")
+def coach_assign_learner(
+    body: AssignLearnerRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_any_role(["Debate Coach", "Administrator"]))
+):
+    """Assign or link a real Learner to the current Debate Coach roster."""
+    learner = db.query(User).filter(User.id == body.learner_id).first()
+    if not learner:
+        raise HTTPException(status_code=404, detail="Learner user not found.")
+
+    existing = db.query(CoachAssignment).filter(
+        CoachAssignment.coach_id == current_user.id,
+        CoachAssignment.learner_id == body.learner_id
+    ).first()
+
+    if existing:
+        existing.status = "Active"
+    else:
+        assignment = CoachAssignment(
+            coach_id=current_user.id,
+            learner_id=body.learner_id,
+            status="Active"
+        )
+        db.add(assignment)
+
+    db.add(Notification(
+        user_id=body.learner_id,
+        title="Coach Assigned",
+        message=f"Debate Coach {current_user.full_name} has assigned you to their roster.",
+        notification_type="coach_assignment"
+    ))
+    db.commit()
+    return {"message": "Learner assigned successfully", "coach_id": current_user.id, "learner_id": body.learner_id}
 
 
 @router.get("/learners")
@@ -110,7 +186,8 @@ def get_my_assigned_coach(
     ).first()
 
     if not assignment:
-        coach_user = db.query(User).filter(User.role_id == 2).first()
+        coach_role = db.query(Role).filter(Role.name == "Debate Coach").first()
+        coach_user = db.query(User).filter(User.role_id == coach_role.id).first() if coach_role else None
         if not coach_user:
             return {
                 "assigned": False,
@@ -386,6 +463,20 @@ def assign_practice_task(
     auto_title = task_data.title or f"{topic_title} Practice"
     format_val = task_data.debate_format or (topic.debate_format if topic else "Oxford Debate")
     diff_val = task_data.difficulty or (topic.difficulty_level if topic else "Intermediate")
+
+    # Ensure active CoachAssignment exists for this coach and learner
+    existing_assignment = db.query(CoachAssignment).filter(
+        CoachAssignment.coach_id == current_user.id,
+        CoachAssignment.learner_id == task_data.learner_id
+    ).first()
+    if existing_assignment:
+        existing_assignment.status = "Active"
+    else:
+        db.add(CoachAssignment(
+            coach_id=current_user.id,
+            learner_id=task_data.learner_id,
+            status="Active"
+        ))
 
     task = LearnerPracticeAssignment(
         coach_id=current_user.id,

@@ -41,18 +41,39 @@ def get_all_platform_users(
 @router.put("/users/{user_id}/role")
 def update_user_role(
     user_id: int,
-    role_id: int,
+    role_name: Optional[str] = None,
+    role_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("Administrator"))
 ):
-    """Update a user's role (Learner, Coach, Educator, Administrator)."""
+    """Update a user's role (Learner, Debate Coach, Educator, Administrator)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    user.role_id = role_id
+    target_role = None
+    if role_name:
+        clean_name = role_name.strip()
+        if clean_name.lower() == "coach":
+            clean_name = "Debate Coach"
+        target_role = db.query(Role).filter(func.lower(Role.name) == clean_name.lower()).first()
+
+    if not target_role and role_id is not None:
+        target_role = db.query(Role).filter(Role.id == role_id).first()
+
+    if not target_role:
+        raise HTTPException(status_code=400, detail="Invalid role specified")
+
+    user.role_id = target_role.id
     db.commit()
-    return {"message": "User role updated successfully", "user_id": user_id, "role_id": role_id}
+    db.refresh(user)
+    return {
+        "message": "User role updated successfully",
+        "user_id": user_id,
+        "role_id": target_role.id,
+        "role_name": target_role.name
+    }
+
 
 @router.put("/users/{user_id}/status")
 def toggle_user_status(
@@ -80,8 +101,8 @@ def get_coaches_with_workload(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("Administrator"))
 ):
-    """Retrieve all debate coaches with assigned learner counts for workload balancing."""
-    coaches = db.query(User).filter(User.role_id == 2).all()
+    coach_role = db.query(Role).filter(Role.name == "Debate Coach").first()
+    coaches = db.query(User).filter(User.role_id == coach_role.id).all() if coach_role else []
     if not coaches:
         # Fallback to any user if roles not strictly populated
         coaches = db.query(User).limit(5).all()

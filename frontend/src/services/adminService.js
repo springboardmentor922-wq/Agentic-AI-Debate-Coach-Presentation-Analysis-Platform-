@@ -78,8 +78,12 @@ export const assignCoachToLearner = async (coachId, learnerId) => {
     return res.data;
 };
 
-export const updateUserRole = async (userId, roleId) => {
-    const res = await apiClient.put(`/api/v1/admin/users/${userId}/role?role_id=${roleId}`);
+export const updateUserRole = async (userId, roleId, roleName = null) => {
+    let url = `/api/v1/admin/users/${userId}/role?role_id=${roleId}`;
+    if (roleName) {
+        url += `&role_name=${encodeURIComponent(roleName)}`;
+    }
+    const res = await apiClient.put(url);
     return res.data;
 };
 

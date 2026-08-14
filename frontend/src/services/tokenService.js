@@ -58,14 +58,17 @@ export const removeUser = () => {
 };
 
 export const logoutUser = () => {
-
     removeToken();
-
     removeUser();
-
+    try {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        sessionStorage.clear();
+    } catch {
+        // ignore
+    }
 };
 
 export const clearSession = () => {
-
     logoutUser();
 };

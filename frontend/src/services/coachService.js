@@ -3,10 +3,21 @@ import { getMySessions } from "./debateSessionService";
 import { getMySkill } from "./skillService";
 import { getAllReports } from "./reportService";
 
+export const getEligibleLearners = async () => {
+    const res = await apiClient.get("/api/v1/coach/eligible-learners");
+    return res.data;
+};
+
+export const assignLearner = async (learnerId) => {
+    const res = await apiClient.post("/api/v1/coach/assign-learner", { learner_id: learnerId });
+    return res.data;
+};
+
 export const getCoachOverview = async () => {
     try {
-        const [learnersRes, analyticsRes, sessions, skill, reports] = await Promise.all([
+        const [learnersRes, eligibleRes, analyticsRes, sessions, skill, reports] = await Promise.all([
             apiClient.get("/api/v1/coach/learners").catch(() => ({ data: [] })),
+            apiClient.get("/api/v1/coach/eligible-learners").catch(() => ({ data: [] })),
             apiClient.get("/api/v1/coach/analytics").catch(() => ({ data: null })),
             getMySessions().catch(() => []),
             getMySkill().catch(() => null),
@@ -17,6 +28,7 @@ export const getCoachOverview = async () => {
 
         return {
             assignedLearners: learnersRes.data || [],
+            eligibleLearners: eligibleRes.data || [],
             pendingReviews: reportData.filter((report) => (report.status || "").toLowerCase() !== "completed"),
             reports: reportData,
             sessions,
@@ -27,6 +39,7 @@ export const getCoachOverview = async () => {
         console.error("Failed to load coach overview:", error);
         return {
             assignedLearners: [],
+            eligibleLearners: [],
             pendingReviews: [],
             reports: [],
             sessions: [],
