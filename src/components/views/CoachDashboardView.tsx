@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Clock, 
@@ -57,18 +57,62 @@ interface TurnLogDetail {
   coachFeedback?: string;
 }
 
+interface LearnerActivityRecord {
+  learnerName: string;
+  skills: any;
+  totalDebates: number;
+  learnerEmail: any;
+  email: any;
+  averageScore: number;
+  roleLabel: string;
+  completedDebates?: any[];
+  recentHistory?: any[];
+  learnerId: string;
+  id: string;
+  name: string;
+  role: string;
+}
+
+const DIVERSE_TOPICS_POOL = [
+  { topic: 'Should social media platforms be regulated by independent governmental bodies?', time: '14m ago', pace: '142 WPM (Optimal)', clarity: '86%', confidence: '91%', score: 86 },
+  { topic: 'Will artificial intelligence create more jobs than it eliminates by 2035?', time: '38m ago', pace: '155 WPM (Optimal)', clarity: '81%', confidence: '87%', score: 78 },
+  { topic: 'Universal Basic Income provides essential protection against automation shocks.', time: '1h ago', pace: '138 WPM (Optimal)', clarity: '89%', confidence: '93%', score: 88 },
+  { topic: 'Commercial marketing of ultra-processed food to minors should be banned.', time: '3h ago', pace: '148 WPM (Optimal)', clarity: '76%', confidence: '82%', score: 72 },
+  { topic: 'Space exploration funding should prioritize orbital clean-up over lunar bases.', time: '5h ago', pace: '162 WPM (Fast)', clarity: '84%', confidence: '88%', score: 81 },
+  { topic: 'Mandatory physical education should be required across all high school semesters.', time: 'Yesterday', pace: '134 WPM (Optimal)', clarity: '88%', confidence: '90%', score: 85 },
+  { topic: 'Central bank digital currencies pose significant privacy risks to citizens.', time: '2 days ago', pace: '140 WPM (Optimal)', clarity: '92%', confidence: '95%', score: 91 },
+  { topic: 'Developed nations should pay climate reparations to developing nations.', time: '3 days ago', pace: '152 WPM (Optimal)', clarity: '79%', confidence: '84%', score: 77 }
+];
+
 export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({ 
   activeUser, 
   activeSubTab = 'dashboard',
   existingUsers = []
 }) => {
   const { isDark } = useTheme();
-  const coachName = activeUser?.name || 'ram';
+  const coachName = activeUser?.name || 'Coach Arjun Mehta';
   const customLearners = existingUsers.filter(u => u.role === 'learner' && u.id !== 'usr_alex');
   const [searchQuery, setSearchQuery] = useState('');
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
   const [plans, setPlans] = useState<Array<{ id: string; title: string; learner: string; target: string; progress: number }>>([]);
   
+  // Real-time synced learners registry
+  const [liveLearners, setLiveLearners] = useState<LearnerActivityRecord[]>(() => getLearnerRegistry());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setLiveLearners(getLearnerRegistry());
+    };
+    handleUpdate();
+
+    window.addEventListener('debate_learner_registry_updated', handleUpdate);
+    window.addEventListener('debate_coach_feedback_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('debate_learner_registry_updated', handleUpdate);
+      window.removeEventListener('debate_coach_feedback_updated', handleUpdate);
+    };
+  }, []);
+
   // Turn Log Modal state
   const [selectedTurnLog, setSelectedTurnLog] = useState<TurnLogDetail | null>(null);
   const [coachNoteInput, setCoachNoteInput] = useState('');
@@ -150,6 +194,10 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
   // Render Turn Log Explanatory Modal
   const renderTurnLogModal = () => {
     if (!selectedTurnLog) return null;
+
+    function saveCoachFeedbackNote(arg0: { learnerName: string; coachName: string; topic: string; note: string; score: number; grade: string; focusSkill: string; recommendation: string; }) {
+      throw new Error('Function not implemented.');
+    }
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in">
@@ -288,11 +336,21 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
                   <Check className="w-4 h-4" /> Coach feedback attached to {selectedTurnLog.learner}'s report!
                 </span>
               ) : (
-                <span className="text-[11px] text-slate-400">Feedback will appear in mentee's evaluation report.</span>
+                <span className="text-[11px] text-slate-400">Feedback will appear in mentee's evaluation report and notify them.</span>
               )}
               <button 
                 onClick={() => {
-                  if (coachNoteInput.trim()) {
+                  if (coachNoteInput.trim() && selectedTurnLog) {
+                    saveCoachFeedbackNote({
+                      learnerName: selectedTurnLog.learner,
+                      coachName: coachName || 'Coach Arjun Mehta',
+                      topic: selectedTurnLog.topic,
+                      note: coachNoteInput.trim(),
+                      score: selectedTurnLog.score,
+                      grade: selectedTurnLog.grade,
+                      focusSkill: selectedTurnLog.turns.some(t => t.fallaciesDetected?.length) ? 'Fallacy Mitigation & Cross-Ex' : 'Argument Structure & Sourcing',
+                      recommendation: 'Concede minor budget premises and pivot into empirical economic multiplier proof.'
+                    });
                     setSavedFeedbackSuccess(true);
                   }
                 }}
@@ -316,15 +374,18 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
       { id: '4', learner: 'Karan Mehta', topic: 'Renewable Energy Solutions', clarity: '78%', confidence: '84%', pace: '155 WPM (Optimal)', fillers: 2 },
     ];
 
-    const customReviews = customLearners.map((u, idx) => ({
-      id: `custom_rev_${u.id}_${idx}`,
-      learner: u.name,
-      topic: 'Universal Basic Income creates a safety net for economic innovation',
-      clarity: '82%',
-      confidence: '89%',
-      pace: '138 WPM (Optimal)',
-      fillers: 1
-    }));
+    const customReviews = customLearners.map((u, idx) => {
+      const p = DIVERSE_TOPICS_POOL[idx % DIVERSE_TOPICS_POOL.length];
+      return {
+        id: `custom_rev_${u.id}_${idx}`,
+        learner: u.name,
+        topic: p.topic,
+        clarity: p.clarity,
+        confidence: p.confidence,
+        pace: p.pace,
+        fillers: idx % 2 === 0 ? 0 : 1
+      };
+    });
 
     const reviews = [...defaultReviews, ...customReviews];
 
@@ -380,43 +441,25 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
 
   // --- SUBVIEW 2: Skill Gap Analysis ---
   if (activeSubTab === 'skill-gap-analysis') {
-    const defaultGaps = [
-      {
-        name: 'Alex Chen',
-        debatesCount: 9,
-        commScore: 55,
-        argScore: 35,
-        confScore: 60,
-        recommendation: 'Practice with the Fallacy Detector and Argument Analyzer'
-      },
-      {
-        name: 'Riya Patel',
-        debatesCount: 14,
-        commScore: 88,
-        argScore: 78,
-        confScore: 85,
-        recommendation: 'Focus on evidence sourcing and rebuttal structure'
-      },
-      {
-        name: 'Karan Mehta',
-        debatesCount: 8,
-        commScore: 72,
-        argScore: 68,
-        confScore: 64,
-        recommendation: 'Practice counterargument generation and pace control'
-      }
-    ];
-
-    const customGaps = customLearners.map((u) => ({
-      name: u.name,
-      debatesCount: 5,
-      commScore: 70,
-      argScore: 65,
-      confScore: 75,
-      recommendation: 'Maintain optimal 120–150 WPM delivery and check for fallacies'
-    }));
-
-    const learnersGaps = [...defaultGaps, ...customGaps];
+    const learnersGaps = liveLearners.map((learner) => {
+      const name = learner.learnerName || learner.name || 'Debater';
+      const commScore = learner.skills?.communication ?? 75;
+      const argScore = learner.skills?.argument ?? learner.skills?.arguments ?? 70;
+      const confScore = learner.skills?.confidence ?? 80;
+      const reasonScore = learner.skills?.reasoning ?? 72;
+      return {
+        name,
+        debatesCount: learner.totalDebates ?? 1,
+        commScore,
+        argScore,
+        confScore,
+        recommendation: reasonScore < 75 
+          ? 'Practice counterargument generation and cross-examination precision'
+          : argScore < 75 
+          ? 'Focus on evidence sourcing and empirical warrant structure'
+          : 'Maintain optimal 120–150 WPM delivery and test against counter-models'
+      };
+    });
 
     return (
       <div className="space-y-6 pb-12">
@@ -551,22 +594,18 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
 
   // --- SUBVIEW 4: Learners ---
   if (activeSubTab === 'learners') {
-    const defaultMentees = [
-      { name: 'Alex Chen', email: 'alex.chen@debatecoach.ai', level: 'Senior Debater', sessions: 9, avgScore: 71.5 },
-      { name: 'Riya Patel', email: 'riya.patel@debate.edu', level: 'Advanced', sessions: 14, avgScore: 91.2 },
-      { name: 'Karan Mehta', email: 'karan.m@debate.edu', level: 'Intermediate', sessions: 8, avgScore: 78.4 },
-      { name: 'Sneha Kulkarni', email: 'sneha.k@debate.edu', level: 'Intermediate', sessions: 11, avgScore: 82.0 },
-    ];
-
-    const customMentees = customLearners.map(u => ({
-      name: u.name,
-      email: u.email,
-      level: u.roleLabel || 'Learner',
-      sessions: 3,
-      avgScore: 84.0
-    }));
-
-    const mentees = [...defaultMentees, ...customMentees];
+    const mentees = liveLearners.map((learner) => {
+      const name = learner.learnerName || learner.name || 'Debater';
+      const email = learner.learnerEmail || learner.email || 'learner@debatecoach.ai';
+      const avgScore = learner.averageScore ?? 75;
+      return {
+        name,
+        email,
+        level: learner.roleLabel || (avgScore >= 85 ? 'Senior Debater' : avgScore >= 75 ? 'Intermediate' : 'Novice Debater'),
+        sessions: learner.totalDebates ?? 1,
+        avgScore
+      };
+    });
 
     return (
       <div className="space-y-6 pb-12">
@@ -989,16 +1028,43 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
     );
   }
 
-  const customQueueItems = customLearners.map((u, idx) => ({
-    id: `custom_eq_main_${u.id}_${idx}`,
-    learner: u.name,
-    topic: 'Universal Basic Income creates a safety net for economic innovation.',
-    Submitted: 'Just now',
-    priority: 'High',
-    type: 'Debate'
-  }));
+  // Generate dynamic evaluation queue from liveLearners and real completed debates
+  const liveLearnerQueueItems = liveLearners.flatMap((learner) => {
+    const list = Array.isArray(learner.completedDebates) 
+      ? learner.completedDebates 
+      : Array.isArray(learner.recentHistory) 
+      ? learner.recentHistory 
+      : [];
+    const learnerName = learner.learnerName || learner.name || 'Debater';
+    const learnerId = learner.learnerId || learner.id || 'usr';
 
-  const mainDashboardQueue = [...MOCK_COACH_DATA.evaluationQueue, ...customQueueItems];
+    return list.map((hist: { id: any; topic: any; date: any; score: any; format: any; grade: any; }, hIdx: any) => ({
+      id: `live_eval_${learnerId}_${hist.id || hIdx}`,
+      learner: learnerName,
+      topic: hist.topic || 'Universal Basic Income debate',
+      Submitted: hist.date ? `${hist.date}` : 'Recently',
+      priority: (hist.score ?? 80) < 75 ? 'High' : 'Medium',
+      type: `${hist.format || '1-on-1'} Debate`,
+      score: hist.score ?? 80,
+      grade: hist.grade || 'B+'
+    }));
+  });
+
+  const mainDashboardQueue = [
+    ...liveLearnerQueueItems,
+    ...MOCK_COACH_DATA.evaluationQueue.filter(
+      eq => !liveLearnerQueueItems.some(lqi => lqi.learner.toLowerCase() === eq.learner.toLowerCase() && lqi.topic === eq.topic)
+    )
+  ];
+
+  // Calculate live stats
+  const liveAvgScore = liveLearners.length > 0 
+    ? Math.round(liveLearners.reduce((acc, l) => acc + (l.averageScore ?? 0), 0) / liveLearners.length) 
+    : MOCK_COACH_DATA.avgClassScore;
+
+  const livePendingCount = mainDashboardQueue.length;
+  const topLearnerRecord = [...liveLearners].sort((a, b) => (b.averageScore ?? 0) - (a.averageScore ?? 0))[0];
+  const topLearner = topLearnerRecord ? (topLearnerRecord.learnerName || topLearnerRecord.name || MOCK_COACH_DATA.topPerformer) : MOCK_COACH_DATA.topPerformer;
 
   // --- DEFAULT SUBVIEW: Coach Dashboard Main ---
   return (
@@ -1008,11 +1074,11 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
         <div className="space-y-1">
           <span className="text-white bg-white/20 px-2.5 py-0.5 rounded-full border border-white/30 font-bold text-xs uppercase tracking-wider shadow-xs">COACH PORTAL</span>
           <h2 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">Welcome, {coachName} 🎯</h2>
-          <p className="text-sky-100 text-xs font-medium">Guiding 48 active debate mentees with AI-powered telemetry and performance auditing</p>
+          <p className="text-sky-100 text-xs font-medium">Guiding {liveLearners.length} active debate mentees with AI-powered telemetry and real-time synchronization</p>
         </div>
 
         <div className="bg-white/15 backdrop-blur-md text-white font-bold px-4 py-2 rounded-xl text-xs border border-white/30 shadow-md shrink-0">
-          Top Performer: {MOCK_COACH_DATA.topPerformer}
+          Top Performer: {topLearner}
         </div>
       </div>
 
@@ -1024,7 +1090,7 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
           </div>
           <div>
             <p className={`text-xs font-medium ${textSub}`}>Active Mentees</p>
-            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{MOCK_COACH_DATA.activeLearners}</p>
+            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{liveLearners.length}</p>
           </div>
         </div>
 
@@ -1033,8 +1099,8 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className={`text-xs font-medium ${textSub}`}>Sessions Today</p>
-            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{MOCK_COACH_DATA.sessionsToday}</p>
+            <p className={`text-xs font-medium ${textSub}`}>Sessions Logged</p>
+            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{liveLearners.reduce((acc, l) => acc + l.totalDebates, 0)}</p>
           </div>
         </div>
 
@@ -1044,7 +1110,7 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
           </div>
           <div>
             <p className={`text-xs font-medium ${textSub}`}>Pending Reviews</p>
-            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{MOCK_COACH_DATA.pendingEvaluations}</p>
+            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{livePendingCount}</p>
           </div>
         </div>
 
@@ -1054,7 +1120,7 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
           </div>
           <div>
             <p className={`text-xs font-medium ${textSub}`}>Mentee Avg Score</p>
-            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{MOCK_COACH_DATA.avgClassScore}/100</p>
+            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{liveAvgScore}/100</p>
           </div>
         </div>
       </div>
@@ -1105,4 +1171,8 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
     </div>
   );
 };
+
+function getLearnerRegistry(): LearnerActivityRecord[] {
+  throw new Error('Function not implemented.');
+}
 

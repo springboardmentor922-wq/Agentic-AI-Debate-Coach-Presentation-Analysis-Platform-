@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Cpu, Activity, Users, BookOpen, FileText, CheckCircle, Search, RefreshCw, AlertCircle, Edit3 } from 'lucide-react';
+import { ShieldCheck, Cpu, Activity, Users, BookOpen, FileText, CheckCircle, Search, RefreshCw, AlertCircle, Edit3, UserCheck } from 'lucide-react';
 import { MOCK_ADMIN_DATA } from '../../data/mockData';
 import { UserProfile, UserRole } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
+import { assignCoachToLearner, getAssignedCoachForLearner } from '../../services/learnerCoachSyncService';
 
 interface AdminDashboardViewProps {
   activeUser?: UserProfile;
@@ -24,6 +25,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
   const [editingUser, setEditingUser] = useState<{ id: string; name: string; email: string; role: UserRole; status: string } | null>(null);
   const [selectedRole, setSelectedRole] = useState<UserRole>('learner');
   const [selectedStatus, setSelectedStatus] = useState<string>('Active');
+  const [selectedAssignedCoach, setSelectedAssignedCoach] = useState<string>('Arjun Mehta (Senior Coach)');
 
   const baseUsers = [
     { id: 'usr_alex', name: 'Alex Chen', email: 'alex.chen@debatecoach.ai', role: 'learner', status: 'Active' },
@@ -77,6 +79,10 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
       [emailKey]: { role: selectedRole, status: selectedStatus }
     }));
 
+    if (selectedRole === 'learner') {
+      assignCoachToLearner(editingUser.email || editingUser.id, selectedAssignedCoach, activeUser?.name || 'System Admin');
+    }
+
     const roleLabels: Record<UserRole, string> = {
       learner: 'Senior Debater',
       coach: 'Debate Coach',
@@ -95,22 +101,25 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
         roleLabel: roleLabels[selectedRole] || selectedRole,
         avatar: existing?.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
         institution: existing?.institution || 'Debate Union',
+        assignedCoach: selectedRole === 'learner' ? selectedAssignedCoach : undefined,
         isCustomAccount: true
       });
     }
+
+    const coachAuditDetail = selectedRole === 'learner' ? ` & Mentor: ${selectedAssignedCoach}` : '';
 
     setAuditLogs(prev => [
       {
         id: Date.now().toString(),
         timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
         user: activeUser?.email || 'admin@platform.com',
-        action: `Updated role for ${editingUser.name} to ${selectedRole} (${selectedStatus})`,
+        action: `Admin updated role for ${editingUser.name} to ${selectedRole} (${selectedStatus})${coachAuditDetail}`,
         status: 'Success'
       },
       ...prev
     ]);
 
-    setRoleUpdateNotification(`Updated ${editingUser.name}'s role to ${selectedRole.toUpperCase()} (${selectedStatus})`);
+    setRoleUpdateNotification(`Updated ${editingUser.name}'s role to ${selectedRole.toUpperCase()} (${selectedStatus})${selectedRole === 'learner' ? ` with assigned coach ${selectedAssignedCoach}` : ''}`);
     setTimeout(() => setRoleUpdateNotification(null), 4000);
 
     setEditingUser(null);
@@ -158,6 +167,27 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               </select>
             </div>
 
+            {selectedRole === 'learner' && (
+              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-1.5">
+                <label className="font-semibold text-indigo-400 flex items-center gap-1.5 text-xs">
+                  <ShieldCheck className="w-4 h-4 text-indigo-400" /> Assign Primary Mentor Coach (Admin Authority)
+                </label>
+                <select 
+                  value={selectedAssignedCoach}
+                  onChange={(e) => setSelectedAssignedCoach(e.target.value)}
+                  className={`w-full p-2.5 rounded-xl border font-medium ${isDark ? 'bg-slate-800 border-slate-700 text-white' : 'bg-slate-50 border-slate-300 text-slate-900'}`}
+                >
+                  <option value="Arjun Mehta (Senior Coach)">Arjun Mehta (Senior Coach)</option>
+                  <option value="Dr. Evelyn Reed (Rhetoric Specialist)">Dr. Evelyn Reed (Rhetoric Specialist)</option>
+                  <option value="Ananya Sharma (Speech Evaluator)">Ananya Sharma (Speech Evaluator)</option>
+                  <option value="Debate Coach 1 (Beginner)">Debate Coach 1 (Beginner)</option>
+                </select>
+                <p className="text-[10px] text-slate-400">
+                  Only System Admins have authority to assign or reallocate mentor coaches to learners.
+                </p>
+              </div>
+            )}
+
             <div>
               <label className="font-semibold block mb-1.5">Account Status</label>
               <select 
@@ -181,7 +211,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
             </button>
             <button 
               onClick={handleSaveUserRole} 
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-xs"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer"
             >
               Save Changes
             </button>
@@ -198,7 +228,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
         <div className="flex items-center justify-between">
           <div>
             <h2 className={`text-xl font-bold tracking-tight ${textHeader}`}>User Management</h2>
-            <p className={`text-xs ${textSub}`}>Manage platform accounts across Learners, Coaches, Educators, and Admins.</p>
+            <p className={`text-xs ${textSub}`}>Manage platform accounts and coach assignments across Learners, Coaches, Educators, and Admins.</p>
           </div>
         </div>
 
@@ -220,6 +250,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                   <th className="p-3">User Name</th>
                   <th className="p-3">Email</th>
                   <th className="p-3">Role</th>
+                  <th className="p-3">Assigned Mentor Coach</th>
                   <th className="p-3">Status</th>
                   <th className="p-3">Action</th>
                 </tr>
@@ -227,11 +258,21 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
               <tbody className="divide-y divide-slate-800">
                 {displayUsers.map((u) => {
                   const normRole = normalizeRole(u.role);
+                  const userCoach = getAssignedCoachForLearner(u.email || u.id);
                   return (
                     <tr key={u.id} className="hover:bg-slate-800/50">
                       <td className="p-3 font-bold">{u.name}</td>
                       <td className="p-3 font-mono">{u.email}</td>
                       <td className="p-3 capitalize font-semibold text-indigo-400">{normRole}</td>
+                      <td className="p-3">
+                        {normRole === 'learner' ? (
+                          <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 inline-flex items-center gap-1">
+                            <UserCheck className="w-3 h-3 text-indigo-400" /> {userCoach}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500 text-[10px] italic">Faculty / Staff</span>
+                        )}
+                      </td>
                       <td className="p-3">
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
                           u.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
@@ -251,10 +292,11 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                             });
                             setSelectedRole(normRole);
                             setSelectedStatus(u.status || 'Active');
+                            setSelectedAssignedCoach(getAssignedCoachForLearner(u.email || u.id));
                           }}
                           className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all border border-indigo-500/30 flex items-center gap-1 cursor-pointer"
                         >
-                          <Edit3 className="w-3 h-3" /> Edit Role
+                          <Edit3 className="w-3 h-3" /> Edit Role & Coach
                         </button>
                       </td>
                     </tr>

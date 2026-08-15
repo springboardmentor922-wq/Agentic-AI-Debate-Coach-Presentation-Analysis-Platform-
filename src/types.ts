@@ -14,6 +14,7 @@ export interface UserProfile {
   avatar: string;
   institution?: string;
   bio?: string;
+  assignedCoach?: string;
   isCustomAccount?: boolean;
   badges?: Badge[];
 }
@@ -176,6 +177,24 @@ export interface NotificationItem {
   timestamp: string;
   read: boolean;
   type: 'evaluation' | 'session' | 'system' | 'coaching';
+  targetLearner?: string;
+  link?: string;
+}
+
+export interface CoachFeedbackNote {
+  id: string;
+  learnerId?: string;
+  learnerName: string;
+  learnerEmail?: string;
+  coachName: string;
+  topic: string;
+  note: string;
+  date: string;
+  timestamp: string;
+  score?: number;
+  grade?: string;
+  focusSkill?: string;
+  recommendation?: string;
 }
 
 export interface NoteItem {
@@ -185,3 +204,4 @@ export interface NoteItem {
   updatedAt: string;
   tags: string[];
 }
+
