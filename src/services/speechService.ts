@@ -1,4 +1,4 @@
-// Milestone 4: Speech-to-Text, Audio Prosody, and Text-to-Speech Engine
+// Speech-to-Text, Audio Prosody, and Text-to-Speech Engine
 
 export interface SpeechAnalysisResult {
   transcript: string;

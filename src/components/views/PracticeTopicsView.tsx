@@ -113,7 +113,7 @@ export const PracticeTopicsView: React.FC<PracticeTopicsViewProps> = ({ onStartP
 
   return (
     <div className="space-y-8 pb-12">
-      {/* SECTION 1: DEBATE TOPIC RANDOMIZER WIDGET (Milestone 3 Task 1) */}
+      {/* SECTION 1: DEBATE TOPIC RANDOMIZER WIDGET */}
       <div className="bg-gradient-to-br from-indigo-900 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 md:p-8 shadow-xl border border-indigo-500/30 relative overflow-hidden">
         {/* Decorative blur elements */}
         <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -125,7 +125,7 @@ export const PracticeTopicsView: React.FC<PracticeTopicsViewProps> = ({ onStartP
             <div className="space-y-1">
               <div className="inline-flex items-center gap-2 bg-indigo-500/30 border border-indigo-400/30 px-3 py-1 rounded-full text-xs font-semibold text-indigo-200 backdrop-blur-md">
                 <Dices className="w-3.5 h-3.5 text-indigo-300" />
-                <span>Milestone 3 • Task 1: Debate Topic Randomizer</span>
+                <span>AI Debate Topic Generator & Randomizer</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
                 Debate Topic Randomizer

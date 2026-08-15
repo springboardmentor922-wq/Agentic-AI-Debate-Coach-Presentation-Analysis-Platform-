@@ -110,31 +110,13 @@ export const CounterargumentGeneratorView: React.FC = () => {
       <div className="bg-gradient-to-r from-amber-900 via-amber-800 to-slate-900 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-amber-500/30 border border-amber-400/30 px-3 py-1 rounded-full text-xs font-semibold text-amber-200 backdrop-blur-md">
-              <Zap className="w-3.5 h-3.5 text-amber-300" />
-              <span>Milestone 3 • Part 2: Agent 2 - The Rival Opponent</span>
-            </div>
+          <div className="space-y-2 max-w-3xl">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               Counterargument & Rebuttal Generator
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Agent 2 operates as your charismatic sparring partner. Operating at <strong className="text-amber-200">0.7 Temperature</strong>, it crafts persuasive, multi-perspective rebuttals across logical, empirical, ethical, and policy dimensions.
+              Crafts persuasive, multi-perspective rebuttals and counterarguments across logical, empirical, ethical, and policy dimensions to prepare for any debate challenge.
             </p>
-          </div>
-
-          <div className="flex flex-row md:flex-col items-center md:items-end justify-between gap-2 shrink-0 bg-slate-950/60 p-3.5 rounded-xl border border-amber-500/30 backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-xs">
-              <Swords className="w-4 h-4 text-amber-400" />
-              <span className="font-mono text-slate-300">Temp: 0.7 (Creative Rival)</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <FileCode2 className="w-4 h-4 text-sky-400" />
-              <span className="font-mono text-slate-300">Model: Gemini 3.6 Flash</span>
-            </div>
-            <span className="text-[10px] uppercase font-bold text-amber-300 bg-amber-950 px-2 py-0.5 rounded border border-amber-800">
-              Agent 2 Active
-            </span>
           </div>
         </div>
       </div>

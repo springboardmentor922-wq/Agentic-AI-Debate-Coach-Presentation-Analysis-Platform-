@@ -2,6 +2,7 @@ import React from 'react';
 import { BarChart3, Download, TrendingUp, Brain, Zap, Sparkles, ShieldCheck, Activity, Scale, Award } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, AreaChart, Area, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { MOCK_PERFORMANCE_SCORES, MOCK_SKILL_PROGRESS } from '../../data/mockData';
+import { PDFReportService } from '../../services/PDFReportService';
 
 export const PerformanceScoresView: React.FC = () => {
   // Extract last 5 sessions for the mini sparkline charts
@@ -16,7 +17,7 @@ export const PerformanceScoresView: React.FC = () => {
   const initialRhetoricScore = last5Sessions[0]?.communicationSkills || 70;
   const rhetoricDiff = currentRhetoricScore - initialRhetoricScore;
 
-  // 5-Point Radar Data for Latest Session based on Official Milestone 3 Formula:
+  // 5-Point Radar Data for Latest Session based on Official Formula:
   // 30% Argument Quality, 20% Evidence Usage, 20% Logical Consistency, 15% Rebuttal Effectiveness, 15% Communication Skills
   const radarData = [
     { subject: 'Argument Quality (30%)', score: latestSession?.argumentQuality || 88, fullMark: 100 },
@@ -34,6 +35,43 @@ export const PerformanceScoresView: React.FC = () => {
     (radarData[4].score * 0.15)
   );
 
+  const handleExportPerformanceReport = () => {
+    PDFReportService.exportDebateSessionPDF({
+      id: 'DEB-ANALYTICS',
+      topic: latestSession?.sessionName || 'Universal Basic Income and Innovation Economy',
+      format: 'Oxford / Policy Debate',
+      stance: 'AFFIRMATIVE',
+      score: calculatedWeightedScore,
+      date: latestSession?.sessionDate || new Date().toLocaleDateString(),
+      aggregateBreakdown: {
+        argumentQuality: radarData[0].score,
+        evidenceUsage: radarData[1].score,
+        logicalConsistency: radarData[2].score,
+        rebuttalEffectiveness: radarData[3].score,
+        communicationSkills: radarData[4].score
+      },
+      turns: [
+        {
+          id: 'turn_perf_01',
+          turnNumber: 1,
+          speaker: 'user',
+          userSpeech: 'Universal basic income establishes an uncompromised floor that unlocks high-risk entrepreneurship and long-term innovation.',
+          aiRebuttal: 'Capital transfer mechanisms risk distorting labor elasticity and accelerating localized inflation without productivity parity.',
+          scores: {
+            argumentQuality: radarData[0].score,
+            evidenceUsage: radarData[1].score,
+            logicalConsistency: radarData[2].score,
+            rebuttalEffectiveness: radarData[3].score,
+            communicationSkills: radarData[4].score,
+            weightedTotal: calculatedWeightedScore
+          }
+        }
+      ]
+    }, {
+      coachNotes: 'Demonstrated superior logical cohesion and structured rebuttal agility across rolling 5-session telemetry.'
+    });
+  };
+
   return (
     <div className="space-y-6 pb-12">
       {/* View Header */}
@@ -45,24 +83,24 @@ export const PerformanceScoresView: React.FC = () => {
             </div>
             <div>
               <h2 className="text-xl font-bold text-white tracking-tight">Performance Scores & Analytics</h2>
-              <p className="text-xs text-slate-400">Evaluated by Performance Analytics Agent using the Official Milestone 3 Weighted Formula</p>
+              <p className="text-xs text-slate-400">Evaluated by Performance Analytics Agent using the Official Weighted Scoring Formula</p>
             </div>
           </div>
 
           <button
-            onClick={() => alert("Exporting Performance Analytics PDF Report...")}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all self-start"
+            onClick={handleExportPerformanceReport}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-indigo-600/30 transition-all self-start cursor-pointer"
           >
             <Download className="w-4 h-4" /> Export Performance Report
           </button>
         </div>
 
-        {/* Milestone 3 Weighted Formula Banner */}
+        {/* Official Weighted Formula Banner */}
         <div className="bg-indigo-950/60 border border-indigo-500/30 p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
           <div className="space-y-1">
             <span className="font-bold text-indigo-300 flex items-center gap-1.5 uppercase tracking-wider text-[11px]">
               <Scale className="w-3.5 h-3.5 text-indigo-400" />
-              Official Milestone 3 Performance Score Formula:
+              Official Performance Score Formula:
             </span>
             <p className="font-mono text-slate-200 text-[11px] leading-relaxed">
               Score = <span className="text-emerald-400 font-bold">(30% × Argument Quality)</span> + <span className="text-cyan-400 font-bold">(20% × Evidence Usage)</span> + <span className="text-amber-400 font-bold">(20% × Logical Consistency)</span> + <span className="text-purple-400 font-bold">(15% × Rebuttal Effectiveness)</span> + <span className="text-pink-400 font-bold">(15% × Communication Skills)</span>
@@ -120,7 +158,7 @@ export const PerformanceScoresView: React.FC = () => {
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#0f172a', borderRadius: '8px', border: '1px solid #334155', color: '#fff', fontSize: '11px' }}
                     formatter={(val: any) => [`${val}/100`, 'Logic Score']}
-                    labelFormatter={(label: any, items: any[]) => items[0]?.payload?.sessionName || label}
+                    labelFormatter={(label: any, items: readonly any[]) => items[0]?.payload?.sessionName || label}
                   />
                   <Area 
                     type="monotone" 
@@ -176,7 +214,7 @@ export const PerformanceScoresView: React.FC = () => {
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#0f172a', borderRadius: '8px', border: '1px solid #334155', color: '#fff', fontSize: '11px' }}
                     formatter={(val: any) => [`${val}/100`, 'Rhetoric Score']}
-                    labelFormatter={(label: any, items: any[]) => items[0]?.payload?.sessionName || label}
+                    labelFormatter={(label: any, items: readonly any[]) => items[0]?.payload?.sessionName || label}
                   />
                   <Area 
                     type="monotone" 
@@ -202,7 +240,7 @@ export const PerformanceScoresView: React.FC = () => {
 
       {/* Main Grid Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* 5-Point Skill Radar Chart (Milestone 3 PDF Requirement) */}
+        {/* 5-Point Skill Radar Chart */}
         <div className="bg-[#1E293B] p-6 rounded-2xl border border-slate-700/80 shadow-2xl space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-white text-base flex items-center gap-2">

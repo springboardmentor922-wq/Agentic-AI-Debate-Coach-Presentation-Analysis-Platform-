@@ -821,7 +821,7 @@ export const EducatorDashboardView: React.FC<EducatorDashboardViewProps> = ({
                   onClick={() => {
                     if (newClassName.trim()) {
                       const name = newClassName.trim();
-                      setClassList(prev => [...prev, { name, learners: 12, avgScore: 81.2, trend: 5.2 }]);
+                      setClassList(prev => [...prev, { name, shortName: name.slice(0, 12), learners: 12, avgScore: 81.2, trend: '+5.2' }]);
                       setRosterData(prev => ({
                         ...prev,
                         [name]: [

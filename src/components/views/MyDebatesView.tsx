@@ -18,6 +18,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
+import { PDFReportService } from '../../services/PDFReportService';
 
 interface MyDebatesViewProps {
   onStartNewDebate: () => void;
@@ -725,7 +726,42 @@ export const MyDebatesView: React.FC<MyDebatesViewProps> = ({ onStartNewDebate }
             {/* Modal Actions */}
             <div className="flex items-center justify-between border-t pt-4 border-slate-700/50">
               <button 
-                onClick={() => alert(`Exporting PDF Report for: ${selectedReportModal.title}...`)}
+                onClick={() => {
+                  PDFReportService.exportDebateSessionPDF({
+                    id: `DEB-${selectedReportModal.id}`,
+                    topic: selectedReportModal.title,
+                    format: selectedReportModal.format,
+                    stance: selectedReportModal.side,
+                    score: selectedReportModal.score,
+                    date: selectedReportModal.date,
+                    aggregateBreakdown: {
+                      argumentQuality: selectedReportModal.report.metrics.reasoning || 85,
+                      evidenceUsage: selectedReportModal.report.metrics.evidence || 80,
+                      logicalConsistency: selectedReportModal.report.metrics.reasoning || 85,
+                      rebuttalEffectiveness: selectedReportModal.report.metrics.structure || 80,
+                      communicationSkills: selectedReportModal.report.metrics.clarity || 85,
+                    },
+                    turns: [
+                      {
+                        id: `turn_${selectedReportModal.id}_1`,
+                        turnNumber: 1,
+                        speaker: 'user',
+                        userSpeech: `${selectedReportModal.title} - ${selectedReportModal.side} stance constructive speech. Key focus: ${selectedReportModal.report.keyHighlight}`,
+                        aiRebuttal: `Counter-argument addressing the ${selectedReportModal.side.toLowerCase()} position with structured rebuttal agility and evidentiary challenges.`,
+                        scores: {
+                          argumentQuality: selectedReportModal.report.metrics.reasoning,
+                          evidenceUsage: selectedReportModal.report.metrics.evidence,
+                          logicalConsistency: selectedReportModal.report.metrics.reasoning,
+                          rebuttalEffectiveness: selectedReportModal.report.metrics.structure,
+                          communicationSkills: selectedReportModal.report.metrics.clarity,
+                          weightedTotal: selectedReportModal.score
+                        }
+                      }
+                    ]
+                  }, {
+                    coachNotes: selectedReportModal.report.judgeNotes
+                  });
+                }}
                 className={`px-4 py-2 rounded-xl text-xs font-semibold border flex items-center gap-1.5 cursor-pointer ${
                   isDark ? 'border-slate-700 hover:bg-slate-800 text-slate-300' : 'border-slate-300 hover:bg-slate-100 text-slate-700'
                 }`}

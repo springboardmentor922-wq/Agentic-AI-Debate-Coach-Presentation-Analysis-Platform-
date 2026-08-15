@@ -140,31 +140,13 @@ export const FallacyDetectorView: React.FC = () => {
       <div className="bg-gradient-to-r from-rose-900 via-rose-800 to-slate-900 text-white p-6 rounded-2xl shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 translate-x-1/4 -translate-y-1/4 w-72 h-72 bg-rose-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-rose-500/30 border border-rose-400/30 px-3 py-1 rounded-full text-xs font-semibold text-rose-200 backdrop-blur-md">
-              <Zap className="w-3.5 h-3.5 text-rose-300" />
-              <span>Milestone 3 • Part 1: Agent 1 - The Referee</span>
-            </div>
+          <div className="space-y-2 max-w-3xl">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
               Logical Fallacy Detection & Logic Audit Engine
             </h1>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Agent 1 operates as the objective referee in real-time debate simulations. Running at locked <strong className="text-rose-200">0.0 Temperature</strong>, it performs deterministic logic validation, flags formal/informal fouls, calculates penalty points, and outlines tactical counter-strategies.
+              Provides objective, deterministic logic validation in real-time debate simulations. Identifies formal and informal reasoning flaws, flags fouls, calculates penalty points, and outlines tactical counter-strategies.
             </p>
-          </div>
-
-          <div className="flex flex-row md:flex-col items-center md:items-end justify-between gap-2 shrink-0 bg-slate-950/60 p-3.5 rounded-xl border border-rose-500/30 backdrop-blur-sm">
-            <div className="flex items-center gap-2 text-xs">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span className="font-mono text-slate-300">Temp: 0.0 (Zero-Drift)</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <FileCode2 className="w-4 h-4 text-sky-400" />
-              <span className="font-mono text-slate-300">Model: Gemini 3.6 Flash</span>
-            </div>
-            <span className="text-[10px] uppercase font-bold text-rose-300 bg-rose-950 px-2 py-0.5 rounded border border-rose-800">
-              Agent 1 Active
-            </span>
           </div>
         </div>
 

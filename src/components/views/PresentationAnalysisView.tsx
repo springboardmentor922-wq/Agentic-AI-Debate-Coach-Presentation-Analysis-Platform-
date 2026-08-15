@@ -401,9 +401,6 @@ ${metrics.feedback_tips ? metrics.feedback_tips.map((tip, i) => `${i + 1}. ${tip
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-extrabold tracking-tight">Presentation & Speech Analytics</h2>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                  Milestone 4 Engine
-                </span>
               </div>
               <p className={`text-xs ${textSub} mt-0.5`}>
                 Real-time STT speech recognition, prosody acoustic extraction, cadence tracking & AI voice coaching.
