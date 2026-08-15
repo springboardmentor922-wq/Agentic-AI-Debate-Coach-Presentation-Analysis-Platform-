@@ -41,6 +41,11 @@ function DebateRoom() {
   const [history, setHistory] = useState([]);
   const [sessionId] = useState(() => `${user?.id || "guest"}-${Date.now()}`);
 
+  // ✅ NEW — Phase B: real recorded audio, kept so it can be played back
+  // immediately (local object URL) and uploaded for permanent storage.
+  const [recordedAudioUrl, setRecordedAudioUrl] = useState(null); // local, for instant playback
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+
   useEffect(() => {
     api.get("/topics").then((res) => setTopics(res.data)).catch(() => {});
   }, []);
@@ -60,7 +65,9 @@ function DebateRoom() {
 
   // Persists the full report (either mode) into the Node Session collection
   // so it shows up identically in My Debates / the Dashboard later.
-  const logFullReport = async (turnResult) => {
+  // ✅ NEW — accepts an optional real audioUrl (only present for voice-mode
+  // turns that were successfully uploaded to the backend).
+  const logFullReport = async (turnResult, audioUrl = null) => {
     try {
       await api.post("/session/log", {
         topic: selectedTopic || "Freeform practice",
@@ -73,6 +80,7 @@ function DebateRoom() {
         engagementScore: turnResult.delivery_metrics.engagement_score,
         argumentScore: turnResult.argument_analysis.logical_consistency_score,
         fallacyDetected: turnResult.fallacy_metrics.fallacy_detected,
+        audioUrl, // ✅ NEW
         presentationMetrics: {
           wordsPerMinute: turnResult.presentation_metrics.words_per_minute,
           paceStatus: turnResult.presentation_metrics.pace_status,
@@ -105,6 +113,26 @@ function DebateRoom() {
       });
     } catch (logErr) {
       console.error("Could not log session to dashboard:", logErr);
+    }
+  };
+
+  // ✅ NEW — Phase B: uploads the real recorded audio blob to the Node
+  // backend, which saves it to disk and returns a real, playable URL.
+  const uploadAudio = async (audioBlob) => {
+    if (!audioBlob) return null;
+    setUploadingAudio(true);
+    try {
+      const form = new FormData();
+      form.append("audio", audioBlob, "debate-turn.webm");
+      const res = await api.post("/learner/upload-audio", form, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      return res.data.audioUrl;
+    } catch (err) {
+      console.error("Could not upload audio recording:", err);
+      return null;
+    } finally {
+      setUploadingAudio(false);
     }
   };
 
@@ -152,6 +180,7 @@ function DebateRoom() {
     }
     setLoading(true);
     setStreamingReply("");
+    setRecordedAudioUrl(null); // ✅ NEW — typed mode has no audio
     try {
       const response = await fetch("http://localhost:8000/api/v1/debate/turn-text-stream", {
         method: "POST",
@@ -174,7 +203,7 @@ function DebateRoom() {
             { role: "user", content: turnResult.user_transcript },
             { role: "assistant", content: turnResult.ai_rebuttal }
           ]);
-          await logFullReport(turnResult);
+          await logFullReport(turnResult); // no audioUrl — typed mode
           setArgument("");
         }
       );
@@ -189,10 +218,17 @@ function DebateRoom() {
 
   // ==============================
   // RECORD MODE — same real streaming, on the voice endpoint
+  // ✅ NEW — now also receives the real recorded audioBlob (3rd arg from
+  // VoiceRecorder), uploads it for real, and attaches the resulting real
+  // URL to the saved session.
   // ==============================
-  const handleConfirmedTranscript = async (transcriptText, durationSec) => {
+  const handleConfirmedTranscript = async (transcriptText, durationSec, audioBlob) => {
     setLoading(true);
     setStreamingReply("");
+
+    // Instant local playback while the network calls are in flight
+    if (audioBlob) setRecordedAudioUrl(URL.createObjectURL(audioBlob));
+
     try {
       const form = new FormData();
       form.append("session_id", sessionId);
@@ -221,7 +257,9 @@ function DebateRoom() {
             { role: "user", content: turnResult.user_transcript },
             { role: "assistant", content: turnResult.ai_rebuttal }
           ]);
-          await logFullReport(turnResult);
+          // ✅ NEW — upload the real audio, then log the session with its real URL
+          const uploadedUrl = await uploadAudio(audioBlob);
+          await logFullReport(turnResult, uploadedUrl);
         }
       );
 
@@ -344,7 +382,11 @@ function DebateRoom() {
           {inputMode === "record" && (
             <>
               <VoiceRecorder disabled={loading} onConfirmed={handleConfirmedTranscript} />
-              {loading && <p className="text-gray-400 text-sm">Analyzing your argument...</p>}
+              {loading && (
+                <p className="text-gray-400 text-sm">
+                  {uploadingAudio ? "Saving your recording..." : "Analyzing your argument..."}
+                </p>
+              )}
             </>
           )}
         </div>
@@ -361,7 +403,18 @@ function DebateRoom() {
                 <p className="text-gray-500 text-xs mt-4">Scoring your argument in the background — full report appears once the AI finishes speaking.</p>
               </div>
             )}
-            {result && <ReportCard result={result} />}
+            {result && (
+              <div>
+                {/* ✅ NEW — instant local playback of what you just recorded */}
+                {recordedAudioUrl && (
+                  <div className="bg-[#1a1a2b] border border-white/5 rounded-2xl p-4 mb-4">
+                    <p className="text-gray-500 text-xs mb-2">Your Recording</p>
+                    <audio controls src={recordedAudioUrl} className="w-full" />
+                  </div>
+                )}
+                <ReportCard result={result} />
+              </div>
+            )}
           </div>
         )}
       </div>

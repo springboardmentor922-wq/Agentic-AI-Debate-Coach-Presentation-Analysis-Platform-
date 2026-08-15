@@ -3,7 +3,10 @@ uvicorn[standard]
 pydantic
 langchain
 langchain-google-genai
+langchain-community
 langgraph
+faiss-cpu
+requests
 motor
 psycopg2-binary
 python-dotenv

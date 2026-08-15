@@ -19,6 +19,7 @@ function VoiceRecorder({ onConfirmed, disabled }) {
   const chunksRef = useRef([]);
   const startTimeRef = useRef(null);
   const timerRef = useRef(null);
+  const audioBlobRef = useRef(null); // ✅ NEW — Phase B: keep the real recorded audio around
 
   const targetSeconds = () => Math.max(5, minutes * 60 + seconds); // 5s floor so it can't be zero
 
@@ -40,6 +41,7 @@ function VoiceRecorder({ onConfirmed, disabled }) {
         stream.getTracks().forEach((track) => track.stop());
 
         const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        audioBlobRef.current = blob; // ✅ NEW — kept for handleConfirm to pass upward
         const finalDuration = (Date.now() - startTimeRef.current) / 1000;
         setDurationSec(finalDuration);
 
@@ -95,10 +97,11 @@ function VoiceRecorder({ onConfirmed, disabled }) {
     setStatus("choose-duration");
     setTranscript("");
     setError("");
+    audioBlobRef.current = null; // ✅ NEW
   };
 
   const handleConfirm = () => {
-    onConfirmed(transcript, durationSec);
+    onConfirmed(transcript, durationSec, audioBlobRef.current); // ✅ NEW — 3rd arg: the real recorded audio
     resetRecording();
   };
 

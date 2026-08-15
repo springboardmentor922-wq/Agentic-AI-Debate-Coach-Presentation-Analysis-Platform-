@@ -1,4 +1,5 @@
 import time
+import asyncio
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
@@ -9,6 +10,7 @@ from app.services.delivery_coach import analyze_delivery
 from app.services.argument_analysis import analyze_argument_quality
 from app.services.presentation_audio import compute_presentation_metrics
 from app.services.context_summarizer import summarize_history
+from app.services.evidence_grounding import retrieve_evidence
 from app.schemas.debate import ChatMessage
 
 FORMAT_RULES = {
@@ -24,6 +26,21 @@ DEFAULT_FORMAT_RULE = "Act as an elite, articulate debate opponent."
 OPPONENT_PERSONAS = {
     "LogicBot": "You are LogicBot: cold, precise, and purely analytical. You never appeal to emotion — only formal logic, statistics, and structured syllogisms. You point out any logical gap immediately and mechanically.",
     "PersuadeBot": "You are PersuadeBot: warm, rhetorical, and emotionally compelling. You use vivid stories, analogies, and appeals to shared values, while still being intellectually honest.",
+    "Aggressive Opponent": "You are an Aggressive Opponent: relentless and confrontational. You attack every weak point immediately, interrupt-style, and push hard rhetorical pressure — suited to fast, high-stakes formats like Oxford debate.",
+    "Data-Driven Opponent": "You are a Data-Driven Opponent: dense with facts, statistics, and precedent. You lead every point with concrete numbers or real-world examples and treat unsupported claims as immediately vulnerable — suited to Policy debate.",
+    "Formal Opponent": "You are a Formal Opponent: measured, procedural, and precise with political/parliamentary terminology, respecting formal debate conventions — suited to Parliamentary debate.",
+    "Accessible Opponent": "You are an Accessible Opponent: clear, concise, and audience-friendly. You avoid jargon and make your points land in plain language — suited to Public Forum debate.",
+}
+
+# Which personas make sense for which format — used by the frontend to
+# only offer options that genuinely fit, instead of the same list everywhere.
+FORMAT_PERSONA_OPTIONS = {
+    "One-on-One Debate": ["LogicBot", "PersuadeBot"],
+    "Parliamentary Debate": ["Formal Opponent", "LogicBot"],
+    "Oxford Debate": ["Aggressive Opponent", "LogicBot"],
+    "Policy Debate": ["Data-Driven Opponent", "LogicBot"],
+    "Public Forum Debate": ["Accessible Opponent", "PersuadeBot"],
+    "AI Debate Simulation": ["LogicBot", "PersuadeBot", "Aggressive Opponent", "Data-Driven Opponent", "Formal Opponent", "Accessible Opponent"],
 }
 
 DIFFICULTY_OPPONENT_NOTE = {
@@ -61,6 +78,23 @@ class MultiAgentDebateEngine:
 
         if custom_scenario:
             system_rules += f"\n\n[CUSTOM SCENARIO]: {custom_scenario}"
+
+        # ✅ Real anti-hallucination grounding: retrieve actual evidence
+        # (live Wikipedia + any uploaded documents) and instruct the model
+        # to only cite from what's genuinely returned here.
+        evidence = await asyncio.to_thread(retrieve_evidence, text[:200])
+        if evidence:
+            evidence_block = "\n".join(f"- [{e['source']}] {e['title']}: {e['snippet']}" for e in evidence[:5])
+            system_rules += (
+                f"\n\n[REAL RETRIEVED EVIDENCE — use ONLY these facts if you cite a source. "
+                f"Do not invent statistics or studies beyond what's listed here]:\n{evidence_block}"
+            )
+        else:
+            system_rules += (
+                "\n\n[NO VERIFIED EVIDENCE RETRIEVED]: If you would normally cite a statistic or "
+                "study, instead say you don't have a verified source for that specific claim and "
+                "argue from logic/principle instead — never invent a number or study."
+            )
 
         if fallacy_report.fallacy_detected:
             system_rules += (

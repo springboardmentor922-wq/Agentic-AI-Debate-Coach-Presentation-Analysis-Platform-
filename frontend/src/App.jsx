@@ -17,6 +17,7 @@ import CoachLearners from "./pages/CoachLearners";
 import AdminUserManagement from "./pages/AdminUserManagement";
 import AIDebateSimulation from "./pages/AIDebateSimulation";
 import PresentationAnalysis from "./pages/PresentationAnalysis";
+import MyPresentations from "./pages/MyPresentations";
 import PerformanceScoresTable from "./pages/PerformanceScoresTable";
 import FeedbackCoaching from "./pages/FeedbackCoaching";
 import MyNotes from "./pages/MyNotes";
@@ -52,6 +53,7 @@ import AdminSecurityCompliance from "./pages/AdminSecurityCompliance";
 import AdminAuditLogs from "./pages/AdminAuditLogs";
 import Onboarding from "./pages/Onboarding";
 import LearningPath from "./pages/LearningPath";
+import PhasedDebateRoom from "./pages/PhasedDebateRoom";
 import RecommendedForYou from "./pages/RecommendedForYou";
 import { ProtectedRoute } from "./utils/useAuth";
 
@@ -79,6 +81,7 @@ function App() {
 
         <Route path="/ai-debate-simulation" element={<ProtectedRoute roles={["Learner"]}><AIDebateSimulation /></ProtectedRoute>} />
         <Route path="/presentation-analysis" element={<ProtectedRoute roles={["Learner"]}><PresentationAnalysis /></ProtectedRoute>} />
+        <Route path="/my-presentations" element={<ProtectedRoute roles={["Learner"]}><MyPresentations /></ProtectedRoute>} />
         <Route path="/performance-scores" element={<ProtectedRoute roles={["Learner"]}><PerformanceScoresTable /></ProtectedRoute>} />
         <Route path="/feedback-coaching" element={<ProtectedRoute roles={["Learner"]}><FeedbackCoaching /></ProtectedRoute>} />
         <Route path="/my-notes" element={<ProtectedRoute roles={["Learner"]}><MyNotes /></ProtectedRoute>} />
@@ -113,6 +116,7 @@ function App() {
         <Route path="/admin/top-active-debates" element={<ProtectedRoute roles={["Admin"]}><AdminTopActiveDebates /></ProtectedRoute>} />
         <Route path="/admin/ai-service-usage" element={<ProtectedRoute roles={["Admin"]}><AdminAIServiceUsage /></ProtectedRoute>} />
         <Route path="/admin/content-management" element={<ProtectedRoute roles={["Admin"]}><AdminContentManagement /></ProtectedRoute>} />
+        <Route path="/phased-debate" element={<ProtectedRoute roles={["Learner"]}><PhasedDebateRoom /></ProtectedRoute>} />
         <Route path="/admin/notification-center" element={<ProtectedRoute roles={["Admin"]}><AdminNotificationCenter /></ProtectedRoute>} />
         <Route path="/admin/support-tickets" element={<ProtectedRoute roles={["Admin"]}><AdminSupportTickets /></ProtectedRoute>} />
         <Route path="/admin/system-health" element={<ProtectedRoute roles={["Admin"]}><AdminSystemHealth /></ProtectedRoute>} />

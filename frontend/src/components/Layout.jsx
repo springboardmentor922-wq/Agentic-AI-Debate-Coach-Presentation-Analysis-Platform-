@@ -10,6 +10,7 @@ const NAV_BY_ROLE = {
       { to: "/dashboard", label: "Dashboard" },
       { to: "/my-debates", label: "My Debates" },
       { to: "/ai-debate-simulation", label: "AI Debate Simulation" },
+      { to: "/phased-debate", label: "Phased Debate" },
       { to: "/topics", label: "Practice Topics" },
       { to: "/tools/argument-analyzer", label: "Argument Analyzer" },
       { to: "/tools/fallacy-detector", label: "Fallacy Detector" },
@@ -17,6 +18,7 @@ const NAV_BY_ROLE = {
     ]},
     { label: "ANALYZE", items: [
       { to: "/presentation-analysis", label: "Presentation Analysis" },
+      { to: "/my-presentations", label: "My Presentations" },
       { to: "/performance-scores", label: "Performance Scores" },
     ]},
     { label: "IMPROVE", items: [
@@ -77,6 +79,7 @@ const NAV_BY_ROLE = {
       { to: "/debate-formats", label: "Debate Formats" },
       { to: "/educator/rubrics", label: "Rubrics & Criteria" },
       { to: "/educator/resources", label: "Resource Library" },
+      { to: "/educator/knowledge-base", label: "Knowledge Base (RAG)" },
     ]},
     { label: "COMMUNICATION", items: [
       { to: "/educator/announcements", label: "Announcements" },

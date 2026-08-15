@@ -286,3 +286,62 @@ def _extract_response(graph, config, result) -> dict:
             "waiting_for": None,
             "transcript": state_snapshot.values.get("transcript", [])
         }
+
+
+# =========================================================================
+# ✅ NEW — Phase D: real streaming versions of the 3 functions above.
+#
+# Uses LangGraph's real astream(..., stream_mode="messages") — this
+# genuinely intercepts token-level chunks from any chat-model call made
+# inside a node (the Opponent's ainvoke call in _make_ai_phase_node),
+# without needing to rewrite that node to call .astream() itself. Once
+# the async generator is exhausted, the graph has either paused at the
+# next interrupt or completed — at that point we call the exact same
+# _extract_response() used by the non-streaming path, so both paths
+# share one source of truth for "what happened."
+#
+# Honest caveat: I could not execute-test this against a live LangGraph
+# install. This follows LangGraph's documented "messages" stream mode
+# pattern, but please test carefully — this is real, new code, not
+# something I've verified end-to-end.
+# =========================================================================
+async def _stream_and_finalize(graph, input_or_command, config):
+    async for msg_chunk, _metadata in graph.astream(input_or_command, config=config, stream_mode="messages"):
+        text = _extract_text(getattr(msg_chunk, "content", ""))
+        if text:
+            yield ("chunk", text)
+    yield ("done", _extract_response(graph, config, None))
+
+
+async def start_session_stream(session_id: str, debate_format: str, topic: str, stance: str,
+                                difficulty: str = None, opponent_persona: str = None, custom_scenario: str = None):
+    graph = _get_compiled_graph(debate_format)
+    config = {"configurable": {"thread_id": session_id}}
+    initial_state: GraphState = {
+        "session_id": session_id,
+        "debate_format": debate_format,
+        "topic": topic,
+        "stance": stance,
+        "difficulty": difficulty,
+        "opponent_persona": opponent_persona,
+        "custom_scenario": custom_scenario,
+        "transcript": [],
+    }
+    async for item in _stream_and_finalize(graph, initial_state, config):
+        yield item
+
+
+async def submit_turn_stream(session_id: str, debate_format: str, content: str, timed_out: bool = False):
+    graph = _get_compiled_graph(debate_format)
+    config = {"configurable": {"thread_id": session_id}}
+    async for item in _stream_and_finalize(graph, Command(resume={"content": content, "timed_out": timed_out}), config):
+        yield item
+
+
+async def respond_continue_stream(session_id: str, debate_format: str, action: str):
+    if action not in ("continue", "end"):
+        raise ValueError("action must be 'continue' or 'end'")
+    graph = _get_compiled_graph(debate_format)
+    config = {"configurable": {"thread_id": session_id}}
+    async for item in _stream_and_finalize(graph, Command(resume={"action": action}), config):
+        yield item

@@ -1,6 +1,8 @@
 import json
 import tempfile
 import os
+import uuid
+import asyncio
 from datetime import datetime, timezone
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
@@ -23,8 +25,14 @@ from app.schemas.fallacy import FallacyReportSchema
 from app.schemas.counterargument import CounterargumentSchema
 from app.schemas.debate import DebateTurnResponseSchema, ChatMessage
 from app.services import debate_state_machine
+from app.services.evidence_grounding import add_document, retrieve_evidence
 from app.schemas.presentation import PresentationMetricsSchema
 from app.schemas.delivery import DeliveryAssessmentSchema
+
+# ✅ NEW — Phase A: Presentation file-upload + content review
+from app.services.document_parser import parse_document
+from app.services.content_reviewer import review_content
+from app.schemas.presentation_full import PresentationFullAnalysisResponse
 
 app = FastAPI(title="AI Debate Coach — Engine")
 
@@ -79,6 +87,54 @@ async def analyze_presentation(audio: UploadFile = File(...), duration_seconds: 
         words_per_minute=presentation_metrics.words_per_minute or 0,
         pace_status=presentation_metrics.pace_status,
         filler_word_count=presentation_metrics.filler_word_count
+    )
+
+
+# ✅ NEW — Phase A: real combined analysis of an uploaded PPTX/PDF PLUS the
+# actual recorded speech presenting it. Extracts real slide/page text (no
+# invented content), runs it through the real Content Reviewer agent, and
+# combines that with the existing real delivery analysis.
+@app.post("/api/v1/presentation/analyze-full", response_model=PresentationFullAnalysisResponse)
+async def analyze_presentation_full(
+    document: UploadFile = File(...),
+    audio: UploadFile = File(...),
+    duration_seconds: float = Form(...)
+):
+    doc_suffix = os.path.splitext(document.filename or "file")[1] or ".pptx"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=doc_suffix) as doc_tmp:
+        doc_tmp.write(await document.read())
+        doc_path = doc_tmp.name
+
+    audio_suffix = os.path.splitext(audio.filename or "audio.webm")[1] or ".webm"
+    with tempfile.NamedTemporaryFile(delete=False, suffix=audio_suffix) as audio_tmp:
+        audio_tmp.write(await audio.read())
+        audio_path = audio_tmp.name
+
+    try:
+        slides = parse_document(doc_path, document.filename)
+        transcript = transcribe_audio(audio_path)
+    finally:
+        os.remove(doc_path)
+        os.remove(audio_path)
+
+    redirect = validate_input(transcript)
+    if redirect:
+        raise HTTPException(status_code=422, detail=redirect)
+
+    from app.services.presentation_audio import compute_presentation_metrics
+    from app.services.delivery_coach import analyze_delivery
+
+    presentation_metrics = compute_presentation_metrics(transcript, duration_seconds)
+    delivery_report = await analyze_delivery(transcript, presentation_metrics.filler_word_count)
+    content_review = await review_content(slides)
+
+    return PresentationFullAnalysisResponse(
+        transcript=transcript,
+        filename=document.filename,
+        slide_count=len(slides),
+        presentation_metrics=presentation_metrics,
+        delivery_metrics=delivery_report,
+        content_review=content_review
     )
 
 
@@ -215,6 +271,109 @@ async def respond_continue_check(session_id: str, body: ContinueCheckRequest):
         session_id=session_id, debate_format=body.debate_format, action=body.action
     )
     return await _finalize_if_completed(session_id, body.debate_format, result)
+
+
+# =========================================================================
+# ✅ NEW — Phase D: real streaming versions of the 3 phased-debate
+# endpoints above. Same SSE contract as the existing single-turn
+# streaming (event: chunk / event: done) so the frontend can reuse the
+# same consumeStream() logic.
+# =========================================================================
+async def _phased_event_stream(async_gen, session_id: str, debate_format: str):
+    async for kind, payload in async_gen:
+        if kind == "chunk":
+            yield f"event: chunk\ndata: {json.dumps({'text': payload})}\n\n"
+        else:  # "done" — the phase paused again, or the whole debate completed
+            finalized = await _finalize_if_completed(session_id, debate_format, payload)
+            # final_report (when present) is a Pydantic model — convert it
+            # to a plain dict before JSON-encoding, same as everything else.
+            if finalized.get("final_report") is not None:
+                finalized = {**finalized, "final_report": finalized["final_report"].model_dump()}
+            yield f"event: done\ndata: {json.dumps(finalized)}\n\n"
+
+
+@app.post("/api/v1/debate/session/start-stream")
+async def start_debate_session_stream(body: StartSessionRequest):
+    gen = debate_state_machine.start_session_stream(
+        session_id=body.session_id, debate_format=body.debate_format, topic=body.topic, stance=body.stance,
+        difficulty=body.difficulty, opponent_persona=body.opponent_persona, custom_scenario=body.custom_scenario
+    )
+    return StreamingResponse(_phased_event_stream(gen, body.session_id, body.debate_format), media_type="text/event-stream")
+
+
+@app.post("/api/v1/debate/session/{session_id}/submit-stream")
+async def submit_debate_turn_stream(session_id: str, body: SubmitTurnRequest):
+    if body.content.strip():
+        redirect = validate_input(body.content)
+        if redirect and not body.timed_out:
+            raise HTTPException(status_code=422, detail=redirect)
+
+    gen = debate_state_machine.submit_turn_stream(
+        session_id=session_id, debate_format=body.debate_format, content=body.content, timed_out=body.timed_out
+    )
+    return StreamingResponse(_phased_event_stream(gen, session_id, body.debate_format), media_type="text/event-stream")
+
+
+@app.post("/api/v1/debate/session/{session_id}/continue-stream")
+async def respond_continue_check_stream(session_id: str, body: ContinueCheckRequest):
+    gen = debate_state_machine.respond_continue_stream(
+        session_id=session_id, debate_format=body.debate_format, action=body.action
+    )
+    return StreamingResponse(_phased_event_stream(gen, session_id, body.debate_format), media_type="text/event-stream")
+
+
+@app.get("/api/v1/debate/persona-options")
+async def get_persona_options():
+    """Real per-format persona mapping — the frontend uses this instead of
+    hardcoding its own copy, so there's one source of truth."""
+    from app.agents.chatbot_engine import FORMAT_PERSONA_OPTIONS, OPPONENT_PERSONAS
+    return {
+        "personas": {name: desc for name, desc in OPPONENT_PERSONAS.items()},
+        "formatOptions": FORMAT_PERSONA_OPTIONS
+    }
+
+
+class AddDocumentRequest(BaseModel):
+    title: str
+    content: str
+
+
+@app.post("/api/v1/knowledge/documents")
+async def add_knowledge_document(body: AddDocumentRequest):
+    """
+    Adds a REAL document to the local knowledge base — embedded for real
+    with Gemini's embedding model, retrievable in future debates' evidence
+    grounding. No auth check here, consistent with every other ai-engine
+    endpoint (auth is a Node-layer concern in this project) — worth
+    tightening before any public deployment.
+    """
+    if not body.title.strip() or not body.content.strip():
+        raise HTTPException(status_code=400, detail="title and content are required")
+
+    doc_id = str(uuid.uuid4())
+    add_document(doc_id, body.title, body.content)
+
+    await db_mongo.knowledge_documents.insert_one({
+        "doc_id": doc_id, "title": body.title,
+        "content_preview": body.content[:200], "created_at": datetime.utcnow()
+    })
+    return {"success": True, "doc_id": doc_id}
+
+
+@app.get("/api/v1/knowledge/documents")
+async def list_knowledge_documents():
+    """Real list of what's actually in the knowledge base."""
+    docs = [doc async for doc in db_mongo.knowledge_documents.find().sort("created_at", -1)]
+    for d in docs:
+        d["_id"] = str(d["_id"])
+    return docs
+
+
+@app.get("/api/v1/knowledge/search")
+async def search_knowledge(query: str):
+    """Test endpoint — see exactly what the Opponent would retrieve for a given topic."""
+    results = await asyncio.to_thread(retrieve_evidence, query)
+    return results
 
 
 @app.get("/health")

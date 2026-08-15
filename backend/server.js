@@ -11,6 +11,11 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+// ✅ NEW — Phase B: real audio file storage
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
 // 📦 MODELS
 const User = require("./models/User");
 const Session = require("./models/Session");
@@ -29,6 +34,7 @@ const Resource = require("./models/Resource");
 const PlatformNotice = require("./models/PlatformNotice");
 const AuditLog = require("./models/AuditLog");
 const ToolUsageLog = require("./models/ToolUsageLog");
+const PresentationSession = require("./models/PresentationSession"); // ✅ NEW — Phase A
 
 // 🤖 AI SERVICE
 const generateFeedback = require("./aiService");
@@ -39,6 +45,19 @@ const { verifyToken, requireRole } = require("./middleware/auth");
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// ✅ NEW — Phase B: real audio file storage for debate recordings —
+// saved to local disk (no cloud/Docker, per instruction), served back
+// statically at /uploads/audio/<filename>.
+const AUDIO_UPLOAD_DIR = path.join(__dirname, "uploads", "audio");
+fs.mkdirSync(AUDIO_UPLOAD_DIR, { recursive: true });
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+const audioStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, AUDIO_UPLOAD_DIR),
+  filename: (req, file, cb) => cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}.webm`)
+});
+const uploadAudio = multer({ storage: audioStorage, limits: { fileSize: 25 * 1024 * 1024 } }); // 25MB cap
 
 
 // =========================
@@ -331,6 +350,7 @@ app.post("/session/log", verifyToken, requireRole("Learner"), async (req, res) =
       confidenceScore,
       engagementScore,
       fallacyDetected,
+      audioUrl, // ✅ NEW — Phase B
       // ✅ NEW — full report detail, all optional
       presentationMetrics,
       argumentAnalysis,
@@ -354,6 +374,7 @@ app.post("/session/log", verifyToken, requireRole("Learner"), async (req, res) =
       argumentScore: argumentScore || 0,
       confidenceScore: confidenceScore || 0,
       engagementScore: typeof engagementScore === "number" ? engagementScore : null,
+      audioUrl: audioUrl || null, // ✅ NEW — Phase B
       fallacyDetected: typeof fallacyDetected === "boolean" ? fallacyDetected : null,
       presentationMetrics: presentationMetrics || undefined,
       argumentAnalysis: argumentAnalysis || undefined,
@@ -404,9 +425,6 @@ function computeBadges(sessions, streak) {
   return badges;
 }
 
-// =========================
-// 🧮 Small helper: compute a "day streak" from a list of sessions
-// =========================
 // =========================
 // ⚖️ WEIGHTED PERFORMANCE SCORE — Milestone 3 formula:
 // 30% Argument Quality + 20% Evidence Usage + 20% Logical Consistency
@@ -642,7 +660,6 @@ app.get("/learner/assigned-topics", verifyToken, requireRole("Learner"), async (
     res.status(500).json({ message: "Error fetching assigned topics", error: error.message });
   }
 });
-
 
 
 // =========================
@@ -918,6 +935,60 @@ app.delete("/learner/notes/:id", verifyToken, requireRole("Learner"), async (req
   } catch (error) {
     res.status(500).json({ message: "Error deleting note", error: error.message });
   }
+});
+
+
+// =========================
+// 🎤 PRESENTATION SESSIONS — real history of every full analysis
+// (Phase A — real PPTX/PDF text extraction + real Content Reviewer agent,
+// combined with real delivery analysis, saved for real)
+// =========================
+app.post("/learner/presentation-sessions", verifyToken, requireRole("Learner"), async (req, res) => {
+  try {
+    const {
+      filename, slideCount, transcript,
+      presentationMetrics, deliveryMetrics, contentReview
+    } = req.body;
+
+    if (!filename) {
+      return res.status(400).json({ message: "filename is required" });
+    }
+
+    const session = await PresentationSession.create({
+      userId: req.user.id,
+      filename,
+      slideCount: slideCount || 0,
+      transcript: transcript || "",
+      presentationMetrics: presentationMetrics || {},
+      deliveryMetrics: deliveryMetrics || {},
+      contentReview: contentReview || {}
+    });
+
+    res.json({ success: true, session });
+  } catch (error) {
+    res.status(500).json({ message: "Error saving presentation session", error: error.message });
+  }
+});
+
+app.get("/learner/presentation-sessions", verifyToken, requireRole("Learner"), async (req, res) => {
+  try {
+    const sessions = await PresentationSession.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.json(sessions);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching presentation sessions", error: error.message });
+  }
+});
+
+
+// =========================
+// 🎙️ AUDIO UPLOAD — real recorded debate audio, saved to disk and
+// served back statically. No cloud storage — this is a real local file,
+// not a fake URL.
+// =========================
+app.post("/learner/upload-audio", verifyToken, requireRole("Learner"), uploadAudio.single("audio"), (req, res) => {
+  if (!req.file) return res.status(400).json({ message: "No audio file received" });
+  const publicUrl = `/uploads/audio/${req.file.filename}`;
+  res.json({ success: true, audioUrl: publicUrl });
 });
 
 

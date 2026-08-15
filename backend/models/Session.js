@@ -64,6 +64,13 @@ const sessionSchema = new mongoose.Schema(
       default: null
     },
 
+    // ✅ NEW — Phase B: real saved path to the recorded audio file on
+    // disk (served statically by Node), null for typed-mode sessions.
+    audioUrl: {
+      type: String,
+      default: null
+    },
+
     // Only meaningfully populated for voice-mode turns
     fallacyDetected: {
       type: Boolean,
