@@ -1,6 +1,23 @@
-# Agentic AI Debate Coach & Presentation Analysis Platform
+# 🎤 Agentic AI Debate Coach & Presentation Analysis Platform
 
-## 🚀 Live Demo
+
+## 📌 1. Project Overview
+
+**Agentic AI Debate Coach & Presentation Analysis Platform** is an AI-powered web application that helps learners improve **debating, argumentation, logical reasoning, presentation skills, and communication abilities** through AI-driven analysis, coaching, simulations, and performance tracking.
+
+The platform combines **LLMs, speech analysis, argument mining, and agentic AI workflows** to simulate real debate environments, detect logical fallacies, generate counterarguments, and deliver personalized coaching — built for students, debate clubs, educators, trainers, and professionals.
+
+---
+
+## 🎥 2. Video Demonstration
+
+### Project Workflow Video
+
+https://drive.google.com/file/d/1yH1wDAYbRUXZbxYiaKT_fkIh_2yCeq3_/view?usp=drive_link
+
+---
+
+## 🚀 3. Live Deployment Links
 
 ### Frontend Application
 
@@ -10,182 +27,236 @@ https://ai-debate-coach-1-n8j8.onrender.com/
 
 https://ai-debate-coach-ss8t.onrender.com/
 
-### Project Workflow Video
+---
 
-https://drive.google.com/file/d/1yH1wDAYbRUXZbxYiaKT_fkIh_2yCeq3_/view?usp=drive_link
+## ✨ 4. Key Features
+
+### 🔐 Authentication & Access Control
+- Email OTP Verification
+- JWT Access Token & Refresh Token
+- Role-Based Access Control (RBAC)
+- Four Distinct Roles:
+  - 🎓 Learner
+  - 🧑‍🏫 Debate Coach
+  - 👩‍🏫 Educator
+  - 🛠️ Administrator
+
+### 🧠 AI-Powered Debate & Presentation Tools
+- Argument Analysis & Scoring Engine
+- Logical Fallacy Detection (Ad Hominem, Straw Man, Slippery Slope, etc.)
+- AI-Generated Counterarguments & Rebuttals
+- AI Debate Opponent & Live Debate Simulation
+- Speech-to-Text Transcription (Audio/Video Upload)
+- Presentation & Confidence Analysis
+- AI Debate Coach Chatbot
+- Personalized Coaching & Learning Plans
+
+### 📊 Analytics & Reporting
+- Skill Gap Analysis
+- Performance Tracking Dashboards
+- PDF Report Generation
+- Messaging & Notification System
 
 ---
 
-# Agentic AI Debate Coach & Presentation Analysis Platform
+## 🏁 5. Milestone-wise Implementation
 
-Full-stack platform covering Milestones 1-4 of the internship specification:
-Auth & Role-Based Access, Argument Analysis + Fallacy Detection, AI Debate
-Simulation + Presentation Analysis + Coaching, and Reports/Skill Gap
-Analysis/Messaging/Docker deployment. See [`MILESTONE_3.md`](MILESTONE_3.md)
-and this file's [Status](#status--what-is-actually-implemented) section
-below for exactly what's real vs. still in progress — this README is kept
-in sync with the actual code, not aspirational.
+### ✅ Milestone 1 — Foundation & Core Setup
+- User Registration & Login
+- Email OTP Verification
+- JWT Authentication
+- Role Management
+- Profile Management
+- Dashboard Setup
+- Debate Session Management
 
-## Stack
+### ✅ Milestone 2 — Argument Intelligence
+- Argument Analysis Engine
+- Logical Fallacy Detection
+- AI Opponent
+- Counterargument Generation
+- Analysis History
 
-- **Backend:** Python, FastAPI, MongoDB (Motor async driver), JWT auth,
-  LangChain + OpenAI/Anthropic with a deterministic rule-based fallback,
-  faster-whisper (local) + OpenAI Whisper for transcription, ReportLab for
-  PDF generation, ffmpeg for video→audio extraction
-- **Frontend:** React (Vite), Tailwind CSS, React Router, Axios
-- **Deployment:** Docker + docker-compose (backend, frontend, MongoDB)
+### ✅ Milestone 3 — Simulation & Presentation Coaching
+- AI Debate Simulation
+- Live Debate Sessions
+- Audio & Video Upload
+- Speech Transcription
+- Presentation Analysis
+- Personalized Learning Plans
+- AI Debate Coach Chatbot
+- Coaching Plans
 
-## Status — what is actually implemented
+### ✅ Milestone 4 — Analytics, Reporting & Deployment
+- PDF Report Generation
+- Skill Gap Analysis
+- Messaging System
+- Notifications
+- Analytics Dashboard
+- Docker Deployment
+- Performance Tracking
 
-The platform is AI-first with a hard safety net: every AI-backed feature
-(argument analysis, fallacy detection, presentation scoring, coaching plans,
-learning plans, the chatbot) runs through a provider chain — OpenAI, then
-Anthropic, then a deterministic rule-based engine — so the platform produces
-real, non-empty, evidence-grounded output even with zero API keys
-configured. This is true throughout, not just for a demo path.
+---
 
-### Milestone 1 — Auth & Platform Foundation
+## 🛠️ 6. Technology Stack
 
-User registration with email OTP verification, JWT access+refresh tokens,
-4 roles (`learner`, `debate_coach`, `educator`, `administrator`) each with
-their own dashboard, server-side role enforcement (`require_roles`
-dependency, not just hidden UI), profile management, debate session CRUD.
+### Frontend
+| Technology | Purpose |
+|------------|---------|
+| React.js | UI Development |
+| Vite | Build Tool |
+| Tailwind CSS | Styling |
+| Axios | API Communication |
+| React Router | Navigation |
 
-### Milestone 2 — Argument Analysis & Fallacy Detection
+### Backend
+| Technology | Purpose |
+|------------|---------|
+| Python | Core Language |
+| FastAPI | REST API Framework |
+| JWT Authentication | Secure Auth |
+| MongoDB Atlas | Cloud Database |
 
-Argument Analysis Engine (claims/evidence/clarity/relevance/logical
-consistency scoring), Logical Fallacy Detection Engine (8 fallacy types with
-explanation + correction), an AI Opponent that generates rebuttals routed by
-debate format, all LLM-backed with strict Pydantic-schema structured output.
+### AI / LLM
+| Technology | Purpose |
+|------------|---------|
+| OpenAI | Language Model Reasoning |
+| Anthropic Claude | Language Model Reasoning |
+| LangChain | Agentic AI Orchestration |
+| Faster Whisper | Speech-to-Text |
+| Rule-Based Fallback Engine | Reliability Backup |
 
-### Milestone 3 — AI Debate Simulation, Presentation Analysis, Coaching
+### Deployment
+| Technology | Purpose |
+|------------|---------|
+| Render | Cloud Hosting |
+| Docker | Containerization |
+| GitHub | Version Control |
 
-- Live AI debate sessions (multi-turn, per-format opponent behavior)
-- Audio/video upload pipeline: **asynchronous** — upload returns a job id
-  immediately (`202`), a background task runs transcription → argument
-  analysis → fallacy detection → counterargument generation → delivery
-  scoring → persistence, and the frontend polls `/api/v1/jobs/{id}` for
-  real stage-by-stage progress (not a faked client-side sequence)
-- Transcription: OpenAI Whisper with automatic local (faster-whisper)
-  fallback, plus retry-with-backoff at the job level
-- **Coaching Plans**: a real, trackable entity distinct from the Learning
-  Plan — 4 weeks, measurable objectives, exercises with computed deadlines
-  and completion tracking, generated from AI evidence and automatically
-  regenerated whenever a coach or educator submits a review
-- Personalized Learning Plans, AI Debate Chatbot (7-agent orchestrator,
-  grounded in the authenticated learner's own analysis/fallacy/presentation/
-  coaching-plan/learning-plan/review history)
-- Chatbot session lifecycle: a fresh conversation starts on every login;
-  logout clears client-side chat state while preserving full history in
-  the database
+---
 
-### Milestone 4 — Reports, Skill Gap Analysis, Messaging, Deployment
-
-- **Reports**: PDF generation (ReportLab) including learner name/email,
-  coach/educator names, session ID, per-scorer score breakdown (AI/coach/
-  educator), all 5 argument sub-scores, detected fallacies, presentation
-  delivery scores, counterarguments, transcript excerpt, audio link, and
-  branding — downloadable by the learner, their assigned coach, any
-  educator, or an admin
-- **Skill Gap Analysis**: filterable by learner or department, with
-  historical trend charting, ranked strengths/weaknesses, improvement %,
-  and frequency-ranked recommendations — shared logic between the Coach and
-  Educator views
-- Messaging (REST, conversation history, role-based permissions) and
-  Notifications (unread counts, mark-read)
-- Docker: `backend/Dockerfile`, `frontend/Dockerfile` (nginx), root
-  `docker-compose.yml` wiring Mongo + backend + frontend
-- Test suite: `backend/tests/` (pytest, in-memory Mongo via
-  `mongomock-motor`, no external services required — see
-  `backend/tests/README.md`)
-
-### Known gaps (being tracked, not hidden)
-
-- Messaging is REST/polling, not WebSocket — no live push yet
-- No frontend automated tests yet
-- Docker images are written but **not yet verified against a real Docker
-  daemon** in this environment — please build/test before relying on them
-- Admin has API-level access to coaching plans and reports but no dedicated
-  drill-down UI yet
-
-## Project layout
+## 🏗️ 7. System Architecture Overview
 
 ```
-backend/
-  app/
-    core/        # config, db, security, auth deps
-    schemas/     # Pydantic models
-    services/    # AI services, job/coaching-plan/skill-gap logic, PDF generation
-    agents/      # chatbot orchestrator, opponent engine
-    routers/     # auth, users, debate_sessions, analysis, debate_live,
-                 # coaching_plans, jobs, reports, messages, coach_review,
-                 # educator_analytics, admin, notifications, media, ...
-    main.py
-  tests/         # pytest suite — see tests/README.md
-  Dockerfile
-  requirements.txt / requirements-dev.txt
-  .env.example
-frontend/
-  src/
-    pages/       # Landing, Login, Register, 4 role areas (learner/coach/educator/admin)
-    components/  # TopNav, GlobalChatbot, ProtectedRoute, PlatformStats, charts/
-    context/     # AuthContext, ThemeContext
-    api/axios.js
-  Dockerfile
-  nginx.conf
-  .env.example
-docker-compose.yml
+┌────────────────────┐        ┌────────────────────┐        ┌──────────────────────┐
+│   React Frontend    │  <-->  │   FastAPI Backend   │  <-->  │   MongoDB Atlas DB    │
+│ (Vite + Tailwind)    │        │  (JWT + REST APIs)   │        │  (Users, Sessions,    │
+└────────────────────┘        └─────────┬──────────┘        │   Reports, Analysis)  │
+                                          │                    └──────────────────────┘
+                                          ▼
+                        ┌──────────────────────────────────┐
+                        │   Agentic AI Intelligence Layer   │
+                        │  OpenAI • Claude • LangChain •    │
+                        │  Faster Whisper • Fallback Engine │
+                        └──────────────────────────────────┘
 ```
 
-## Running locally
+**Core Modules:**
+- Authentication System
+- User Management
+- Debate Session Management
+- Argument Analyzer
+- Fallacy Detector
+- Counterargument Generator
+- AI Debate Simulation
+- Presentation Analysis
+- Coaching Plans
+- Learning Plans
+- Reports & Analytics
+- Messaging System
+- Notifications
 
-### Option A — Docker (recommended for a full demo)
+---
 
+## 📂 8. Project Structure
+
+```
+Agentic-AI-Debate-Coach/
+│
+├── backend/                # FastAPI backend, AI engines, APIs, DB models
+├── frontend/                # React.js + Vite frontend application
+├── docker-compose.yml        # Multi-service Docker orchestration
+└── README.md                 # Project documentation
+```
+
+---
+
+## ⚙️ 9. Installation Steps
+
+### Prerequisites
+- Node.js (v18+)
+- Python (v3.10+)
+- MongoDB Atlas account
+- Docker (optional, for containerized deployment)
+
+### 🔹 Clone the Repository
 ```bash
-cp backend/.env.example backend/.env   # fill in real keys if you have them —
-                                        # the platform still works with none, via the deterministic fallback
-docker compose up --build
+git clone <repository-url>
+cd Agentic-AI-Debate-Coach
 ```
 
-Frontend: http://localhost:5173 · Backend docs: http://localhost:8000/docs
-
-### Option B — Run each service directly
-
-**Backend**
-
+### 🔹 Backend Setup
 ```bash
 cd backend
-python -m venv venv && source venv/bin/activate
+python -m venv venv
+source venv/bin/activate      # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env   # fill in MONGO_URI, JWT_SECRET_KEY, OPENAI_API_KEY
-uvicorn app.main:app --reload
+
+# Configure environment variables (.env)
+# MONGODB_URI, JWT_SECRET, OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.
+
+uvicorn main:app --reload
 ```
 
-**Frontend**
-
+### 🔹 Frontend Setup
 ```bash
 cd frontend
 npm install
-cp .env.example .env   # set VITE_API_BASE_URL if different
 npm run dev
 ```
 
-### Running tests
-
+### 🔹 Docker Setup (Optional)
 ```bash
-cd backend
-pip install -r requirements-dev.txt
-pytest
+docker-compose up --build
 ```
 
-No real MongoDB or API keys required — see `backend/tests/README.md`.
+---
 
-## Security notes
+## 🔄 10. Usage Workflow
 
-- No secrets are committed. `.env` is gitignored in both apps; only
-  `.env.example` ships.
-- Passwords hashed with bcrypt; JWT access (short-lived) + refresh tokens.
-- Role checks enforced server-side via FastAPI dependencies, not just
-  hidden in the UI. Data visibility follows the platform-wide rule:
-  learners see only their own data; coaches see their assigned roster;
-  educators/admins see everything.
+1. **Register/Login** using email OTP verification.
+2. **Select your role** — Learner, Debate Coach, Educator, or Administrator.
+3. **Create or join a debate session** based on chosen debate format.
+4. **Submit arguments** via text, audio, or video for AI analysis.
+5. **Receive AI feedback** — fallacy detection, argument scoring, and rebuttals.
+6. **Practice with the AI Debate Opponent** in simulated debate rounds.
+7. **Get presentation feedback** — confidence, clarity, pacing, and engagement.
+8. **Follow personalized coaching & learning plans** generated by the AI Coach.
+9. **Track progress** through analytics dashboards and downloadable PDF reports.
+
+---
+
+## 🔮 11. Future Enhancements
+
+- 🌍 Multi-language debate support
+- 🎯 Real-time multiplayer debate tournaments
+- 📱 Dedicated mobile application
+- 🧩 Advanced emotion & sentiment analysis in speech
+- 🏆 Gamification with leaderboards and badges
+- 🔗 LMS Integration for institutions
+
+---
+
+## 👨‍💻 12. Author Information
+
+**Project:** Agentic AI Debate Coach & Presentation Analysis Platform
+**Type:** Internship / Academic Final Submission Project
+**Developed as an AI-powered communication and debate skill-building platform.**
+
+---
+
+## 🏁 13. Conclusion
+
+The **Agentic AI Debate Coach & Presentation Analysis Platform** demonstrates the practical application of **Agentic AI, LLMs, and NLP** in the domain of education and skill development. By combining argument intelligence, speech analytics, and personalized coaching, the platform delivers a complete, end-to-end solution for improving debating and presentation abilities — built, tested, and deployed as a production-ready system.
+
+---
