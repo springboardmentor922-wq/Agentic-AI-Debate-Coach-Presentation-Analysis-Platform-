@@ -33,12 +33,25 @@ def process_turn(
     analysis = engine.analyze_argument(
         request.user_argument
     )
+    history_records = db.query(DebateHistory)\
+        .filter(DebateHistory.user_id == 1)\
+        .order_by(DebateHistory.id.desc())\
+        .limit(5)\
+        .all()
 
+    history_context = ""
+
+    for item in reversed(history_records):
+        history_context += (
+            f"User: {item.user_argument}\n"
+            f"AI: {item.ai_response}\n"
+        )
     ai_reply = engine.generate_ai_response(
     experience_level=request.experience_level,
     debate_format=request.debate_format,
     topic=request.topic,
-    user_argument=request.user_argument
+    user_argument=request.user_argument,
+    history=history_context
 )
     fallacy_report = engine.detect_fallacy(
     request.user_argument

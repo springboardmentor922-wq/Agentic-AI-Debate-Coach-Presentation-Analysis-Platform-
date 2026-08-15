@@ -55,9 +55,10 @@ class DebateEngine:
         experience_level: str,
         debate_format: str,
         topic: str,
-        user_argument: str
+        user_argument: str,
+        history: str = ""
     ):
-
+        print("generate_ai_response called with history")
         format_instruction = self.get_prompt(debate_format)
 
         level_instruction = self.get_level_instruction(
@@ -76,14 +77,19 @@ Learner Level:
 Topic:
 {topic}
 
-User's Argument:
+Previous Debate Context:
+{history}
+
+Current User Argument:
 {user_argument}
 
 Instructions:
-1. Generate a strong counterargument.
-2. Be respectful.
-3. Keep the response suitable for the learner's level.
-4. End with one coaching tip.
+1. Consider the previous debate context.
+2. Do not repeat earlier counterarguments.
+3. Generate a strong counterargument.
+4. Be respectful.
+5. Keep the response suitable for the learner's level.
+6. End with one coaching tip.
 """
         return generate_response(prompt)
 

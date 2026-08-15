@@ -2,17 +2,29 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/common/Card";
 import Spinner from "../../components/common/Spinner";
-import { getEducatorDashboard } from "../../services/dashboardService";
+import {
+  getEducatorDashboard,
+  getMonitoringData,
+  getAISummary
+} from "../../services/dashboardService";
 import TopicPopularityChart from "../../components/charts/TopicPopularityChart";
 import PerformanceOverviewChart from "../../components/charts/PerformanceOverviewChart";
 function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
+  const [monitoringData, setMonitoringData] = useState([]);
+  const [aiSummary, setAiSummary] = useState([]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         const data = await getEducatorDashboard();
         setDashboardData(data);
+
+        const monitoring = await getMonitoringData();
+        setMonitoringData(monitoring);
+
+        const summaryData = await getAISummary();
+        setAiSummary(summaryData.summary);
       } catch (error) {
         console.error(error);
       }
@@ -47,6 +59,30 @@ function Dashboard() {
         <Card title="Top Topic" value="AI Ethics" />
 
       </div>
+      <div className="mt-8 bg-white rounded-xl shadow p-6">
+
+        <h2 className="text-xl font-bold mb-4">
+          🤖 AI Class Summary
+        </h2>
+
+        <div className="space-y-3">
+
+          {aiSummary.map((item, index) => (
+
+            <div
+              key={index}
+              className="border-l-4 border-indigo-500 pl-4 py-2 bg-gray-50 rounded"
+            >
+
+              {item}
+
+            </div>
+
+          ))}
+
+        </div>
+
+      </div>
 
       {/* Curriculum Insights */}
 
@@ -79,6 +115,62 @@ function Dashboard() {
             <li>✅ Improve argument structure.</li>
             <li>✅ Conduct weekly debate sessions.</li>
           </ul>
+
+        </div>
+
+      </div>
+      <div className="mt-8 bg-white rounded-xl shadow p-6">
+
+        <h2 className="text-xl font-bold mb-4">
+          📊 Learner Monitoring
+        </h2>
+
+        <div className="overflow-x-auto">
+
+          <table className="w-full border">
+
+            <thead>
+
+              <tr className="bg-gray-100">
+
+                <th className="p-3 border">Learner</th>
+                <th className="p-3 border">Coach</th>
+                <th className="p-3 border">Activities</th>
+                <th className="p-3 border">Status</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {monitoringData.map((learner, index) => (
+
+                <tr key={index}>
+
+                  <td className="p-3 border">
+                    {learner.learner_name}
+                  </td>
+
+                  <td className="p-3 border">
+                    {learner.coach_name}
+                  </td>
+
+                  <td className="p-3 border">
+                    {learner.activities_completed}
+                  </td>
+
+                  <td className="p-3 border">
+                    {learner.status}
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
 
         </div>
 

@@ -4,6 +4,9 @@ from database import Base, engine
 import models.debate_history
 import models.role
 import models.user
+from models.coach_assignment import CoachAssignment
+from models.learning_activity import LearningActivity
+from models.coach_note import CoachNote
 from routers.chat import router as chat_router
 from routers import coach_dashboard
 from routers import educator_dashboard
@@ -12,6 +15,13 @@ from routers import admin
 from routers.auth import router as auth_router
 from routers.debate import router as debate_router
 from routers.dashboard import router as dashboard_router
+from routers.coach import router as coach_router
+from routers import coach_notes
+from models.daily_mission import DailyMission
+from routers import daily_missions
+from routers import coach_insights
+from routers import educator_ai_summary
+from routers import coach_messages
 
 app = FastAPI()
 app.include_router(learner_dashboard.router)
@@ -19,6 +29,12 @@ app.include_router(coach_dashboard.router)
 app.include_router(educator_dashboard.router)
 app.include_router(admin.router)
 app.include_router(chat_router)
+app.include_router(coach_notes.router)
+app.include_router(coach_router)
+app.include_router(daily_missions.router)
+app.include_router(coach_insights.router)
+app.include_router(educator_ai_summary.router)
+app.include_router(coach_messages.router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

@@ -2,18 +2,36 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../../layouts/DashboardLayout";
 import Card from "../../components/common/Card";
 import Spinner from "../../components/common/Spinner";
-import { getCoachDashboard } from "../../services/dashboardService";
+import {
+  getCoachDashboard,
+  getAssignedLearners,
+  getCoachNotes,
+  getAttentionLearners
+} from "../../services/dashboardService";
 import StudentPerformanceChart from "../../components/charts/StudentPerformanceChart";
 import SkillGapChart from "../../components/charts/SkillGapChart";
 import TopLearnersChart from "../../components/charts/TopLearnersChart";
 function Dashboard() {
   const [dashboardData, setDashboardData] = useState(null);
-
+  const [learners, setLearners] = useState([]);
+  const [notes, setNotes] = useState([]);
+  const [attentionLearners, setAttentionLearners] = useState([]);
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         const data = await getCoachDashboard();
+        console.log("Coach Dashboard:", data);
         setDashboardData(data);
+
+        const learnerData = await getAssignedLearners();
+        console.log("Assigned Learners:", learnerData);
+        setLearners(learnerData);
+
+        const noteData = await getCoachNotes();
+        setNotes(noteData);
+
+        const attentionData = await getAttentionLearners();
+        setAttentionLearners(attentionData);
       } catch (error) {
         console.error(error);
       }
@@ -25,7 +43,9 @@ function Dashboard() {
   if (!dashboardData) {
     return (
       <DashboardLayout>
-        <Spinner />
+        <div className="p-6 text-red-600 font-bold">
+          Dashboard Data Not Loaded
+        </div>
       </DashboardLayout>
     );
   }
@@ -123,6 +143,98 @@ function Dashboard() {
           </ul>
 
         </div>
+
+      </div>
+      <div className="mt-8 bg-white rounded-xl shadow p-6">
+
+        <h2 className="text-xl font-bold mb-4">
+          👨‍🎓 Assigned Learners
+        </h2>
+
+        {learners.length === 0 ? (
+          <p>No learners assigned.</p>
+        ) : (
+          <ul className="space-y-3">
+
+            {learners.map((learner) => (
+
+              <li
+                key={learner.assignment_id}
+                className="border-b pb-2"
+              >
+                {learner.full_name}
+              </li>
+
+            ))}
+
+          </ul>
+        )}
+
+      </div>
+      <div className="mt-8 bg-white rounded-xl shadow p-6">
+
+        <h2 className="text-xl font-bold mb-4">
+          📝 Coach Notes
+        </h2>
+
+        {notes.length === 0 ? (
+          <p>No notes available.</p>
+        ) : (
+          <div className="space-y-4">
+
+            {notes.map((note) => (
+
+              <div
+                key={note.note_id}
+                className="border rounded-lg p-4"
+              >
+
+                <h3 className="font-semibold">
+                  👨‍🎓 {note.learner_name}
+                </h3>
+
+                <p className="mt-2 text-gray-700">
+                  {note.note}
+                </p>
+
+              </div>
+
+            ))}
+
+          </div>
+        )}
+
+      </div>
+      <div className="mt-8 bg-white rounded-xl shadow p-6">
+
+        <h2 className="text-xl font-bold mb-4 text-red-600">
+          🚨 Learners Needing Attention
+        </h2>
+
+        {attentionLearners.map((learner) => (
+
+          <div
+            key={learner.learner_name}
+            className="border-b py-3"
+          >
+
+            <p className="font-semibold">
+              {learner.learner_name}
+            </p>
+
+            <p>
+              Average Score:
+              {" "}
+              {learner.average_score}
+            </p>
+
+            <p className="text-red-500">
+              {learner.reason}
+            </p>
+
+          </div>
+
+        ))}
 
       </div>
 
