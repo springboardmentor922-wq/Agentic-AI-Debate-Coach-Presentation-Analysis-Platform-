@@ -1,0 +1,5 @@
+[33m69cad01[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mkarthick-k-agentic-ai-debate-coach[m[33m)[m Fixed frontend backend connection
+[33mfa16be0[m Backend deployed and auth module completed
+[33ma970fce[m[33m ([m[1;31mpersonal/main[m[33m, [m[1;31morigin/karthick-k-agentic-ai-debate-coach[m[33m)[m Remove python version from requirements
+[33m9d8c266[m Fix requirements for render
+[33me68c62e[m Add root runtime.txt

@@ -1,5 +1,23 @@
 # Agentic AI Debate Coach & Presentation Analysis Platform
 
+## 🚀 Live Demo
+
+### Frontend Application
+
+https://ai-debate-coach-1-n8j8.onrender.com/
+
+### Backend API
+
+https://ai-debate-coach-ss8t.onrender.com/
+
+### Project Workflow Video
+
+https://drive.google.com/file/d/1yH1wDAYbRUXZbxYiaKT_fkIh_2yCeq3_/view?usp=drive_link
+
+---
+
+# Agentic AI Debate Coach & Presentation Analysis Platform
+
 Full-stack platform covering Milestones 1-4 of the internship specification:
 Auth & Role-Based Access, Argument Analysis + Fallacy Detection, AI Debate
 Simulation + Presentation Analysis + Coaching, and Reports/Skill Gap
