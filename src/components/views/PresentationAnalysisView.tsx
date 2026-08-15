@@ -185,7 +185,7 @@ export const PresentationAnalysisView: React.FC = () => {
   useEffect(() => {
     return () => {
       if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+        mediaStreamRef.current.getTracks().forEach((track: { stop: () => any; }) => track.stop());
       }
       if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
@@ -203,7 +203,7 @@ export const PresentationAnalysisView: React.FC = () => {
         recorderRef.current.stop();
       }
       if (mediaStreamRef.current) {
-        mediaStreamRef.current.getTracks().forEach(track => track.stop());
+        mediaStreamRef.current.getTracks().forEach((track: { stop: () => any; }) => track.stop());
       }
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
@@ -253,7 +253,7 @@ export const PresentationAnalysisView: React.FC = () => {
 
         // Timer interval
         timerIntervalRef.current = setInterval(() => {
-          setRecordingTime(prev => prev + 1);
+          setRecordingTime((prev: number) => prev + 1);
         }, 1000);
       } catch (err: any) {
         console.error('Microphone recording error:', err);
@@ -351,7 +351,7 @@ TRANSCRIPT:
 "${metrics.transcript}"
 
 ACTIONABLE COACHING FEEDBACK:
-${metrics.feedback_tips ? metrics.feedback_tips.map((tip, i) => `${i + 1}. ${tip}`).join('\n') : 'No specific feedback generated.'}
+${metrics.feedback_tips ? metrics.feedback_tips.map((tip: any, i: number) => `${i + 1}. ${tip}`).join('\n') : 'No specific feedback generated.'}
 ======================================================
 `;
     const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8' });
@@ -387,7 +387,7 @@ ${metrics.feedback_tips ? metrics.feedback_tips.map((tip, i) => `${i + 1}. ${tip
     { word: 'like', count: 1 },
     { word: 'you know', count: 1 },
     { word: 'basically', count: 1 }
-  ]).map(f => ({ name: f.word, count: f.count }));
+  ]).map((f: { word: any; count: any; }) => ({ name: f.word, count: f.count }));
 
   return (
     <div className="space-y-6 pb-16">
@@ -576,7 +576,7 @@ ${metrics.feedback_tips ? metrics.feedback_tips.map((tip, i) => `${i + 1}. ${tip
                   <span className="text-amber-400 font-bold">{metrics.filler_words_count} Verbal Crutches Flagged</span>
                 </div>
                 <div className="leading-relaxed">
-                  {speechText.split(/\s+/).map((word, idx) => {
+                  {speechText.split(/\s+/).map((word: string, idx: any) => {
                     const cleanWord = word.toLowerCase().replace(/[^a-z]/g, '');
                     const isFiller = ['um', 'umm', 'uh', 'uhh', 'like', 'basically', 'actually', 'literally'].includes(cleanWord);
                     return (
@@ -739,7 +739,7 @@ ${metrics.feedback_tips ? metrics.feedback_tips.map((tip, i) => `${i + 1}. ${tip
                   'Maintain optimal pacing between 130–160 WPM during affirmative constructives.',
                   'Replace verbal crutches ("basically", "you know") with deliberate 1-second silence to project authority.',
                   'Vary vocal inflection and pitch on operative impact sentences.'
-                ]).map((tip, i) => (
+                ]).map((tip: any, i: any) => (
                   <div key={i} className={`p-3 rounded-xl border ${innerCardBg} text-xs flex items-start gap-2.5`}>
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <span className="leading-relaxed">{tip}</span>
@@ -818,7 +818,7 @@ ${metrics.feedback_tips ? metrics.feedback_tips.map((tip, i) => `${i + 1}. ${tip
                       min={110}
                       max={180}
                       value={metronomeBpm}
-                      onChange={(e) => setMetronomeBpm(Number(e.target.value))}
+                      onChange={(e: { target: { value: any; }; }) => setMetronomeBpm(Number(e.target.value))}
                       className="flex-1 accent-indigo-600 cursor-pointer"
                     />
                     <span className="text-xs font-bold">180 WPM (Tournament Fast)</span>
@@ -904,7 +904,7 @@ ${metrics.feedback_tips ? metrics.feedback_tips.map((tip, i) => `${i + 1}. ${tip
             </div>
 
             <div
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragOver={(e: { preventDefault: () => void; }) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDropFile}
               className={`border-2 border-dashed rounded-2xl p-10 transition-colors cursor-pointer ${
@@ -922,7 +922,7 @@ ${metrics.feedback_tips ? metrics.feedback_tips.map((tip, i) => `${i + 1}. ${tip
                 <input
                   type="file"
                   accept="audio/*"
-                  onChange={(e) => e.target.files?.[0] && processUploadedFile(e.target.files[0])}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => e.target.files?.[0] && processUploadedFile(e.target.files[0])}
                   className="hidden"
                 />
               </label>
