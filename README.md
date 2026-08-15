@@ -118,12 +118,13 @@ https://ai-debate-coach-ss8t.onrender.com/
 | MongoDB Atlas | Cloud Database |
 
 ### AI / LLM
+
 | Technology | Purpose |
 |------------|---------|
-| OpenAI | Language Model Reasoning |
-| Anthropic Claude | Language Model Reasoning |
+| Groq API | High-Speed LLM Inference |
+| Llama 3 | Debate Reasoning, Analysis & Generation |
 | LangChain | Agentic AI Orchestration |
-| Faster Whisper | Speech-to-Text |
+| Faster Whisper | Speech-to-Text Transcription |
 | Rule-Based Fallback Engine | Reliability Backup |
 
 ### Deployment
@@ -146,7 +147,7 @@ https://ai-debate-coach-ss8t.onrender.com/
                                           ▼
                         ┌──────────────────────────────────┐
                         │   Agentic AI Intelligence Layer   │
-                        │  OpenAI • Claude • LangChain •    │
+                        │  Groq • Llama 3 • LangChain •    │
                         │  Faster Whisper • Fallback Engine │
                         └──────────────────────────────────┘
 ```
