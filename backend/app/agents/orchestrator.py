@@ -102,44 +102,85 @@ AGENT_LABELS: dict[str, str] = {
 # a specialist agent by asking for it explicitly, regardless of what page
 # they're on (e.g. asking "check this for fallacies" from the dashboard).
 _KEYWORD_AGENTS = {
+    # Fallacy detection
     "fallacy": "fallacy_detection",
+    "logical fallacy": "fallacy_detection",
     "ad hominem": "fallacy_detection",
     "straw man": "fallacy_detection",
+
+    # Counterargument generation
     "counterargument": "counterargument",
+    "counter argument": "counterargument",
     "counter-argument": "counterargument",
     "rebuttal": "counterargument",
-    "argument": "argument_analysis",
-    "claim": "argument_analysis",
+    "opposition": "counterargument",
+
+    # Argument analysis
+    "analyze argument": "argument_analysis",
+    "analyse argument": "argument_analysis",
+    "analyze my argument": "argument_analysis",
+    "analyse my argument": "argument_analysis",
+    "check my argument": "argument_analysis",
+    "evaluate my argument": "argument_analysis",
+    "analyze this claim": "argument_analysis",
+    "analyse this claim": "argument_analysis",
+
+    # Presentation analysis
     "presentation": "presentation_analysis",
     "speech": "presentation_analysis",
+    "public speaking": "presentation_analysis",
     "confidence": "presentation_analysis",
     "filler word": "presentation_analysis",
+    "filler words": "presentation_analysis",
+
+    # Coaching
     "coach": "recommendation_coaching",
     "recommend": "recommendation_coaching",
+    "recommendation": "recommendation_coaching",
     "improve": "recommendation_coaching",
+    "how can i improve": "recommendation_coaching",
+
+    # Performance analytics
     "score": "performance_analytics",
     "performance": "performance_analytics",
+    "analytics": "performance_analytics",
     "trend": "performance_analytics",
-    "report": "report_generation",
-}
+    "progress": "performance_analytics",
 
+    # Report generation
+    "report": "report_generation",
+    "generate report": "report_generation",
+}
 
 def resolve_agents(page_key: str, message: str, has_argument_text: bool) -> list[str]:
     """Decide which specialist agents this turn should activate."""
-    agents = list(dict.fromkeys(PAGE_AGENT_MAP.get(page_key, [])))  # de-dup, keep order
+
+    if page_key in ("general", "global_chatbot"):
+        agents = []
+
+    else:
+        # Global chatbot should answer normally.
+        # Page-specific agents should only run when the user explicitly requests analysis.
+
+        if page_key in ("my_debates", "debate_session") and not has_argument_text:
+            agents = []
+        else:
+            agents = list(dict.fromkeys(PAGE_AGENT_MAP.get(page_key, [])))
 
     lowered = message.lower()
+
+    # Activate specialist agents only when user explicitly asks for them
     for kw, agent in _KEYWORD_AGENTS.items():
         if kw in lowered and agent not in agents:
             agents.append(agent)
 
+    # Run argument-related agents only when actual argument text is provided
     if has_argument_text:
         for agent in ("argument_analysis", "fallacy_detection", "counterargument"):
             if agent not in agents:
                 agents.append(agent)
 
-    return agents[:4]  # keep the turn focused — max 4 specialists at once
-
+    return agents[:4]
 
 # --------------------------------------------------------------------------
 # Role-aware evidence gathering — every role gets REAL data, never invented.
@@ -372,19 +413,53 @@ Rules:
 - Speak as "I" (the AI Debate Coach), not "the agents"."""
 
 
-def _deterministic_reply(message: str, agent_outputs: list[dict], evidence: dict) -> str:
-    """Grounded, non-LLM fallback so the chatbot is never empty/dummy even
-    if every provider is down."""
-    if agent_outputs:
-        lines = [f"**{o['label']}**: {o['summary']}" for o in agent_outputs]
-        return "Here's what I found:\n\n" + "\n\n".join(lines)
-    role = evidence.get("role", "there")
-    return (
-        f"I hear you — as your AI Debate Coach I can analyze arguments, catch logical fallacies, "
-        f"generate counterarguments, review your presentation scores, and give you coaching "
-        f"recommendations grounded in your real activity. Try pasting an argument to analyze, or ask "
-        f"about your recent performance, {role}."
-    )
+# def _deterministic_reply(message: str, agent_outputs: list[dict], evidence: dict) -> str:
+#     """Grounded, non-LLM fallback so the chatbot is never empty/dummy even
+#     if every provider is down."""
+#     if agent_outputs:
+#         lines = [f"**{o['label']}**: {o['summary']}" for o in agent_outputs]
+#         return "Here's what I found:\n\n" + "\n\n".join(lines)
+#     role = evidence.get("role", "there")
+#     return (
+#         f"I hear you — as your AI Debate Coach I can analyze arguments, catch logical fallacies, "
+#         f"generate counterarguments, review your presentation scores, and give you coaching "
+#         f"recommendations grounded in your real activity. Try pasting an argument to analyze, or ask "
+#         f"about your recent performance, {role}."
+#     )
+
+def _deterministic_reply(message, agent_outputs, evidence):
+    text = message.lower()
+
+    if "debate format" in text or "debate formats" in text:
+        return """
+There are several popular debate formats:
+
+1. One-on-One Debate
+- Direct head-to-head debate between two learners, or a learner and the AI opponent.
+
+2. Parliamentary Debate
+- Government vs Opposition format with structured speaking roles.
+
+3. Oxford Debate
+- Formal proposition/opposition format with a motion, rebuttals, and closing statements.
+
+4. Policy Debate
+- Evidence-heavy format focused on a specific policy proposal and its real-world impact.
+
+5. Public Forum Debate
+- Accessible, persuasion-focused format aimed at a general audience.
+
+6. AI Debate Simulation
+- Practice against the platform's AI opponent, which adapts difficulty and argument style.
+
+Each format develops different skills such as research, reasoning, and communication.
+"""
+
+    return """
+I can help you with debate preparation, argument analysis,
+logical reasoning, counterarguments, and presentation improvement.
+Please ask me a specific debate-related question.
+"""
 
 
 def _suggested_questions(page_key: str, agent_outputs: list[dict]) -> list[str]:
@@ -443,7 +518,11 @@ async def _prepare_turn(user: dict, page_key: str, message: str, argument_text: 
     resolves agents, gathers evidence, runs specialists. Kept as one place
     so streaming and non-streaming can never disagree on which agents ran."""
     text_for_agents = argument_text or (message if PAGE_AGENT_MAP.get(page_key) else None)
-    active_agents = resolve_agents(page_key, message, has_argument_text=bool(argument_text))
+    active_agents = resolve_agents(
+        page_key,
+        message,
+        has_argument_text=bool(argument_text) and len(argument_text.split()) > 8
+    )
     evidence = await gather_evidence(user)
     agent_outputs = await run_agents(active_agents, text=text_for_agents, topic=None, evidence=evidence)
     return {"evidence": evidence, "agent_outputs": agent_outputs}
@@ -486,8 +565,26 @@ async def stream_message(
             variables=_turn_variables(user, page_label, prep, message),
             temperature=0.4,
         ):
+
+            if isinstance(chunk, list):
+                chunk = "".join(
+                    item.get("text", "") if isinstance(item, dict) else str(item)
+                    for item in chunk
+                )
+
+            elif isinstance(chunk, dict):
+                chunk = chunk.get("text", "")
+
+            else:
+                chunk = str(chunk)
+
             full_reply += chunk
-            yield {"type": "chunk", "text": chunk}
+
+            yield {
+                "type": "chunk",
+                "text": chunk,
+            }
+
     except AllProvidersUnavailableError:
         logger.warning("orchestrator (stream): all LLM providers unavailable, using deterministic fallback")
         fallback = _deterministic_reply(message, prep["agent_outputs"], prep["evidence"])

@@ -468,14 +468,8 @@ async def integrations_status(current_user: dict = Depends(require_roles(UserRol
         IntegrationStatusOut(
             name="OpenAI",
             category="AI / LLM",
-            configured=bool(settings.OPENAI_API_KEY),
+            configured=bool(settings.GEMINI_API_KEY),
             description="Primary LLM provider for argument analysis, coaching, and the AI Debate Coach chatbot.",
-        ),
-        IntegrationStatusOut(
-            name="Anthropic",
-            category="AI / LLM",
-            configured=bool(settings.ANTHROPIC_API_KEY),
-            description="Fallback LLM provider used automatically if OpenAI is unavailable.",
         ),
     ]
 
