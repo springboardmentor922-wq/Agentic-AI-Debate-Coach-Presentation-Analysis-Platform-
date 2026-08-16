@@ -1,21 +1,4 @@
-import { NotificationItem } from '../types';
-
-type NotificationWithOptionalLink = NotificationItem & { link?: string };
-
-export interface CoachFeedbackNote {
-  id: string;
-  learnerName: string;
-  learnerEmail: string;
-  coachName: string;
-  topic: string;
-  note: string;
-  date: string;
-  timestamp: string;
-  score: number;
-  grade: string;
-  focusSkill: string;
-  recommendation: string;
-}
+import { NotificationItem, CoachFeedbackNote } from '../types';
 
 const NOTIFICATIONS_STORAGE_KEY = 'ai_debate_notifications_list';
 const COACH_FEEDBACK_STORAGE_KEY = 'ai_debate_coach_feedback_notes';
@@ -28,7 +11,9 @@ const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
     message: 'Coach Arjun Mehta reviewed your turn log on "Universal Basic Income" and left strategic recommendations.',
     timestamp: '15 mins ago',
     read: false,
-    type: 'coaching'
+    type: 'coaching',
+    targetLearner: 'Alex Chen',
+    link: 'feedback-coaching'
   },
   {
     id: 'notif_2',
@@ -36,7 +21,8 @@ const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
     message: 'Your Oxford debate round achieved 88/100 with zero detected logical fallacies!',
     timestamp: '45 mins ago',
     read: false,
-    type: 'evaluation'
+    type: 'evaluation',
+    link: 'performance-scores'
   },
   {
     id: 'notif_3',
@@ -44,7 +30,8 @@ const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
     message: 'Upcoming Parliamentary round ready for simulation with Agent 01 Referee & Agent 02 Rival.',
     timestamp: '2 hours ago',
     read: false,
-    type: 'session'
+    type: 'session',
+    link: 'ai-simulation'
   },
   {
     id: 'notif_4',
@@ -52,7 +39,8 @@ const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
     message: 'Your average speaking rate was 142 WPM (Optimal cadence). 0 filler words detected.',
     timestamp: '5 hours ago',
     read: true,
-    type: 'evaluation'
+    type: 'evaluation',
+    link: 'presentation-analysis'
   },
   {
     id: 'notif_5',
@@ -60,7 +48,8 @@ const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
     message: 'Ananya Sharma assigned "Renewable Energy Subsidies & Grid Modernization" debate brief.',
     timestamp: '1 day ago',
     read: true,
-    type: 'system'
+    type: 'system',
+    link: 'practice-topics'
   }
 ];
 
@@ -138,7 +127,9 @@ export function addNotification(
     message: item.message,
     timestamp: item.timestamp || 'Just now',
     read: false,
-    type: item.type
+    type: item.type,
+    targetLearner: item.targetLearner,
+    link: item.link || 'notifications'
   };
 
   const updated = [newItem, ...current];
@@ -228,7 +219,9 @@ export function saveCoachFeedbackNote(note: Omit<CoachFeedbackNote, 'id' | 'date
   addNotification({
     title: `Coach Note from ${newNote.coachName}`,
     message: `Feedback received on "${newNote.topic}": "${newNote.note.slice(0, 75)}${newNote.note.length > 75 ? '...' : ''}"`,
-    type: 'coaching'
+    type: 'coaching',
+    targetLearner: newNote.learnerName,
+    link: 'feedback-coaching'
   });
 
   return newNote;

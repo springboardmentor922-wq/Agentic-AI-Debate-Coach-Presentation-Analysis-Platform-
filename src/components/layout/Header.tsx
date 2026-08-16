@@ -1,13 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Bell, CheckCircle2, ChevronDown, Menu, UserPlus, LogOut, Shield, Sparkles, Sun, Moon } from 'lucide-react';
-import { UserRole, UserProfile } from '../../types';
+import { Search, Bell, CheckCircle2, ChevronDown, Menu, UserPlus, LogOut, Shield, Sparkles, Sun, Moon, MessageSquare, Award, Clock } from 'lucide-react';
+import { UserRole, UserProfile, NotificationItem } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
+import { getNotifications, markNotificationAsRead } from '../../services/feedbackAndNotificationService';
 
 interface HeaderProps {
   currentRole: UserRole;
   onRoleChange?: (role: UserRole) => void;
   title?: string;
-  onNavigateNotifications: () => void;
+  onNavigateNotifications: (tab?: string) => void;
   onToggleMobileSidebar?: () => void;
   activeUser: UserProfile;
   onOpenAuthModal: () => void;
@@ -31,9 +32,31 @@ export const Header: React.FC<HeaderProps> = ({
   const { toggleTheme, isDark } = useTheme();
   const [showNotifPopover, setShowNotifPopover] = useState(false);
   const [showUserPopover, setShowUserPopover] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
+
+  // Sync notifications from service & listen to live updates
+  useEffect(() => {
+    const loadNotifs = () => {
+      setNotifications(getNotifications());
+    };
+    loadNotifs();
+
+    const handleUpdate = (e: any) => {
+      if (e.detail) {
+        setNotifications(e.detail);
+      } else {
+        loadNotifs();
+      }
+    };
+
+    window.addEventListener('debate_notifications_updated', handleUpdate);
+    return () => window.removeEventListener('debate_notifications_updated', handleUpdate);
+  }, []);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -47,6 +70,12 @@ export const Header: React.FC<HeaderProps> = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleNotificationClick = (notif: NotificationItem) => {
+    markNotificationAsRead(notif.id);
+    setShowNotifPopover(false);
+    onNavigateNotifications(notif.link || 'notifications');
+  };
 
   return (
     <header className={`h-16 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-30 transition-colors border-b ${
@@ -124,45 +153,80 @@ export const Header: React.FC<HeaderProps> = ({
             title="Notifications"
           >
             <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
-              5
-            </span>
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-4 h-4 px-1 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 animate-pulse">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
 
           {showNotifPopover && (
-            <div className={`absolute right-0 mt-2 w-72 sm:w-80 rounded-xl shadow-2xl border p-4 z-50 ${
+            <div className={`absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl shadow-2xl border p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${
               isDark ? 'bg-slate-900 border-slate-700 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
             }`}>
               <div className={`flex items-center justify-between mb-3 pb-2 border-b ${
                 isDark ? 'border-slate-800' : 'border-slate-200'
               }`}>
-                <span className={`font-semibold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>System Notifications</span>
-                <span className="text-xs text-indigo-500 font-medium">5 New</span>
-              </div>
-              <div className="space-y-2.5 text-xs">
-                <div className={`p-2.5 rounded-lg border ${
-                  isDark ? 'bg-indigo-950/60 border-indigo-800/60' : 'bg-indigo-50 border-indigo-200'
-                }`}>
-                  <p className={`font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>Policy Debate Practice</p>
-                  <p className={`mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Session starts in 2 hours. Agent 1 Referee ready.</p>
-                  <span className="text-[10px] text-indigo-500 font-semibold mt-1 block">10 mins ago</span>
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4 text-indigo-500" />
+                  <span className={`font-bold text-sm ${isDark ? 'text-white' : 'text-slate-900'}`}>Notifications</span>
                 </div>
-                <div className={`p-2.5 rounded-lg border ${
-                  isDark ? 'bg-slate-800/80 border-slate-700/60' : 'bg-slate-50 border-slate-200'
-                }`}>
-                  <p className={`font-medium ${isDark ? 'text-slate-200' : 'text-slate-900'}`}>New AI Evaluation Score</p>
-                  <p className={`mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>Your argument logic received 85/100.</p>
-                  <span className={`text-[10px] mt-1 block ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>1 hour ago</span>
-                </div>
+                <span className="text-xs text-indigo-500 font-semibold px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">
+                  {unreadCount} Unread
+                </span>
               </div>
+
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                {notifications.slice(0, 5).map((n) => (
+                  <div
+                    key={n.id}
+                    onClick={() => handleNotificationClick(n)}
+                    className={`p-3 rounded-xl border transition-all cursor-pointer text-left space-y-1 ${
+                      !n.read 
+                        ? isDark 
+                          ? 'bg-indigo-950/50 border-indigo-500/40 hover:bg-indigo-900/50' 
+                          : 'bg-indigo-50/70 border-indigo-200 hover:bg-indigo-100/70'
+                        : isDark 
+                          ? 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-800' 
+                          : 'bg-slate-50 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        {n.type === 'coaching' && <MessageSquare className="w-3.5 h-3.5 text-purple-400 shrink-0" />}
+                        {n.type === 'evaluation' && <Award className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
+                        {n.type === 'session' && <Clock className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
+                        {n.type === 'system' && <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
+                        <p className={`font-bold text-xs truncate ${!n.read ? (isDark ? 'text-indigo-200' : 'text-indigo-950') : (isDark ? 'text-slate-200' : 'text-slate-800')}`}>
+                          {n.title}
+                        </p>
+                      </div>
+                      {!n.read && (
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
+                      )}
+                    </div>
+                    <p className={`text-[11px] leading-relaxed line-clamp-2 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                      {n.message}
+                    </p>
+                    <span className="text-[10px] text-indigo-400 font-medium block">
+                      {n.timestamp}
+                    </span>
+                  </div>
+                ))}
+
+                {notifications.length === 0 && (
+                  <p className="text-center py-6 text-xs text-slate-400">No notifications at this time.</p>
+                )}
+              </div>
+
               <button
                 onClick={() => {
                   setShowNotifPopover(false);
-                  onNavigateNotifications();
+                  onNavigateNotifications('notifications');
                 }}
-                className="w-full text-center text-xs text-indigo-500 font-semibold hover:underline mt-3 block"
+                className="w-full text-center text-xs text-indigo-500 font-bold hover:underline mt-3 block py-1 cursor-pointer"
               >
-                View All Notifications →
+                Open Notification Center →
               </button>
             </div>
           )}
