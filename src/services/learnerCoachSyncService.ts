@@ -5,9 +5,8 @@
  * dynamic scoring telemetry, and bi-directional events between Learner & Coach views.
  */
 
-import { UserProfile, NotificationItem } from '../types';
+import { UserProfile, CoachFeedbackNote, NotificationItem } from '../types';
 import { addNotification } from './feedbackAndNotificationService';
-// import { addNotification } from './feedbackAndNotificationService';
 
 export interface LearnerActivityRecord {
   id?: string;
@@ -280,7 +279,8 @@ export function registerLearner(user: UserProfile): LearnerActivityRecord {
   addNotification({
     title: 'New Learner Enrolled',
     message: `${user.name} has enrolled as a debate mentee (${user.roleLabel || 'Learner'}). Profile and scoring synced to Coach Portal.`,
-    type: 'system'
+    type: 'system',
+    link: 'coach-dashboard'
   });
 
   return newRecord;
@@ -421,7 +421,8 @@ export function assignCoachToLearner(learnerIdOrEmail: string, coachName: string
     addNotification({
       title: 'Mentor Coach Assigned by Administrator',
       message: `System Administrator (${adminUser || 'Admin'}) has officially assigned ${coachName} as your primary mentor coach.`,
-      type: 'coaching'
+      type: 'coaching',
+      link: 'profile'
     });
 
     return true;

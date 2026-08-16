@@ -32,6 +32,8 @@ interface SidebarProps {
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
   activeDebateTopic?: string;
+  activeTurnsCount?: number;
+  activeSessionStatus?: 'in_progress' | 'completed';
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ 
@@ -40,7 +42,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentRole,
   isMobileOpen = false,
   onCloseMobile = () => {},
-  activeDebateTopic
+  activeDebateTopic,
+  activeTurnsCount = 0,
+  activeSessionStatus = 'in_progress'
 }) => {
   const { isDark } = useTheme();
 
@@ -225,15 +229,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }`}>
         <label className={`text-[9px] uppercase tracking-widest font-bold block mb-1 ${
           isDark ? 'text-slate-400' : 'text-indigo-800'
-        }`}>Active Debate Session</label>
+        }`}>
+          {activeSessionStatus === 'completed'
+            ? 'Debate Status'
+            : activeTurnsCount > 0
+              ? 'Active Debate Session'
+              : 'Arena Status'}
+        </label>
         <p className={`text-xs font-semibold truncate ${
           isDark ? 'text-indigo-300' : 'text-indigo-950'
         }`} title={activeDebateTopic || 'Universal Basic Income'}>
           {activeDebateTopic || 'Universal Basic Income'}
         </p>
-        <p className={`text-[10px] mt-0.5 italic ${
+        <p className={`text-[10px] mt-0.5 font-medium ${
           isDark ? 'text-slate-400' : 'text-indigo-600/90'
-        }`}>Argument Phase 3/5</p>
+        }`}>
+          {activeSessionStatus === 'completed'
+            ? 'Completed (Archived)'
+            : activeTurnsCount > 0
+              ? `Argument Phase ${activeTurnsCount}/5`
+              : 'Ready for Turn #1'}
+        </p>
       </div>
 
       {/* Nav Menu Items */}

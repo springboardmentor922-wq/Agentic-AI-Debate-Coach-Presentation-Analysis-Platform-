@@ -96,6 +96,7 @@ export interface ActiveDebateTurn {
   argumentScore: number;
   activatedAgents: string[];
   timestamp: string;
+  isSample?: boolean;
 }
 
 export interface ActiveDebateSession {

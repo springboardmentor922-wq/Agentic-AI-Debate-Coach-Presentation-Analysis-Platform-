@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserRole, UserProfile, ActiveDebateSession } from './types';
+import { updateLearnerSessionProgress } from './services/learnerCoachSyncService';
 import { useTheme } from './context/ThemeContext';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
@@ -70,27 +71,10 @@ export function App() {
     }
     return {
       id: 'session_default',
-      topic: 'Universal Basic Income creates a safety net for economic innovation.',
+      topic: 'The Future of Artificial Intelligence',
       format: 'One-on-One',
       side: 'Proposition',
-      turns: [
-        {
-          id: 'turn_0',
-          userText: 'UBI provides financial security that empowers individuals to take entrepreneurial risks without fear of poverty.',
-          aiRebuttal: "While you argue that UBI might stifle ambition, isn't it more accurate to say that it creates a floor for creative risk? Without the fear of poverty, how many would-be entrepreneurs are actually liberated?",
-          wpm: 142,
-          paceStatus: 'Optimal',
-          fallacyMetrics: {
-            fallacy_detected: false,
-            fallacy_type: 'None',
-            explanation: 'No logical inconsistencies found in economic rationale.',
-            counter_strategy: 'Frame economic burden vs creative liberation.'
-          },
-          argumentScore: 88,
-          activatedAgents: ['Argument Analysis', 'Agent 01: Referee', 'Agent 02: Rival'],
-          timestamp: '10:30 AM'
-        }
-      ],
+      turns: [],
       status: 'in_progress',
       createdAt: new Date().toISOString(),
       lastUpdated: new Date().toISOString()
@@ -156,6 +140,22 @@ export function App() {
 
       const updatedHistory = [newHistoryItem, ...existingList.filter((item: any) => item.id !== newHistoryItem.id)];
       localStorage.setItem('ai_debate_completed_list', JSON.stringify(updatedHistory));
+
+      // Sync with Learner <-> Coach Registry in real-time
+      updateLearnerSessionProgress({
+        learnerName: activeUser?.name || 'Alex Chen',
+        learnerEmail: activeUser?.email,
+        topic: completedSession.topic,
+        format: completedSession.format,
+        side: completedSession.side,
+        score: avgScore,
+        grade: avgScore >= 85 ? 'A' : avgScore >= 75 ? 'B' : 'C',
+        turnsCount: turns.length,
+        clarity: avgScore,
+        reasoning: Math.min(avgScore + 3, 98),
+        confidence: avgScore >= 80 ? 92 : 78,
+        evidence: Math.max(avgScore - 4, 50)
+      });
     } catch (e) {
       console.error('Failed to archive completed session', e);
     }
@@ -189,7 +189,7 @@ export function App() {
   };
 
   const handleCreateUser = (newUser: UserProfile) => {
-    setUserProfiles((prev: any) => {
+    setUserProfiles(prev => {
       const updated = [...prev, newUser];
       // Save custom created users only
       const customOnly = updated.filter(u => u.isCustomAccount);

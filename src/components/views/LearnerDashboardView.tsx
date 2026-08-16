@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Trophy, 
   TrendingUp, 
@@ -14,7 +14,12 @@ import {
   Target,
   Sparkles,
   Zap,
-  BookOpen
+  BookOpen,
+  MessageSquare,
+  Award,
+  Clock,
+  ShieldCheck,
+  UserCheck
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -30,14 +35,17 @@ import {
   PolarRadiusAxis, 
   Radar 
 } from 'recharts';
-import { UserProfile, ActiveDebateSession } from '../../types';
+import { UserProfile, ActiveDebateSession, CoachFeedbackNote } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
+import { getCoachFeedbackNotes } from '../../services/feedbackAndNotificationService';
+import { getLearnerProfileData } from '../../services/learnerCoachSyncService';
 
 interface LearnerDashboardViewProps {
   onNavigate: (tab: string) => void;
   activeUser?: UserProfile;
   activeDebateTopic?: string;
   activeSession?: ActiveDebateSession;
+  onStartNewDebateSession?: (topicTitle?: string) => void;
   onCompleteSession?: () => void;
 }
 
@@ -67,6 +75,7 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
   activeUser, 
   activeDebateTopic,
   activeSession,
+  onStartNewDebateSession,
   onCompleteSession
 }) => {
   const { isDark } = useTheme();
@@ -100,6 +109,37 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
 
   const completedGoalsCount = goals.filter(g => g.completed).length;
 
+  const [coachNotes, setCoachNotes] = useState<CoachFeedbackNote[]>([]);
+  const [learnerStats, setLearnerStats] = useState(() => getLearnerProfileData(userName) || getLearnerProfileData(activeUser?.email || ''));
+
+  useEffect(() => {
+    const loadNotesAndStats = () => {
+      const all = getCoachFeedbackNotes();
+      // Filter for this active learner or show recent cohort feedback if default learner
+      const matched = all.filter(n => 
+        n.learnerName.toLowerCase() === userName.toLowerCase() || 
+        n.learnerEmail === activeUser?.email ||
+        !activeUser?.isCustomAccount
+      );
+      setCoachNotes(matched.length > 0 ? matched : all);
+
+      const record = getLearnerProfileData(userName) || getLearnerProfileData(activeUser?.email || '') || getLearnerProfileData(activeUser?.id || '');
+      if (record) {
+        setLearnerStats(record);
+      }
+    };
+
+    loadNotesAndStats();
+
+    const handleUpdate = () => loadNotesAndStats();
+    window.addEventListener('debate_coach_feedback_updated', handleUpdate);
+    window.addEventListener('debate_learner_registry_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('debate_coach_feedback_updated', handleUpdate);
+      window.removeEventListener('debate_learner_registry_updated', handleUpdate);
+    };
+  }, [userName, activeUser]);
+
   const cardBgClass = isDark
     ? 'bg-[#1E1B2B]/90 border-slate-800 text-white shadow-xl'
     : 'bg-white border-slate-200 text-slate-900 shadow-md';
@@ -131,58 +171,110 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
         </button>
       </div>
 
-      {/* Active Debate Phase Quick Launch Card */}
-      <div className={`p-5 rounded-2xl border shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${
-        isDark 
-          ? 'bg-gradient-to-r from-purple-950/80 via-slate-900 to-slate-900 border-purple-500/30' 
-          : 'bg-gradient-to-r from-purple-50 via-indigo-50 to-white border-purple-200'
-      }`}>
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shrink-0">
-            <Bot className="w-6 h-6 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30 uppercase tracking-wide">
-                Active Debate Session
-              </span>
-              {activeSession?.status === 'in_progress' ? (
-                <span className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" /> Phase {Math.min((activeSession.turns?.length || 0) + 1, 5)}/5 (In Progress)
-                </span>
-              ) : (
-                <span className="text-[11px] text-amber-500 font-semibold flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" /> Completed
-                </span>
-              )}
+      {/* Active In-Progress Debate Card vs. Start New Debate Card */}
+      {activeSession?.status === 'in_progress' && (activeSession.turns?.filter(t => !t.isSample).length || 0) > 0 ? (
+        <div className={`p-5 rounded-2xl border shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${
+          isDark 
+            ? 'bg-gradient-to-r from-purple-950/80 via-slate-900 to-slate-900 border-purple-500/30' 
+            : 'bg-gradient-to-r from-purple-50 via-indigo-50 to-white border-purple-200'
+        }`}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 text-white flex items-center justify-center shadow-lg shrink-0">
+              <Bot className="w-6 h-6 animate-pulse" />
             </div>
-            <h3 className={`text-base font-bold mt-1 ${textPrimary}`}>
-              {activeSession?.topic || activeDebateTopic || 'Universal Basic Income creates a safety net for economic innovation.'}
-            </h3>
-            <p className={`text-xs mt-0.5 ${textMuted}`}>
-              Format: {activeSession?.format || 'One-on-One'} • Stance: {activeSession?.side || 'Proposition'} • Turns: {activeSession?.turns?.length || 1} Logged
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30 uppercase tracking-wide">
+                  Active Debate In Progress
+                </span>
+                <span className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" /> Phase {Math.min((activeSession.turns?.filter(t => !t.isSample).length || 0) + 1, 5)}/5
+                </span>
+              </div>
+              <h3 className={`text-base font-bold mt-1 ${textPrimary}`}>
+                {activeSession.topic}
+              </h3>
+              <p className={`text-xs mt-0.5 ${textMuted}`}>
+                Format: {activeSession.format || 'One-on-One'} • Stance: {activeSession.side || 'Proposition'} • {activeSession.turns?.filter(t => !t.isSample).length} Turn(s) Logged
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button
+              onClick={() => onNavigate('practice-topics')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                isDark 
+                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700' 
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 shadow-xs'
+              }`}
+            >
+              Practice Topics
+            </button>
+            <button
+              onClick={() => onNavigate('ai-simulation')}
+              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-600/20 flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <Play className="w-4 h-4 fill-white" /> Resume Debate Round
+            </button>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3 shrink-0">
-          <button
-            onClick={() => onNavigate('practice-topics')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-              isDark 
-                ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700' 
-                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 shadow-xs'
-            }`}
-          >
-            Practice Topics
-          </button>
-          <button
-            onClick={() => onNavigate('ai-simulation')}
-            className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-600/20 flex items-center gap-2 transition-all cursor-pointer"
-          >
-            <Play className="w-4 h-4 fill-white" /> Resume Debate Round
-          </button>
+      ) : (
+        <div className={`p-5 rounded-2xl border shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors ${
+          isDark 
+            ? 'bg-gradient-to-r from-indigo-950/60 via-slate-900 to-slate-900 border-indigo-500/20' 
+            : 'bg-gradient-to-r from-indigo-50/70 via-purple-50/50 to-white border-indigo-100'
+        }`}>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-500 flex items-center justify-center shadow-md shrink-0">
+              <Zap className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 uppercase tracking-wide">
+                  Arena Ready • Start Turn #1
+                </span>
+                {activeSession?.status === 'completed' && (
+                  <span className="text-[11px] text-emerald-500 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Previous Debate Archived
+                  </span>
+                )}
+              </div>
+              <h3 className={`text-base font-bold mt-1 ${textPrimary}`}>
+                Start a Live AI Debate Practice Round
+              </h3>
+              <p className={`text-xs mt-0.5 ${textMuted}`}>
+                {activeSession?.status === 'completed' 
+                  ? `Last finished: "${activeSession.topic.slice(0, 45)}..." • Select a motion to initiate a fresh Turn #1.`
+                  : 'Debate in real-time against Agent 01 (Referee audit) and Agent 02 (Rival rebuttal) with live fallacy scoring.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button
+              onClick={() => onNavigate('practice-topics')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                isDark 
+                  ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700' 
+                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 shadow-xs'
+              }`}
+            >
+              Choose Practice Topic
+            </button>
+            <button
+              onClick={() => {
+                if (onStartNewDebateSession) {
+                  onStartNewDebateSession();
+                } else {
+                  onNavigate('ai-simulation');
+                }
+              }}
+              className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 shadow-md shadow-indigo-600/20 flex items-center gap-2 transition-all cursor-pointer"
+            >
+              <Bot className="w-4 h-4" /> Start Debate (Turn #1)
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 4 Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -193,7 +285,9 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
           </div>
           <div>
             <p className={`text-[11px] font-medium ${textMuted}`}>Debates Participated</p>
-            <p className={`text-2xl font-extrabold mt-0.5 ${textPrimary}`}>9</p>
+            <p className={`text-2xl font-extrabold mt-0.5 ${textPrimary}`}>
+              {learnerStats?.totalDebates || 9}
+            </p>
           </div>
         </div>
 
@@ -204,7 +298,9 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
           </div>
           <div>
             <p className={`text-[11px] font-medium ${textMuted}`}>Average Score</p>
-            <p className={`text-2xl font-extrabold mt-0.5 ${textPrimary}`}>46%</p>
+            <p className={`text-2xl font-extrabold mt-0.5 ${textPrimary}`}>
+              {learnerStats?.averageScore || 78}%
+            </p>
           </div>
         </div>
 
@@ -215,7 +311,9 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
           </div>
           <div>
             <p className={`text-[11px] font-medium ${textMuted}`}>Skills Improved</p>
-            <p className={`text-2xl font-extrabold mt-0.5 ${textPrimary}`}>2</p>
+            <p className={`text-2xl font-extrabold mt-0.5 ${textPrimary}`}>
+              {learnerStats?.skills ? Object.keys(learnerStats.skills).length : 5}
+            </p>
             <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>vs platform baseline</p>
           </div>
         </div>
@@ -301,6 +399,109 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Coach Feedback & Mentor Reviews Section */}
+      <div className={`p-6 rounded-2xl border space-y-4 transition-colors ${cardBgClass}`}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 border-slate-700/40">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center shrink-0 shadow-sm">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className={`font-extrabold text-base tracking-tight ${textPrimary}`}>Coach & Mentor Feedback</h3>
+                <span className="text-[10px] font-bold text-purple-400 bg-purple-950/80 px-2.5 py-0.5 rounded-full border border-purple-800">
+                  {coachNotes.length} Reviews Available
+                </span>
+              </div>
+              <p className={`text-xs ${textMuted}`}>Personalized critiques, turn log annotations, and strategic advice submitted by your debate coach.</p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => onNavigate('feedback-coaching')}
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-1.5 transition-all shadow-xs cursor-pointer self-start sm:self-auto"
+          >
+            <span>View Complete Coaching Plan</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {coachNotes.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            {coachNotes.slice(0, 4).map((note) => (
+              <div
+                key={note.id}
+                className={`p-4 rounded-xl border space-y-3 transition-all ${
+                  isDark ? 'bg-slate-900/80 border-slate-800 hover:border-purple-500/40' : 'bg-slate-50 border-slate-200 hover:border-purple-300'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-2 border-b pb-2.5 border-slate-700/30">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0 ring-2 ring-purple-400/30">
+                      {note.coachName.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <p className={`font-bold text-xs truncate ${textPrimary}`}>{note.coachName}</p>
+                        <UserCheck className="w-3 h-3 text-emerald-400 shrink-0" />
+                      </div>
+                      <span className="text-[10px] text-slate-400 block font-mono">{note.date}</span>
+                    </div>
+                  </div>
+
+                  {note.grade && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-purple-500/20 text-purple-400 border border-purple-500/30 shrink-0">
+                      Grade: {note.grade} ({note.score}%)
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <p className="text-[11px] font-semibold text-purple-400 line-clamp-1">
+                    Debate: <span className={isDark ? 'text-slate-300 font-normal' : 'text-slate-700 font-normal'}>{note.topic}</span>
+                  </p>
+                  {note.focusSkill && (
+                    <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                      Focus: {note.focusSkill}
+                    </span>
+                  )}
+                </div>
+
+                <div className={`p-3 rounded-lg border text-xs leading-relaxed italic ${
+                  isDark ? 'bg-slate-950/60 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-700'
+                }`}>
+                  "{note.note}"
+                </div>
+
+                {note.recommendation && (
+                  <p className="text-[11px] text-amber-500 dark:text-amber-400 font-medium flex items-center gap-1">
+                    💡 <span className="font-semibold">Next Step:</span> {note.recommendation}
+                  </p>
+                )}
+
+                <div className="flex items-center justify-between pt-1 text-xs">
+                  <span className="text-[10px] text-slate-400">Target: {note.learnerName}</span>
+                  <button
+                    onClick={() => onNavigate('feedback-coaching')}
+                    className="text-xs font-bold text-purple-400 hover:text-purple-300 hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    Open Full Report <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={`p-8 text-center rounded-xl border border-dashed ${isDark ? 'border-slate-800 text-slate-400' : 'border-slate-300 text-slate-500'} space-y-2`}>
+            <MessageSquare className="w-8 h-8 mx-auto text-purple-400 opacity-50" />
+            <p className="font-semibold text-xs text-slate-300">No coach reviews posted yet</p>
+            <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+              When your coach reviews speech logs from the Coach Dashboard and posts feedback, recommendations will appear here automatically.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Goals & Upcoming Sessions Section */}
