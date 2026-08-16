@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+.input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 0.75rem;
+  color: #0f172a;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 4px rgb(124 58 237 / 0.12);
+}
+
+/* Shared navy–violet platform palette. */
+.bg-blue-50 { background-color: #f5f3ff !important; }
+.bg-blue-100 { background-color: #ede9fe !important; }
+.bg-blue-600, .bg-blue-700 { background-color: #7c3aed !important; }
+.bg-slate-900 { background-color: #111b38 !important; }
+.hover\:bg-blue-500:hover, .hover\:bg-blue-800:hover { background-color: #6d28d9 !important; }
+.text-blue-100, .text-blue-200 { color: #ede9fe !important; }
+.text-blue-700, .text-blue-800 { color: #6d28d9 !important; }
+.border-blue-100, .border-blue-200, .border-blue-300, .border-blue-500, .border-blue-700 { border-color: #c4b5fd !important; }
+.ring-blue-700, .focus\:ring-blue-50:focus { --tw-ring-color: rgb(124 58 237 / 0.18) !important; }
+.focus\:border-blue-500:focus { border-color: #7c3aed !important; }
+
+/* Legacy screens still use Tailwind green utilities: map them into the
+   DebateForge violet palette until each screen is individually refreshed. */
+.bg-green-50, .bg-green-100 { background-color: #f5f3ff !important; }
+.bg-green-600, .bg-green-700 { background-color: #7c3aed !important; }
+.hover\:bg-green-700:hover, .hover\:bg-green-800:hover { background-color: #6d28d9 !important; }
+.text-green-50, .text-green-100 { color: #ede9fe !important; }
+.text-green-600, .text-green-700, .text-green-800 { color: #6d28d9 !important; }
+.border-green-200 { border-color: #ddd6fe !important; }
+.focus\:ring-green-500:focus, .focus\:ring-green-600:focus { --tw-ring-color: rgb(124 58 237 / 0.25) !important; }
