@@ -80,7 +80,11 @@ const Login = () => {
 
             setError(
 
+                err.response?.data?.detail ||
+
                 err.detail ||
+
+                err.message ||
 
                 "Invalid email or password."
 

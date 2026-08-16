@@ -1,0 +1,13 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.db
+.env
+.env.*
+!.env.example
+data/faiss/*.index
+data/faiss/*.json

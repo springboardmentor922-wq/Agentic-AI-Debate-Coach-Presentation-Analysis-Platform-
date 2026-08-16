@@ -6,8 +6,6 @@ import { getAICoachContext } from "../../utils/aiCoachContext";
 import { sendChatMessage } from "../../services/chatbotService";
 import { useAuth } from "../../hooks/useAuth";
 
-import "./AICoachWidget.css";
-
 const renderFormattedMessage = (content) => {
     if (typeof content !== "string") {
         if (typeof content === "object" && content !== null) {

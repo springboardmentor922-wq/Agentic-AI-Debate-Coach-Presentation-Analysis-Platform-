@@ -80,13 +80,30 @@ def progress_update(state):
         user_id = state.get("user_id")
         if user_id:
             skills = db.query(UserSkill).filter(UserSkill.user_id == user_id).first()
+            categories = state["performance"]["categories"]
+            arg_s = round(categories["argument_quality"], 2)
+            crit_s = round((categories["logical_consistency"] + categories["rebuttal_effectiveness"]) / 2, 2)
+            comm_s = round(categories["communication_skills"], 2)
+
             if skills:
-                categories = state["performance"]["categories"]
-                skills.argument_score = round(categories["argument_quality"], 2)
-                skills.critical_thinking_score = round((categories["logical_consistency"] + categories["rebuttal_effectiveness"]) / 2, 2)
-                skills.communication_score = round(categories["communication_skills"], 2)
+                skills.argument_score = arg_s
+                skills.critical_thinking_score = crit_s
+                skills.communication_score = comm_s
                 skills.total_debates = (skills.total_debates or 0) + 1
-                db.commit()
+            else:
+                skills = UserSkill(
+                    user_id=user_id,
+                    argument_score=arg_s,
+                    critical_thinking_score=crit_s,
+                    communication_score=comm_s,
+                    presentation_score=0.0,
+                    confidence_score=70.0,
+                    total_debates=1,
+                    total_presentations=0
+                )
+                db.add(skills)
+
+            db.commit()
         return {"progress_updated": True}
     except Exception as exc:
         db.rollback(); return {"progress_updated": False, "errors": state.get("errors", []) + [f"progress_update: {exc}"]}

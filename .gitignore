@@ -25,20 +25,27 @@ frontend/dist/
 # =========================
 .env
 .env.*
+backend/.env
+backend/.env.*
 !.env.example
+!backend/.env.example
 
 # =========================
-# Logs
+# Logs & Local Backups
 # =========================
 *.log
+*.dump
+database/*.dump
 
 # =========================
-# Editor / OS files
+# Editor / OS / Scratch files
 # =========================
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+scratch/
+artifacts/
 
 # =========================
 # Local AI / Vector data

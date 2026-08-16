@@ -2,10 +2,11 @@
     position: fixed;
     right: 24px;
     bottom: 24px;
-    z-index: 9999;
+    z-index: 99999;
+    pointer-events: auto;
 }
 
-.ai-coach-fab {
+.ai-coach-widget .ai-coach-fab {
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -21,12 +22,12 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.ai-coach-fab:hover {
+.ai-coach-widget .ai-coach-fab:hover {
     transform: translateY(-2px);
     box-shadow: 0 22px 45px rgba(37, 99, 235, 0.35);
 }
 
-.ai-coach-fab svg {
+.ai-coach-widget .ai-coach-fab svg {
     font-size: 20px;
 }
 

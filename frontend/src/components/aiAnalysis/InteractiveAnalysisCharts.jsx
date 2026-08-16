@@ -5,6 +5,7 @@ import {
     LineChart, Line, CartesianGrid, Legend
 } from "recharts";
 import { FaChartBar, FaChartLine, FaChartPie } from "react-icons/fa";
+import "./InteractiveAnalysisCharts.css";
 
 const COLORS = ["#2563eb", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
 

@@ -72,6 +72,17 @@ const SkillTracking = () => {
 
     const avgScore = useMemo(() => computeAverageScore(skill || {}), [skill]);
 
+    const hasSkillData = useMemo(() => {
+        if (!skill) return false;
+        return (
+            safeNumber(skill.communication_score) > 0 ||
+            safeNumber(skill.critical_thinking_score) > 0 ||
+            safeNumber(skill.presentation_score) > 0 ||
+            safeNumber(skill.argument_score) > 0 ||
+            safeNumber(skill.confidence_score) > 0
+        );
+    }, [skill]);
+
     if (loading) {
         return (
             <MainLayout>
@@ -95,32 +106,43 @@ const SkillTracking = () => {
 
                 {error && <div className="empty-state">{error}</div>}
 
-                <div className="skill-stats-grid">
-                    <div className="skill-stat-card"><FaChartLine /><span>Overall Score</span><strong>{avgScore}%</strong></div>
-                    <div className="skill-stat-card"><FaChartPie /><span>Total Debates</span><strong>{overview?.summary?.total_debates || skill?.total_debates || 0}</strong></div>
-                    <div className="skill-stat-card"><FaMedal /><span>Total Presentations</span><strong>{overview?.summary?.total_presentations || skill?.total_presentations || 0}</strong></div>
-                </div>
-
-                <div className="skill-layout">
-                    <ChartShell title="Skill Radar" description="Measured skill dimensions from the backend profile.">
-                        <RadarScoreChart data={chartData} />
-                    </ChartShell>
-
-                    <ChartShell title="Session Activity" description="Relative session activity by status.">
-                        <BarScoreChart data={sessionData} color="#10B981" />
-                    </ChartShell>
-                </div>
-
-                <section className="skill-card">
-                    <div className="section-header"><h2>Progress Breakdown</h2></div>
-                    {chartData.map((metric) => (
-                        <div className="progress-item" key={metric.label}>
-                            <span>{metric.label}</span>
-                            <progress value={metric.score} max="100" />
-                            <strong>{metric.score}%</strong>
+                {!hasSkillData ? (
+                    <div className="empty-state" style={{ marginTop: "1.5rem", padding: "3rem 1.5rem", textAlign: "center" }}>
+                        <h3>No skill data available yet</h3>
+                        <p style={{ marginTop: "0.5rem", color: "var(--text-muted, #64748b)" }}>
+                            Complete a debate or presentation to build your skill profile.
+                        </p>
+                    </div>
+                ) : (
+                    <>
+                        <div className="skill-stats-grid">
+                            <div className="skill-stat-card"><FaChartLine /><span>Overall Score</span><strong>{avgScore}%</strong></div>
+                            <div className="skill-stat-card"><FaChartPie /><span>Total Debates</span><strong>{overview?.summary?.total_debates || skill?.total_debates || 0}</strong></div>
+                            <div className="skill-stat-card"><FaMedal /><span>Total Presentations</span><strong>{overview?.summary?.total_presentations || skill?.total_presentations || 0}</strong></div>
                         </div>
-                    ))}
-                </section>
+
+                        <div className="skill-layout">
+                            <ChartShell title="Skill Radar" description="Measured skill dimensions from the backend profile.">
+                                <RadarScoreChart data={chartData} />
+                            </ChartShell>
+
+                            <ChartShell title="Session Activity" description="Relative session activity by status.">
+                                <BarScoreChart data={sessionData} color="#10B981" />
+                            </ChartShell>
+                        </div>
+
+                        <section className="skill-card">
+                            <div className="section-header"><h2>Progress Breakdown</h2></div>
+                            {chartData.map((metric) => (
+                                <div className="progress-item" key={metric.label}>
+                                    <span>{metric.label}</span>
+                                    <progress value={metric.score} max="100" />
+                                    <strong>{metric.score}%</strong>
+                                </div>
+                            ))}
+                        </section>
+                    </>
+                )}
             </div>
         </MainLayout>
     );

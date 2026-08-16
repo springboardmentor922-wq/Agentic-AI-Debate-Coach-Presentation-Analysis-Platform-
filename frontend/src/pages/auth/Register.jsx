@@ -137,7 +137,11 @@ const Register = () => {
 
             setError(
 
+                err.response?.data?.detail ||
+
                 err.detail ||
+
+                err.message ||
 
                 "Registration failed."
 

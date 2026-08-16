@@ -1,0 +1,26 @@
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.analysis-item {
+    background: #f8fafc;
+    padding: 18px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+}
+
+.analysis-item.full-width {
+    grid-column: 1 / -1;
+}
+
+.analysis-item.highlight-item {
+    border-color: #93c5fd;
+    background: #eff6ff;
+}
+
+.analysis-item.warning-item {
+    border-color: #fde68a;
+    background: #fffbeb;
+}

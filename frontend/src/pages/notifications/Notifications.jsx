@@ -7,6 +7,7 @@ import Breadcrumb from "../../components/common/Breadcrumb";
 import { getNotifications, markNotificationRead, markAllNotificationsRead } from "../../services/notificationService";
 import { useToast } from "../../context/ToastContext";
 import { formatDateTime, toArray } from "../../utils/learnerHelpers";
+import "./Notifications.css";
 
 const Notifications = () => {
     const navigate = useNavigate();
