@@ -21,13 +21,13 @@ export default function AnalyzeDebate() {
     try {
       // Fallacy reports use the complete analysis pipeline so every argument
       // receives a score, detailed fallacy explanation, and saved report.
-      const endpoint = tool === "counterargument" ? "/analysis/counterargument" : tool === "feedback" ? "/analysis/feedback" : "/analysis/analyze";
-      const response = await api.post(endpoint, { text: argument });
+      const endpoint = tool === "counterargument" ? "/analysis/counterargument" : tool === "feedback" ? "/analysis/presentation" : "/analysis/analyze";
+      const response = await api.post(endpoint, tool === "feedback" ? { transcript: argument } : { text: argument });
 
       // The specialised endpoints return their result at the top level;
       // normalise them so the report cards render consistently.
       if (tool === "counterargument") setResult({ counter_argument: response.data });
-      else if (tool === "feedback") setResult({ feedback: response.data });
+      else if (tool === "feedback") setResult({ presentation: response.data });
       else setResult(response.data);
     } catch (err) {
       console.error(err);
@@ -98,7 +98,16 @@ export default function AnalyzeDebate() {
           </div>
         )}
 
-        {result && tool !== "counterargument" && (
+        {result && tool === "feedback" && (
+          <div className="mt-10 space-y-6">
+            <div className="rounded-xl bg-white p-6 shadow-lg"><h2 className="text-2xl font-bold text-green-700">Presentation score</h2><p className="mt-4 text-5xl font-bold text-green-600">{result.presentation?.overall_score?.toFixed(1)}/10</p><p className="mt-3 text-sm text-slate-600">Based on structure, clarity, pacing, and confidence signals in your transcript.</p></div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{Object.entries(result.presentation?.metrics || {}).map(([name, score]) => <div key={name} className="rounded-xl bg-white p-5 shadow-lg"><p className="capitalize text-sm font-semibold text-slate-600">{name}</p><p className="mt-2 text-3xl font-bold text-violet-700">{score}/10</p></div>)}</div>
+            <div className="grid gap-6 lg:grid-cols-2"><div className="rounded-xl bg-white p-6 shadow-lg"><h2 className="text-xl font-bold text-purple-600">Delivery insights</h2><dl className="mt-4 space-y-3 text-slate-700"><div className="flex justify-between gap-4"><dt>Words</dt><dd className="font-semibold">{result.presentation?.word_count}</dd></div><div className="flex justify-between gap-4"><dt>Filler words</dt><dd className="font-semibold">{result.presentation?.filler_word_count}</dd></div><div className="flex justify-between gap-4"><dt>Transitions</dt><dd className="font-semibold">{result.presentation?.transition_count}</dd></div><div className="flex justify-between gap-4"><dt>Average sentence length</dt><dd className="font-semibold">{result.presentation?.average_sentence_length} words</dd></div></dl></div><div className="rounded-xl bg-white p-6 shadow-lg"><h2 className="text-xl font-bold text-purple-600">Recommendations</h2><ul className="mt-4 list-disc space-y-3 pl-5 text-slate-700">{(result.presentation?.suggestions || []).map((item) => <li key={item}>{item}</li>)}</ul></div></div>
+            <div className="text-center"><button onClick={resetAnalysis} className="rounded-lg bg-gray-700 px-8 py-3 text-white transition hover:bg-gray-800">Analyze Another Presentation</button></div>
+          </div>
+        )}
+
+        {result && tool !== "counterargument" && tool !== "feedback" && (
 
           <div className="mt-10 space-y-6">
 

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 
 class UserCreate(BaseModel):
@@ -80,3 +80,15 @@ class FeedbackResponse(BaseModel):
     persuasiveness_score: int
     grammar_score: int
     feedback: list[str]
+
+
+class PresentationRequest(BaseModel):
+    transcript: str = Field(min_length=20, max_length=20000)
+    duration_seconds: int | None = Field(default=None, ge=15, le=14400)
+
+    @field_validator("transcript")
+    @classmethod
+    def transcript_has_words(cls, value: str) -> str:
+        if len(value.split()) < 5:
+            raise ValueError("Transcript must contain at least five words.")
+        return value.strip()

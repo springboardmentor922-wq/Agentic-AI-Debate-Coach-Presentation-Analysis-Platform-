@@ -7,12 +7,14 @@ from ..agents.auditor_agent import analyze_argument
 from ..schemas import CounterArgumentRequest
 from ..agents.opponent_agent import generate_counterargument
 from ..schemas import FeedbackRequest
+from ..schemas import PresentationRequest
 from ..agents.feedback_agent import generate_feedback
 from ..services.debate_service import analyze_debate
 from ..services.history_service import (
     get_all_history,
     get_history_by_id
 )
+from ..services.presentation_service import analyze_presentation
 router = APIRouter(
     prefix="/analysis",
     tags=["Argument Analysis"]
@@ -35,6 +37,11 @@ def counter_argument(request: CounterArgumentRequest):
 def feedback(request: FeedbackRequest):
 
     return generate_feedback(request.text)
+
+
+@router.post("/presentation")
+def presentation_analysis(request: PresentationRequest):
+    return analyze_presentation(request.transcript, request.duration_seconds)
 
 @router.post("/analyze")
 def full_analysis(
