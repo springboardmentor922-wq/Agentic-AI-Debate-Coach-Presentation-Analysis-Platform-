@@ -6,9 +6,9 @@ function ChatWindow({ messages, sendMessage, onClose }) {
     <div className="fixed bottom-24 right-6 w-96 h-[550px] bg-white rounded-xl shadow-2xl border flex flex-col z-50">
 
       {/* Header */}
-      <div className="bg-green-600 text-white p-4 rounded-t-xl flex justify-between items-center">
+      <div className="flex items-center justify-between rounded-t-xl bg-[#111b38] p-4 text-white">
         <h2 className="font-bold">
-          🤖 AI Debate Coach
+          ✦ Forge Assistant
         </h2>
 
         <button

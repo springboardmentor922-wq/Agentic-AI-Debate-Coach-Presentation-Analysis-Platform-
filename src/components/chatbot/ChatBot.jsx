@@ -9,7 +9,7 @@ function ChatBot() {
   const [messages, setMessages] = useState([
     {
       sender: "bot",
-      text: "Hello! 👋 I'm your AI Debate Coach. How can I help you today?",
+      text: "Hello! 👋 I'm Forge Assistant, your debate practice guide. How can I help today?",
     },
   ]);
 

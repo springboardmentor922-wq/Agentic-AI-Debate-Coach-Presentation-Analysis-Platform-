@@ -1,7 +1,11 @@
 import { useState } from "react";
-import axios from "axios";
+import { useSearchParams } from "react-router-dom";
+import api from "../../services/api";
 
 export default function AnalyzeDebate() {
+  const [searchParams] = useSearchParams();
+  const tool = searchParams.get("tool") || "analysis";
+  const toolCopy = { analysis: ["Argument Analyzer", "Get a complete AI review of your reasoning."], fallacy: ["Fallacy Detector", "Identify logical fallacies and learn how to correct them."], counterargument: ["Counterargument Generator", "Generate a strong opposing perspective for your argument."], feedback: ["Presentation Analysis", "Receive clarity, logic, persuasiveness, and grammar feedback."], resources: ["Learning Resources", "Start with an argument and explore personalised learning guidance."] }[tool] || ["Argument Analyzer", "Get a complete AI review of your reasoning."];
   const [argument, setArgument] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -15,14 +19,16 @@ export default function AnalyzeDebate() {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/analysis/analyze",
-        {
-          text: argument,
-        }
-      );
+      // Fallacy reports use the complete analysis pipeline so every argument
+      // receives a score, detailed fallacy explanation, and saved report.
+      const endpoint = tool === "counterargument" ? "/analysis/counterargument" : tool === "feedback" ? "/analysis/feedback" : "/analysis/analyze";
+      const response = await api.post(endpoint, { text: argument });
 
-      setResult(response.data);
+      // The specialised endpoints return their result at the top level;
+      // normalise them so the report cards render consistently.
+      if (tool === "counterargument") setResult({ counter_argument: response.data });
+      else if (tool === "feedback") setResult({ feedback: response.data });
+      else setResult(response.data);
     } catch (err) {
       console.error(err);
       alert("Failed to analyze argument.");
@@ -41,11 +47,11 @@ export default function AnalyzeDebate() {
       <div className="max-w-5xl mx-auto">
 
         <h1 className="text-4xl font-bold text-center text-green-700">
-          AI Debate Coach
+          {toolCopy[0]}
         </h1>
 
         <p className="text-center text-gray-600 mt-2 mb-8">
-          Analyze your debate argument using Artificial Intelligence
+          {toolCopy[1]}
         </p>
 
         {/* Input Box */}
@@ -73,7 +79,7 @@ export default function AnalyzeDebate() {
                   Analyzing your argument...
                 </span>
               ) : (
-                "Analyze"
+                tool === "fallacy" ? "Detect fallacy" : tool === "counterargument" ? "Generate counterargument" : tool === "feedback" ? "Get feedback" : "Analyze"
               )}
             </button>
 
@@ -83,7 +89,16 @@ export default function AnalyzeDebate() {
 
         {/* Results */}
 
-        {result && (
+        {result && tool === "counterargument" && (
+          <div className="mt-10 rounded-xl bg-white p-6 shadow-lg">
+            <h2 className="text-2xl font-bold text-violet-700">Counterargument report</h2>
+            <p className="mt-4 leading-7 text-slate-700">{result.counter_argument?.counterargument || "No counterargument was generated."}</p>
+            <h3 className="mt-6 font-bold text-slate-800">Supporting points</h3>
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-slate-600">{(result.counter_argument?.supporting_points || []).map((point, index) => <li key={index}>{point}</li>)}</ul>
+          </div>
+        )}
+
+        {result && tool !== "counterargument" && (
 
           <div className="mt-10 space-y-6">
 
@@ -125,6 +140,13 @@ export default function AnalyzeDebate() {
                 {result.fallacy_analysis?.explanation ||
                   "No logical fallacy detected."}
               </p>
+
+              {tool === "fallacy" && (
+                <div className="mt-5 grid gap-3 rounded-lg bg-violet-50 p-4 text-sm text-slate-700 sm:grid-cols-2">
+                  <div><p className="font-bold text-violet-700">Flagged wording</p><p className="mt-1">{result.fallacy_analysis?.offending_text || "No specific wording was flagged."}</p></div>
+                  <div><p className="font-bold text-violet-700">How to improve it</p><p className="mt-1">{result.fallacy_analysis?.correction_suggestion || "Strengthen the claim with evidence and a clear logical link."}</p></div>
+                </div>
+              )}
 
             </div>
 

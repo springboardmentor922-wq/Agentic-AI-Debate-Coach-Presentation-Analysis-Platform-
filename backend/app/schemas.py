@@ -12,6 +12,11 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+
+class AdminMfaVerify(BaseModel):
+    mfa_token: str
+    code: str
+
 from pydantic import BaseModel
 
 class ProfileCreate(BaseModel):

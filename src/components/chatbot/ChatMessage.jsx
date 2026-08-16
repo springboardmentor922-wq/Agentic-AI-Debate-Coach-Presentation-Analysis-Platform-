@@ -10,7 +10,7 @@ function ChatMessage({ sender, text }) {
       <div
         className={`max-w-[80%] rounded-xl p-3 whitespace-pre-wrap ${
           sender === "user"
-            ? "bg-green-600 text-white"
+            ? "bg-violet-600 text-white"
             : "bg-gray-100 text-gray-800"
         }`}
       >

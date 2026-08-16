@@ -1,5 +1,5 @@
 import json
-import time
+import re
 
 from google import genai
 from google.genai.errors import ServerError
@@ -28,11 +28,14 @@ def generate_json(prompt):
     )
 
     text = response.text.strip()
+    text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s*```$", "", text)
 
-    if text.startswith("```json"):
-        text = text.replace("```json", "")
+    # Gemini occasionally adds a short explanation around otherwise valid JSON.
+    # Extract the object so the API continues returning a reliable structured
+    # result instead of failing an entire learner session.
+    start, end = text.find("{"), text.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        raise ValueError("The AI response did not contain a JSON object.")
 
-    if text.endswith("```"):
-        text = text[:-3]
-
-    return json.loads(text.strip())
+    return json.loads(text[start:end + 1])

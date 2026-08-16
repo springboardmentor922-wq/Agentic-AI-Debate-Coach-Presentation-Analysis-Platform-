@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .database import Base, engine
+from .database import Base, engine, ensure_user_security_columns
 from . import models
 
 from .routers import users
@@ -9,14 +9,9 @@ from .routers import profile
 from .routers import debate
 from .routers import analysis
 from app.routers import chat
-from .database import Base, engine, SessionLocal
-from . import crud
 
 Base.metadata.create_all(bind=engine)
-
-db = SessionLocal()
-crud.create_default_admin(db)
-db.close()
+ensure_user_security_columns()
 
 app = FastAPI(
     title="AI Debate Coach API",
@@ -25,6 +20,7 @@ app = FastAPI(
 
 origins = [
     "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 app.add_middleware(

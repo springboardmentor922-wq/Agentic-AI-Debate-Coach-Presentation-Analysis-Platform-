@@ -50,7 +50,7 @@ function Signup() {
         </h1>
 
         <p className="text-center text-gray-500 mt-2 mb-8">
-          Join AI Debate Coach
+          Join DebateForge
         </p>
 
         <form onSubmit={handleSignup} className="space-y-5">

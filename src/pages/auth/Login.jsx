@@ -52,16 +52,18 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-[#f8f9fd] flex">
       {/* Left Section */}
-      <div className="hidden lg:flex w-1/2 bg-green-700 text-white flex-col justify-center px-16">
+      <div className="relative hidden w-1/2 overflow-hidden bg-gradient-to-br from-[#111b38] via-[#182b5a] to-violet-800 text-white lg:flex lg:flex-col lg:justify-center lg:px-16">
+        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full border-[38px] border-violet-300/20" />
+        <div className="absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-violet-500/20" />
         <h1 className="text-5xl font-bold mb-5">
-          AI Debate Coach
+          DebateForge
         </h1>
 
-        <p className="text-xl text-green-100 mb-12">
-          Improve your communication, critical thinking and presentation
-          skills with AI.
+        <p className="mb-12 text-xl text-violet-100">
+          Your AI-powered space to build arguments, speak with confidence,
+          and grow through every debate.
         </p>
 
         <div className="space-y-8">
@@ -73,7 +75,7 @@ function Login() {
                 AI Argument Analysis
               </h3>
 
-              <p className="text-green-100">
+              <p className="text-violet-100">
                 Analyze claims and reasoning instantly.
               </p>
             </div>
@@ -87,7 +89,7 @@ function Login() {
                 Debate Simulation
               </h3>
 
-              <p className="text-green-100">
+              <p className="text-violet-100">
                 Practice against an intelligent AI opponent.
               </p>
             </div>
@@ -101,7 +103,7 @@ function Login() {
                 Performance Analytics
               </h3>
 
-              <p className="text-green-100">
+              <p className="text-violet-100">
                 Track your improvement after every debate.
               </p>
             </div>
@@ -111,7 +113,7 @@ function Login() {
 
       {/* Right Section */}
       <div className="flex flex-1 items-center justify-center p-8">
-        <div className="bg-white w-full max-w-md rounded-2xl shadow-xl p-10">
+        <div className="w-full max-w-md rounded-2xl border border-violet-100 bg-white p-10 shadow-xl shadow-slate-200/70">
           <h2 className="text-4xl font-bold text-gray-800">
             Welcome Back
           </h2>
@@ -129,7 +131,7 @@ function Login() {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="mt-2 w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-600 outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -144,7 +146,7 @@ function Login() {
               <input
                 type="password"
                 placeholder="Enter your password"
-                className="mt-2 w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-600 outline-none"
+                className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-3 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -153,7 +155,7 @@ function Login() {
 
             <button
               type="submit"
-              className="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-lg font-semibold transition cursor-pointer"
+              className="w-full rounded-lg bg-violet-600 py-3 font-semibold text-white transition hover:bg-violet-700 cursor-pointer"
             >
               Login
             </button>
@@ -164,7 +166,7 @@ function Login() {
 
             <Link
               to="/signup"
-              className="text-green-700 font-semibold ml-2"
+              className="ml-2 font-semibold text-violet-700"
             >
               Sign Up
             </Link>

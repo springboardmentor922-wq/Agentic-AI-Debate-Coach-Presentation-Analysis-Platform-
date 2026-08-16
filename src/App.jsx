@@ -14,6 +14,7 @@ import DebateSession from "./pages/learner/DebateSession";
 import AnalyzeDebate from "./pages/learner/AnalyzeDebate";
 import History from "./pages/learner/History";
 import Report from "./pages/learner/Report";
+import WorkspaceSection from "./components/WorkspaceSection";
 function App() {
   return (
     <BrowserRouter>
@@ -48,6 +49,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/coach/:section" element={<ProtectedRoute><WorkspaceSection role="Debate Coach" base="coach" /></ProtectedRoute>} />
 
         <Route
           path="/educator"
@@ -57,6 +59,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/educator/:section" element={<ProtectedRoute><WorkspaceSection role="Educator" base="educator" /></ProtectedRoute>} />
 
         <Route
           path="/admin/profile"
@@ -68,6 +71,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/admin/:section" element={<ProtectedRoute><WorkspaceSection role="Administrator" base="admin" /></ProtectedRoute>} />
 
         <Route
           path="/admin"
@@ -91,10 +95,19 @@ function App() {
     path="/learner/report/:id"
     element={
         <ProtectedRoute>
-            <Report/>
+    <Report />
         </ProtectedRoute>
     }
 />
+
+        <Route
+          path="/learner/report/latest"
+          element={
+            <ProtectedRoute>
+              <Report />
+            </ProtectedRoute>
+          }
+        />
 
         <Route path="/profile" element={<Profile />} />
 

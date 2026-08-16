@@ -7,6 +7,30 @@ from ..agents.feedback_agent import generate_feedback
 from ..models.debate_analysis import DebateAnalysis
 
 
+SCORE_FIELDS = (
+    "clarity_score",
+    "logic_score",
+    "persuasiveness_score",
+    "grammar_score",
+)
+
+
+def normalise_score(value):
+    try:
+        return round(max(0, min(10, float(value))), 1)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def normalise_feedback(feedback):
+    feedback = feedback or {}
+    for field in SCORE_FIELDS:
+        feedback[field] = normalise_score(feedback.get(field))
+    suggestions = feedback.get("feedback")
+    feedback["feedback"] = suggestions if isinstance(suggestions, list) else []
+    return feedback
+
+
 def calculate_score(feedback):
 
     return round(
@@ -26,7 +50,7 @@ def analyze_debate(argument: str, db: Session):
 
     counter = generate_counterargument(argument)
 
-    feedback = generate_feedback(argument)
+    feedback = normalise_feedback(generate_feedback(argument))
 
     overall_score = calculate_score(feedback)
 
