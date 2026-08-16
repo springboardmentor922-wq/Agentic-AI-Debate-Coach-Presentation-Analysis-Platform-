@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Users, 
   GraduationCap, 
@@ -29,6 +29,7 @@ import { MOCK_EDUCATOR_DATA } from '../../data/mockData';
 import { UserProfile } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
 import { BadgesShowcase } from '../badges/BadgesShowcase';
+import { PDFReportService } from '../../services/pdfReportService';
 
 interface EducatorDashboardViewProps {
   activeUser?: UserProfile;
@@ -80,7 +81,14 @@ export const EducatorDashboardView: React.FC<EducatorDashboardViewProps> = ({
     { id: '3', name: 'Lincoln-Douglas Value Debate Checklist', criteriaCount: 3, weights: 'Value Framework (33%), Evidence (33%), Logical Consistency (34%)' },
   ]);
 
-  const customLearners = existingUsers.filter(u => u.role === 'learner' && u.id !== 'usr_alex');
+  const customLearners = useMemo(() => {
+    const seen = new Set<string>();
+    return (existingUsers || []).filter(u => {
+      if (!u || u.role !== 'learner' || u.id === 'usr_alex' || seen.has(u.id)) return false;
+      seen.add(u.id);
+      return true;
+    });
+  }, [existingUsers]);
 
   const [evaluationQueue, setEvaluationQueue] = useState(() => {
     const defaultQueue = [
@@ -821,7 +829,7 @@ export const EducatorDashboardView: React.FC<EducatorDashboardViewProps> = ({
                   onClick={() => {
                     if (newClassName.trim()) {
                       const name = newClassName.trim();
-                      setClassList(prev => [...prev, { name, shortName: name.slice(0, 12), learners: 12, avgScore: 81.2, trend: '+5.2' }]);
+                      setClassList(prev => [...prev, { name, shortName: name.substring(0, 15), learners: 12, avgScore: 81.2, trend: '5.2' }]);
                       setRosterData(prev => ({
                         ...prev,
                         [name]: [
@@ -1196,7 +1204,41 @@ export const EducatorDashboardView: React.FC<EducatorDashboardViewProps> = ({
           </div>
 
           <button 
-            onClick={() => alert("Report card PDF generation initiated for active cohort!")}
+            onClick={() => {
+              PDFReportService.exportDebateSessionPDF({
+                id: 'COHORT-REPORT',
+                topic: 'Varsity Debate Cohort • Cumulative Student Performance Assessment',
+                format: 'Public Forum / Parliamentary / Policy',
+                stance: 'COHORT AGGREGATE',
+                score: 87.5,
+                date: new Date().toLocaleDateString(),
+                aggregateBreakdown: {
+                  argumentQuality: 88,
+                  evidenceUsage: 84,
+                  logicalConsistency: 90,
+                  rebuttalEffectiveness: 83,
+                  communicationSkills: 87
+                },
+                turns: studentReportList.map((st, i) => ({
+                  id: `st_${st.id}`,
+                  turnNumber: i + 1,
+                  speaker: 'user',
+                  userSpeech: `${st.name} (${st.grade}) - Contention: ${st.classTitle}. Notes: ${st.recentFeedback}`,
+                  aiRebuttal: `Evaluator Feedback: Rebuttal skill score: ${st.rebuttalScore}%, Claim logic: ${st.claimScore}%.`,
+                  scores: {
+                    argumentQuality: st.claimScore,
+                    evidenceUsage: st.evidenceScore,
+                    logicalConsistency: st.fallacyScore,
+                    rebuttalEffectiveness: st.rebuttalScore,
+                    communicationSkills: 88,
+                    weightedTotal: st.score
+                  }
+                }))
+              }, {
+                institution: 'AI Debate Varsity Cohort',
+                coachNotes: 'All debaters showed commendable growth across 5 primary reasoning dimensions.'
+              });
+            }}
             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition-colors cursor-pointer flex items-center gap-2"
           >
             <FileText className="w-4 h-4" /> Export All Student Reports (PDF)

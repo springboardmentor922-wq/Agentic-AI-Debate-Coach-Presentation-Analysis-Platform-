@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Search, Bell, CheckCircle2, ChevronDown, Menu, UserPlus, LogOut, Shield, Sparkles, Sun, Moon, MessageSquare, Award, Clock } from 'lucide-react';
 import { UserRole, UserProfile, NotificationItem } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
@@ -107,19 +107,21 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Global Search Bar */}
-      <div className="hidden md:flex items-center relative w-36 lg:w-56 shrink-0">
-        <Search className={`w-4 h-4 absolute left-3 pointer-events-none ${
-          isDark ? 'text-slate-400' : 'text-slate-500'
-        }`} />
-        <input
-          type="text"
-          placeholder="Search arguments, topics..."
-          className={`w-full pl-9 pr-3 py-1.5 rounded-lg text-xs transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
-            isDark 
-              ? 'bg-slate-900/80 border border-slate-700/80 text-slate-200 placeholder-slate-400 focus:bg-slate-900' 
-              : 'bg-slate-100 border border-slate-300 text-slate-800 placeholder-slate-500 focus:bg-white'
-          }`}
-        />
+      <div className="hidden lg:flex items-center gap-3 shrink-0">
+        <div className="flex items-center relative w-48 lg:w-64">
+          <Search className={`w-4 h-4 absolute left-3 pointer-events-none ${
+            isDark ? 'text-slate-400' : 'text-slate-500'
+          }`} />
+          <input
+            type="text"
+            placeholder="Search..."
+            className={`w-full pl-9 pr-3 py-1.5 rounded-lg text-xs transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+              isDark 
+                ? 'bg-slate-900/80 border border-slate-700/80 text-slate-200 placeholder-slate-400 focus:bg-slate-900' 
+                : 'bg-slate-100 border border-slate-300 text-slate-800 placeholder-slate-500 focus:bg-white'
+            }`}
+          />
+        </div>
       </div>
 
       {/* Right Actions: Theme Toggle, Role Switcher, Notifications, Profile */}
@@ -295,6 +297,14 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               </div>
 
+              {/* Account Status Badge */}
+              <div className={`mt-3 py-2 px-3 rounded-xl border flex items-center justify-between text-xs ${
+                isDark ? 'bg-slate-900/60 border-slate-700/60 text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}>
+                <span className="text-[11px] font-medium text-slate-400">Authenticated Role:</span>
+                <span className="font-bold text-indigo-400 capitalize">{activeUser.role}</span>
+              </div>
+
               {/* Action Buttons */}
               <div className={`mt-3 space-y-1.5 text-xs border-t pt-3 ${
                 isDark ? 'border-slate-800' : 'border-slate-200'
@@ -323,7 +333,7 @@ export const Header: React.FC<HeaderProps> = ({
                       setShowUserPopover(false);
                       onLogout();
                     }}
-                    className="w-full py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-medium rounded-xl border border-rose-500/20 flex items-center gap-2 transition-colors mt-2"
+                    className="w-full py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 font-medium rounded-xl border border-rose-500/20 flex items-center gap-2 transition-colors mt-2 cursor-pointer"
                   >
                     <LogOut className="w-4 h-4" />
                     Log Out Session

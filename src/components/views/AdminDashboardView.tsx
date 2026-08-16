@@ -110,7 +110,7 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
 
     setAuditLogs(prev => [
       {
-        id: Date.now().toString(),
+        id: `audit_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
         user: activeUser?.email || 'admin@platform.com',
         action: `Admin updated role for ${editingUser.name} to ${selectedRole} (${selectedStatus})${coachAuditDetail}`,
@@ -256,11 +256,11 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {displayUsers.map((u) => {
+                {displayUsers.map((u, uIdx) => {
                   const normRole = normalizeRole(u.role);
                   const userCoach = getAssignedCoachForLearner(u.email || u.id);
                   return (
-                    <tr key={u.id} className="hover:bg-slate-800/50">
+                    <tr key={`admin_user_${u.id}_${uIdx}`} className="hover:bg-slate-800/50">
                       <td className="p-3 font-bold">{u.name}</td>
                       <td className="p-3 font-mono">{u.email}</td>
                       <td className="p-3 capitalize font-semibold text-indigo-400">{normRole}</td>
@@ -408,8 +408,8 @@ export const AdminDashboardView: React.FC<AdminDashboardViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {auditLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-800/50">
+                {auditLogs.map((log, lIdx) => (
+                  <tr key={`audit_row_${log.id}_${lIdx}`} className="hover:bg-slate-800/50">
                     <td className="p-3 font-mono text-slate-400">{log.timestamp}</td>
                     <td className="p-3 font-semibold">{log.user}</td>
                     <td className="p-3">{log.action}</td>

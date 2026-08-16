@@ -180,6 +180,11 @@ export interface NotificationItem {
   type: 'evaluation' | 'session' | 'system' | 'coaching';
   targetLearner?: string;
   link?: string;
+  details?: string;
+  source?: string;
+  actionLabel?: string;
+  metrics?: { label: string; value: string | number; color?: string }[];
+  keyTakeaways?: string[];
 }
 
 export interface CoachFeedbackNote {

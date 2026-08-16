@@ -162,7 +162,7 @@ export const FloatingAIChatbot: React.FC<FloatingAIChatbotProps> = ({ currentTab
       setMessages(prev => [
         ...prev,
         {
-          id: `usr_switch_${Date.now()}`,
+          id: `usr_switch_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           sender: 'ai',
           text: `Switched active learner profile to **${activeUser.name}** (${activeUser.roleLabel}). Welcome! Currently synced with **${currentContext.title}**.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -177,7 +177,7 @@ export const FloatingAIChatbot: React.FC<FloatingAIChatbotProps> = ({ currentTab
       setMessages(prev => [
         ...prev,
         {
-          id: `ctx_${Date.now()}`,
+          id: `ctx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
           sender: 'ai',
           text: `Switched context to **${currentContext.title}**. Active AI agents: ${currentContext.agents.join(', ')}.`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -196,7 +196,7 @@ export const FloatingAIChatbot: React.FC<FloatingAIChatbotProps> = ({ currentTab
     if (!text.trim() || isLoading) return;
 
     const userMsg: ChatMessage = {
-      id: `usr_${Date.now()}`,
+      id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       sender: 'user',
       text,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -209,7 +209,7 @@ export const FloatingAIChatbot: React.FC<FloatingAIChatbotProps> = ({ currentTab
     try {
       const response = await queryChatbotApi(text, currentTab);
       const aiMsg: ChatMessage = {
-        id: `ai_${Date.now()}`,
+        id: `ai_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         sender: 'ai',
         text: response.reply,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -218,7 +218,7 @@ export const FloatingAIChatbot: React.FC<FloatingAIChatbotProps> = ({ currentTab
       setMessages(prev => [...prev, aiMsg]);
     } catch (err) {
       const aiMsg: ChatMessage = {
-        id: `ai_${Date.now()}`,
+        id: `ai_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         sender: 'ai',
         text: 'I have evaluated your query across our agentic pipeline. Ensure your arguments utilize strong evidence and avoid logical fallacies.',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -343,9 +343,9 @@ export const FloatingAIChatbot: React.FC<FloatingAIChatbotProps> = ({ currentTab
 
           {/* Messages Container */}
           <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#0F172A]/80">
-            {messages.map((m) => (
+            {messages.map((m, mIdx) => (
               <div
-                key={m.id}
+                key={`chat_msg_${m.id}_${mIdx}`}
                 className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
               >
                 {m.agentName && (

@@ -29,6 +29,8 @@ import { MOCK_COACH_DATA } from '../../data/mockData';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { UserProfile } from '../../types';
 import { useTheme } from '../../context/ThemeContext';
+import { saveCoachFeedbackNote, getCoachFeedbackNotes } from '../../services/feedbackAndNotificationService';
+import { getLearnerRegistry, LearnerActivityRecord } from '../../services/learnerCoachSyncService';
 
 interface CoachDashboardViewProps {
   activeUser?: UserProfile;
@@ -55,22 +57,6 @@ interface TurnLogDetail {
     aiJudgeComment?: string;
   }>;
   coachFeedback?: string;
-}
-
-interface LearnerActivityRecord {
-  learnerName: string;
-  skills: any;
-  totalDebates: number;
-  learnerEmail: any;
-  email: any;
-  averageScore: number;
-  roleLabel: string;
-  completedDebates?: any[];
-  recentHistory?: any[];
-  learnerId: string;
-  id: string;
-  name: string;
-  role: string;
 }
 
 const DIVERSE_TOPICS_POOL = [
@@ -194,10 +180,6 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
   // Render Turn Log Explanatory Modal
   const renderTurnLogModal = () => {
     if (!selectedTurnLog) return null;
-
-    function saveCoachFeedbackNote(arg0: { learnerName: string; coachName: string; topic: string; note: string; score: number; grade: string; focusSkill: string; recommendation: string; }) {
-      throw new Error('Function not implemented.');
-    }
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in">
@@ -1038,8 +1020,8 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
     const learnerName = learner.learnerName || learner.name || 'Debater';
     const learnerId = learner.learnerId || learner.id || 'usr';
 
-    return list.map((hist: { id: any; topic: any; date: any; score: any; format: any; grade: any; }, hIdx: any) => ({
-      id: `live_eval_${learnerId}_${hist.id || hIdx}`,
+    return list.map((hist, hIdx) => ({
+      id: `live_eval_${learnerId}_${hist.id || hIdx}_${hIdx}`,
       learner: learnerName,
       topic: hist.topic || 'Universal Basic Income debate',
       Submitted: hist.date ? `${hist.date}` : 'Recently',
@@ -1058,13 +1040,14 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
   ];
 
   // Calculate live stats
-  const liveAvgScore = liveLearners.length > 0 
-    ? Math.round(liveLearners.reduce((acc, l) => acc + (l.averageScore ?? 0), 0) / liveLearners.length) 
-    : MOCK_COACH_DATA.avgClassScore;
+  const safeLiveLearners = liveLearners || [];
+  const liveAvgScore = safeLiveLearners.length > 0 
+    ? Math.round(safeLiveLearners.reduce((acc, l) => acc + (l?.averageScore ?? 75), 0) / safeLiveLearners.length) 
+    : (MOCK_COACH_DATA?.avgClassScore ?? 75);
 
   const livePendingCount = mainDashboardQueue.length;
-  const topLearnerRecord = [...liveLearners].sort((a, b) => (b.averageScore ?? 0) - (a.averageScore ?? 0))[0];
-  const topLearner = topLearnerRecord ? (topLearnerRecord.learnerName || topLearnerRecord.name || MOCK_COACH_DATA.topPerformer) : MOCK_COACH_DATA.topPerformer;
+  const topLearnerRecord = [...safeLiveLearners].sort((a, b) => ((b?.averageScore ?? 0) - (a?.averageScore ?? 0)))[0];
+  const topLearner = topLearnerRecord ? (topLearnerRecord.learnerName || topLearnerRecord.name || MOCK_COACH_DATA?.topPerformer || 'Riya Patel') : (MOCK_COACH_DATA?.topPerformer || 'Riya Patel');
 
   // --- DEFAULT SUBVIEW: Coach Dashboard Main ---
   return (
@@ -1074,7 +1057,7 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
         <div className="space-y-1">
           <span className="text-white bg-white/20 px-2.5 py-0.5 rounded-full border border-white/30 font-bold text-xs uppercase tracking-wider shadow-xs">COACH PORTAL</span>
           <h2 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm">Welcome, {coachName} 🎯</h2>
-          <p className="text-sky-100 text-xs font-medium">Guiding {liveLearners.length} active debate mentees with AI-powered telemetry and real-time synchronization</p>
+          <p className="text-sky-100 text-xs font-medium">Guiding {safeLiveLearners.length} active debate mentees with AI-powered telemetry and real-time synchronization</p>
         </div>
 
         <div className="bg-white/15 backdrop-blur-md text-white font-bold px-4 py-2 rounded-xl text-xs border border-white/30 shadow-md shrink-0">
@@ -1090,7 +1073,7 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
           </div>
           <div>
             <p className={`text-xs font-medium ${textSub}`}>Active Mentees</p>
-            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{liveLearners.length}</p>
+            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{safeLiveLearners.length}</p>
           </div>
         </div>
 
@@ -1100,7 +1083,7 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
           </div>
           <div>
             <p className={`text-xs font-medium ${textSub}`}>Sessions Logged</p>
-            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{liveLearners.reduce((acc, l) => acc + l.totalDebates, 0)}</p>
+            <p className={`text-2xl font-bold mt-0.5 ${textHeader}`}>{safeLiveLearners.reduce((acc, l) => acc + (l?.totalDebates || 0), 0)}</p>
           </div>
         </div>
 
@@ -1146,8 +1129,8 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
               </tr>
             </thead>
             <tbody className={`divide-y ${isDark ? 'divide-slate-800 text-slate-300' : 'divide-slate-100 text-slate-700'}`}>
-              {mainDashboardQueue.map((item) => (
-                <tr key={item.id} className={isDark ? 'hover:bg-slate-800/60' : 'hover:bg-slate-50/70'}>
+              {mainDashboardQueue.map((item, itemIdx) => (
+                <tr key={`coach_main_q_${item.id}_${itemIdx}`} className={isDark ? 'hover:bg-slate-800/60' : 'hover:bg-slate-50/70'}>
                   <td className={`p-3.5 font-bold ${textHeader}`}>{item.learner}</td>
                   <td className="p-3.5">{item.topic}</td>
                   <td className={`p-3.5 ${textSub}`}>{item.Submitted}</td>
@@ -1171,8 +1154,4 @@ export const CoachDashboardView: React.FC<CoachDashboardViewProps> = ({
     </div>
   );
 };
-
-function getLearnerRegistry(): LearnerActivityRecord[] {
-  throw new Error('Function not implemented.');
-}
 

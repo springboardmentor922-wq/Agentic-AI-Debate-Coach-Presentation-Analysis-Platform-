@@ -37,15 +37,42 @@ const DEFAULT_PROFILES: UserProfile[] = [
   { id: 'usr_siddharth', name: 'Siddharth Rao', email: 'siddharth@student.edu', password: 'student123', role: 'learner', roleLabel: 'Debater', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', institution: 'Debate Club' },
 ];
 
+function deduplicateProfiles(profiles: UserProfile[]): UserProfile[] {
+  const seenIds = new Set<string>();
+  const seenEmails = new Set<string>();
+  const result: UserProfile[] = [];
+  for (const p of profiles) {
+    if (!p) continue;
+    const idKey = p.id;
+    const emailKey = p.email?.toLowerCase();
+    if (idKey && seenIds.has(idKey)) continue;
+    if (emailKey && seenEmails.has(emailKey)) continue;
+    if (idKey) seenIds.add(idKey);
+    if (emailKey) seenEmails.add(emailKey);
+    result.push(p);
+  }
+  return result;
+}
+
 export function App() {
   const { isDark } = useTheme();
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('ai_debate_logged_in');
+      return saved === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const [userProfiles, setUserProfiles] = useState<UserProfile[]>(() => {
     try {
       const saved = localStorage.getItem('ai_debate_coach_custom_users');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return [...DEFAULT_PROFILES, ...parsed];
+        if (Array.isArray(parsed)) {
+          return deduplicateProfiles([...DEFAULT_PROFILES, ...parsed]);
+        }
       }
     } catch (e) {
       console.error('Failed to parse saved user accounts', e);
@@ -53,7 +80,18 @@ export function App() {
     return DEFAULT_PROFILES;
   });
 
-  const [activeUser, setActiveUser] = useState<UserProfile>(DEFAULT_PROFILES[0]);
+  const [activeUser, setActiveUser] = useState<UserProfile>(() => {
+    try {
+      const saved = localStorage.getItem('ai_debate_active_user');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.id) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to parse active user', e);
+    }
+    return DEFAULT_PROFILES[0];
+  });
   const currentRole = activeUser.role;
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
@@ -186,20 +224,44 @@ export function App() {
     setActiveUser(user);
     setActiveTab('dashboard');
     setIsLoggedIn(true);
+    try {
+      localStorage.setItem('ai_debate_active_user', JSON.stringify(user));
+      localStorage.setItem('ai_debate_logged_in', 'true');
+    } catch (e) {
+      console.error('Failed to save active user', e);
+    }
   };
 
   const handleCreateUser = (newUser: UserProfile) => {
     setUserProfiles(prev => {
-      const updated = [...prev, newUser];
-      // Save custom created users only
-      const customOnly = updated.filter(u => u.isCustomAccount);
-      localStorage.setItem('ai_debate_coach_custom_users', JSON.stringify(customOnly));
-      return updated;
+      const existingIdx = prev.findIndex(
+        u => u.id === newUser.id || (u.email && newUser.email && u.email.toLowerCase() === newUser.email.toLowerCase())
+      );
+      let updated: UserProfile[];
+      if (existingIdx >= 0) {
+        updated = [...prev];
+        updated[existingIdx] = { ...updated[existingIdx], ...newUser };
+      } else {
+        updated = [...prev, newUser];
+      }
+      const deduped = deduplicateProfiles(updated);
+      const customOnly = deduped.filter(u => u.isCustomAccount);
+      try {
+        localStorage.setItem('ai_debate_coach_custom_users', JSON.stringify(customOnly));
+      } catch (e) {
+        console.error('Failed to save custom users', e);
+      }
+      return deduped;
     });
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
+    try {
+      localStorage.setItem('ai_debate_logged_in', 'false');
+    } catch (e) {
+      console.error('Failed to save logout state', e);
+    }
   };
 
   const handleUpdateUser = (updatedProfile: UserProfile) => {
@@ -218,9 +280,14 @@ export function App() {
       } else {
         updatedList = [...prev, updatedProfile];
       }
-      const customOnly = updatedList.filter(u => u.isCustomAccount || u.role !== DEFAULT_PROFILES.find(d => d.id === u.id)?.role);
-      localStorage.setItem('ai_debate_coach_custom_users', JSON.stringify(customOnly));
-      return updatedList;
+      const deduped = deduplicateProfiles(updatedList);
+      const customOnly = deduped.filter(u => u.isCustomAccount || u.role !== DEFAULT_PROFILES.find(d => d.id === u.id)?.role);
+      try {
+        localStorage.setItem('ai_debate_coach_custom_users', JSON.stringify(customOnly));
+      } catch (e) {
+        console.error('Failed to save custom users', e);
+      }
+      return deduped;
     });
   };
 
@@ -228,14 +295,18 @@ export function App() {
     setUserProfiles(prev => {
       const updatedList = prev.filter(u => u.id !== userId);
       // Ensure there's at least one default profile available
-      const newList = updatedList.length > 0 ? updatedList : DEFAULT_PROFILES;
-      const customOnly = newList.filter(u => u.isCustomAccount);
-      localStorage.setItem('ai_debate_coach_custom_users', JSON.stringify(customOnly));
+      const deduped = deduplicateProfiles(updatedList.length > 0 ? updatedList : DEFAULT_PROFILES);
+      const customOnly = deduped.filter(u => u.isCustomAccount);
+      try {
+        localStorage.setItem('ai_debate_coach_custom_users', JSON.stringify(customOnly));
+      } catch (e) {
+        console.error('Failed to save custom users', e);
+      }
       
       // Fallback active user
-      const nextUser = newList[0];
+      const nextUser = deduped[0];
       setActiveUser(nextUser);
-      return newList;
+      return deduped;
     });
     setActiveTab('dashboard');
   };
@@ -401,7 +472,7 @@ export function App() {
       case 'my-notes':
         return <MyNotesView />;
       case 'notifications':
-        return <NotificationsView />;
+        return <NotificationsView onNavigate={(tab) => setActiveTab(tab)} />;
       case 'settings':
         return (
           <SettingsView
@@ -416,6 +487,15 @@ export function App() {
       case 'profile':
         return <ProfileView activeUser={activeUser} onUpdateProfile={handleUpdateUser} />;
       default:
+        if (currentRole === 'coach') {
+          return <CoachDashboardView activeUser={activeUser} activeSubTab="dashboard" existingUsers={userProfiles} />;
+        }
+        if (currentRole === 'educator') {
+          return <EducatorDashboardView activeUser={activeUser} activeSubTab="dashboard" existingUsers={userProfiles} />;
+        }
+        if (currentRole === 'admin') {
+          return <AdminDashboardView activeUser={activeUser} activeSubTab="dashboard" existingUsers={userProfiles} onUpdateUser={handleUpdateUser} />;
+        }
         return (
           <LearnerDashboardView
             onNavigate={(tab) => setActiveTab(tab)}
@@ -463,7 +543,7 @@ export function App() {
         <Header
           currentRole={currentRole}
           title={getPageTitle()}
-          onNavigateNotifications={() => setActiveTab('notifications')}
+          onNavigateNotifications={(tab) => setActiveTab(tab || 'notifications')}
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
           activeUser={activeUser}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
