@@ -29,6 +29,7 @@ interface AIDebateSimulationViewProps {
   activeSession?: ActiveDebateSession;
   onUpdateSession?: (session: ActiveDebateSession) => void;
   onCompleteSession?: (session: ActiveDebateSession) => void;
+  onNavigate?: (tab: string) => void;
 }
 
 const SAMPLE_TUTORIAL_TURN: ActiveDebateTurn = {
@@ -54,7 +55,8 @@ export const AIDebateSimulationView: React.FC<AIDebateSimulationViewProps> = ({
   onTopicChange,
   activeSession,
   onUpdateSession,
-  onCompleteSession
+  onCompleteSession,
+  onNavigate
 }) => {
   const [selectedFormat, setSelectedFormat] = useState<DebateFormat>(activeSession?.format || 'One-on-One');
   const [selectedTopic, setSelectedTopic] = useState<string>(
@@ -273,66 +275,113 @@ export const AIDebateSimulationView: React.FC<AIDebateSimulationViewProps> = ({
       )}
 
       {/* Top Banner & Arena Controls */}
-      <div className="bg-[#1E293B] p-6 rounded-2xl border border-slate-700/80 shadow-2xl space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-lg">
+      <div className="bg-[#1E293B] p-6 rounded-2xl border border-slate-700/80 shadow-2xl space-y-5">
+        {/* Row 1: Arena Title & Format Selectors */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white flex items-center justify-center shadow-lg shrink-0">
               <Swords className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-white tracking-tight">Live Arena: Dual-Agent Synthesis</h2>
-                {realTurns.length === 0 && !isViewingSample && (
-                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    Blank Debate Ready
-                  </span>
-                )}
+                <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">Debate Simulation Arena</h2>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 whitespace-nowrap">
+                  Multi-Agent
+                </span>
               </div>
-              <p className="text-xs text-slate-400">Coordinated by Agent 01 Referee (0.0 Temp) & Agent 02 Rival Player (0.7 Temp)</p>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Real-time debate vs. Agent 01 (Referee Audit) & Agent 02 (Rival Rebuttal)
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-2 bg-slate-900/80 p-1 rounded-xl border border-slate-700">
-              {(['One-on-One', 'Oxford Debate', 'Parliamentary Debate'] as DebateFormat[]).map((fmt) => (
-                <button
-                  key={fmt}
-                  onClick={() => handleFormatChange(fmt)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                    selectedFormat === fmt
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  {fmt}
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-xl border border-slate-700/80 shrink-0 self-start lg:self-auto overflow-x-auto max-w-full">
+            {(['One-on-One', 'Oxford Debate', 'Parliamentary Debate'] as DebateFormat[]).map((fmt) => (
+              <button
+                key={fmt}
+                onClick={() => handleFormatChange(fmt)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  selectedFormat === fmt
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {fmt}
+              </button>
+            ))}
+          </div>
+        </div>
 
+        {/* Row 2: Turn Progression Tracker & Action Buttons */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3.5 bg-slate-900/80 rounded-xl border border-slate-700/60">
+          {/* Visual 5-Stage Turn Tracker */}
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                Turn Progress:
+              </span>
+              <span className="text-xs font-mono font-bold text-indigo-400">
+                {realTurns.length}/5 Completed
+              </span>
+              <span className="text-[11px] text-slate-400">
+                {realTurns.length === 0 ? '• Ready for Turn #1' : `• ${realTurns.length} Speech Turn(s) Logged`}
+              </span>
+            </div>
+            {/* 5-step visual pills */}
+            <div className="flex items-center gap-1.5">
+              {[1, 2, 3, 4, 5].map((step) => {
+                const isCompleted = step <= realTurns.length;
+                const isCurrent = step === realTurns.length + 1;
+                return (
+                  <div
+                    key={step}
+                    className={`h-2 rounded-full transition-all ${
+                      isCompleted
+                        ? 'w-8 bg-emerald-500'
+                        : isCurrent
+                          ? 'w-10 bg-indigo-500 animate-pulse ring-2 ring-indigo-400/40'
+                          : 'w-6 bg-slate-800 border border-slate-700'
+                    }`}
+                    title={`Turn ${step}${isCompleted ? ' (Completed)' : isCurrent ? ' (Next)' : ' (Upcoming)'}`}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleStartFreshDebate}
-              title="Clear turns and start fresh on this topic from Turn #1"
-              className="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Reset all turns and start clean from Turn #1"
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white border border-slate-700 flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> Start Blank Round (Turn #1)
+              <RotateCcw className="w-3.5 h-3.5" /> Start Clean Round
             </button>
 
             <button
               onClick={handleFinishDebate}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all cursor-pointer"
+              disabled={realTurns.length === 0}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md cursor-pointer ${
+                realTurns.length > 0
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-600/20'
+                  : 'bg-slate-800/80 text-slate-500 border border-slate-700/50 cursor-not-allowed opacity-60'
+              }`}
+              title={realTurns.length > 0 ? `Finish and score this ${realTurns.length}-turn debate` : 'Record at least 1 turn to finish & evaluate'}
             >
-              <CheckCircle2 className="w-4 h-4" /> Finish & Evaluate Debate
+              <CheckCircle2 className="w-4 h-4" />
+              <span>{realTurns.length > 0 ? `Finish & Score (${realTurns.length} Turns)` : 'Finish (0 Turns)'}</span>
             </button>
           </div>
         </div>
 
-        {/* Topic & Side Selection */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-3 border-t border-slate-700/60">
+        {/* Row 3: Topic & Stance Selection */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
           <div className="md:col-span-2 space-y-1">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-300">Active Debate Motion / Topic</label>
-              <span className="text-[11px] text-slate-400">
-                {realTurns.length > 0 ? `${realTurns.length} turns recorded` : 'Starts clean from Turn #1'}
+              <span className="text-[11px] text-indigo-400 font-medium">
+                {realTurns.length === 0 ? 'Starts clean from Turn #1' : `Active Round (${realTurns.length} turns recorded)`}
               </span>
             </div>
             <input
@@ -349,20 +398,20 @@ export const AIDebateSimulationView: React.FC<AIDebateSimulationViewProps> = ({
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => handleSideChange('Proposition')}
-                className={`py-2 rounded-xl text-xs font-bold transition-all border ${
+                className={`py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                   userSide === 'Proposition'
-                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300'
-                    : 'bg-slate-900/60 border-slate-700 text-slate-400'
+                    ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300 shadow-xs'
+                    : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200'
                 }`}
               >
                 Proposition (For)
               </button>
               <button
                 onClick={() => handleSideChange('Opposition')}
-                className={`py-2 rounded-xl text-xs font-bold transition-all border ${
+                className={`py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                   userSide === 'Opposition'
-                    ? 'bg-rose-500/20 border-rose-500 text-rose-300'
-                    : 'bg-slate-900/60 border-slate-700 text-slate-400'
+                    ? 'bg-rose-500/20 border-rose-500 text-rose-300 shadow-xs'
+                    : 'bg-slate-900/60 border-slate-700 text-slate-400 hover:text-slate-200'
                 }`}
               >
                 Opposition (Against)
@@ -775,13 +824,37 @@ export const AIDebateSimulationView: React.FC<AIDebateSimulationViewProps> = ({
                 }}
                 className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl text-xs shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <RotateCcw className="w-4 h-4" /> Start Fresh Round (Blank Turn #1)
+                <RotateCcw className="w-4 h-4" /> Start Fresh Debate (Blank Turn #1)
               </button>
+              
+              {onNavigate && (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => {
+                      setIsCompletedModalOpen(false);
+                      onNavigate('dashboard');
+                    }}
+                    className="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs border border-slate-700 transition-all cursor-pointer"
+                  >
+                    Learner Dashboard
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsCompletedModalOpen(false);
+                      onNavigate('my-debates');
+                    }}
+                    className="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-xs border border-slate-700 transition-all cursor-pointer"
+                  >
+                    View My Debates
+                  </button>
+                </div>
+              )}
+
               <button
                 onClick={() => setIsCompletedModalOpen(false)}
-                className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs border border-slate-700 transition-all cursor-pointer"
+                className="w-full py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 font-medium rounded-xl text-xs transition-all cursor-pointer"
               >
-                Keep Reviewing Current Transcript
+                Close & Review Transcript
               </button>
             </div>
           </div>

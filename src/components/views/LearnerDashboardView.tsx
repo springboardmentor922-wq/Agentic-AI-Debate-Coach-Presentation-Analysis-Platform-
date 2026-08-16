@@ -672,4 +672,3 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
   );
 };
 
-export default LearnerDashboardView;

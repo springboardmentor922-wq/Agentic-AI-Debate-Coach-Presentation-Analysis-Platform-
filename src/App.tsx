@@ -362,6 +362,7 @@ export function App() {
             activeSession={activeSession}
             onUpdateSession={handleUpdateActiveSession}
             onCompleteSession={handleCompleteActiveSession}
+            onNavigate={(tab) => setActiveTab(tab)}
             onTopicChange={(t) => {
               setActiveDebateTopic(t);
               handleUpdateActiveSession({ ...activeSession, topic: t });
