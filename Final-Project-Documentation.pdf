@@ -1,0 +1,277 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [4 0 R 6 0 R] /Count 2 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 5 0 R >>
+endobj
+5 0 obj
+<< /Length 1889 >>
+stream
+BT
+/F1 22 Tf
+1 0 0 1 50 770 Tm
+(Agentic AI Debate Coach) Tj
+ET
+BT
+/F1 16 Tf
+1 0 0 1 50 749 Tm
+(Presentation Analysis Platform) Tj
+ET
+BT
+/F1 14 Tf
+1 0 0 1 50 728 Tm
+(Final Project Documentation) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 707 Tm
+() Tj
+ET
+BT
+/F1 16 Tf
+1 0 0 1 50 686 Tm
+(Overview) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 665 Tm
+(A web platform that helps learners practise debates and improve presentations through role-based) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 649 Tm
+(dashboards, argument analysis, coaching feedback, and performance reports.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 628 Tm
+() Tj
+ET
+BT
+/F1 16 Tf
+1 0 0 1 50 607 Tm
+(Core capabilities) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 586 Tm
+(? Role-based dashboards for learners, educators, coaches, and administrators.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 565 Tm
+(? Argument analysis with logical-fallacy detection, counterarguments, scoring, and feedback.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 544 Tm
+(? Presentation analysis based on a transcript: clarity, structure, pacing, confidence, filler words,) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 528 Tm
+(and transitions.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 507 Tm
+(? Performance reports with skill breakdowns, activity visualizations, recommendations, and session) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 491 Tm
+(transcripts.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 470 Tm
+() Tj
+ET
+BT
+/F1 16 Tf
+1 0 0 1 50 449 Tm
+(Architecture) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 428 Tm
+(Frontend: React with Vite for dashboards, analysis tools, reports, and visualizations.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 407 Tm
+(Backend: FastAPI and SQLAlchemy for authentication, REST APIs, and persisted history.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 386 Tm
+(Analysis: deterministic presentation metrics alongside debate-analysis agents, giving actionable) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 370 Tm
+(feedback even when an external AI service is unavailable.) Tj
+ET
+BT
+/F1 9 Tf
+1 0 0 1 50 35 Tm
+(Page 1) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents 7 0 R >>
+endobj
+7 0 obj
+<< /Length 2203 >>
+stream
+BT
+/F1 16 Tf
+1 0 0 1 50 770 Tm
+(Presentation Analysis Engine) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 749 Tm
+(Endpoint: POST /analysis/presentation) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 728 Tm
+(Input: a transcript of at least 20 characters and an optional duration from 15 seconds to 4 hours.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 707 Tm
+(Output: overall score, four delivery metrics, word count, words per minute, filler-word count,) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 691 Tm
+(transition count, and targeted recommendations.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 670 Tm
+() Tj
+ET
+BT
+/F1 16 Tf
+1 0 0 1 50 649 Tm
+(Validation and quality assurance) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 628 Tm
+(Input validation is implemented with Pydantic. Unit tests check that scores remain in the 0?10 range) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 612 Tm
+(and that filler words produce an actionable recommendation.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 591 Tm
+(Verification completed: backend unit tests passed \(2 tests\) and the Vite production build passed.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 570 Tm
+() Tj
+ET
+BT
+/F1 16 Tf
+1 0 0 1 50 549 Tm
+(Run locally) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 528 Tm
+(1. Backend: cd backend; activate the virtual environment; run uvicorn app.main:app --reload.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 507 Tm
+(2. Frontend: run npm install, then npm run dev.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 486 Tm
+(3. Open http://localhost:5173 and select Presentation Analysis to submit a transcript.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 465 Tm
+() Tj
+ET
+BT
+/F1 16 Tf
+1 0 0 1 50 444 Tm
+(Demo and presentation flow) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 423 Tm
+(1. Introduce the learner-feedback problem.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 402 Tm
+(2. Show the role-based dashboard and debate tools.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 381 Tm
+(3. Submit a presentation transcript and explain the generated delivery metrics.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 360 Tm
+(4. Open the report to show visualized scores and coaching recommendations.) Tj
+ET
+BT
+/F1 10 Tf
+1 0 0 1 50 339 Tm
+() Tj
+ET
+BT
+/F1 16 Tf
+1 0 0 1 50 318 Tm
+(Screen recording) Tj
+ET
+BT
+/F1 9 Tf
+1 0 0 1 50 297 Tm
+(https://drive.google.com/file/d/15LqGuDEE7i2_hnmFg84qjLkdZUGtD2sz/view?usp=drive_web) Tj
+ET
+BT
+/F1 9 Tf
+1 0 0 1 50 35 Tm
+(Page 2) Tj
+ET
+endstream
+endobj
+xref
+0 8
+0000000000 65535 f 
+0000000015 00000 n 
+0000000064 00000 n 
+0000000127 00000 n 
+0000000197 00000 n 
+0000000323 00000 n 
+0000002264 00000 n 
+0000002390 00000 n 
+trailer
+<< /Size 8 /Root 1 0 R >>
+startxref
+4645
+%%EOF
