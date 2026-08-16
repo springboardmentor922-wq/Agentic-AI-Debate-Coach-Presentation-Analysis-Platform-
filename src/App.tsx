@@ -44,7 +44,7 @@ function deduplicateProfiles(profiles: UserProfile[]): UserProfile[] {
   for (const p of profiles) {
     if (!p) continue;
     const idKey = p.id;
-    const emailKey = p.email?.toLowerCase();
+    const emailKey = p.email?.trim().toLowerCase();
     if (idKey && seenIds.has(idKey)) continue;
     if (emailKey && seenEmails.has(emailKey)) continue;
     if (idKey) seenIds.add(idKey);
@@ -71,7 +71,7 @@ export function App() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          return deduplicateProfiles([...DEFAULT_PROFILES, ...parsed]);
+          return deduplicateProfiles([...parsed, ...DEFAULT_PROFILES]);
         }
       }
     } catch (e) {
@@ -314,14 +314,31 @@ export function App() {
   const handleUpdatePassword = (email: string, newPassword: string) => {
     setUserProfiles(prev => {
       const updatedList = prev.map(u => {
-        if (u.email.toLowerCase() === email.toLowerCase()) {
-          return { ...u, password: newPassword };
+        if (u.email?.trim().toLowerCase() === email.trim().toLowerCase()) {
+          return { ...u, password: newPassword, isCustomAccount: true };
         }
         return u;
       });
       const customOnly = updatedList.filter(u => u.isCustomAccount);
-      localStorage.setItem('ai_debate_coach_custom_users', JSON.stringify(customOnly));
+      try {
+        localStorage.setItem('ai_debate_coach_custom_users', JSON.stringify(customOnly));
+      } catch (e) {
+        console.error('Failed to save password change to custom users', e);
+      }
       return updatedList;
+    });
+
+    setActiveUser(prev => {
+      if (prev && prev.email?.trim().toLowerCase() === email.trim().toLowerCase()) {
+        const updated = { ...prev, password: newPassword, isCustomAccount: true };
+        try {
+          localStorage.setItem('ai_debate_active_user', JSON.stringify(updated));
+        } catch (e) {
+          console.error('Failed to update active user password', e);
+        }
+        return updated;
+      }
+      return prev;
     });
   };
 

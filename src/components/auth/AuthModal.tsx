@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserRole, UserProfile } from '../../types';
+import { registerLearner } from '../../services/learnerCoachSyncService';
 import { X, UserPlus, LogIn, UserCheck, Shield, Sparkles, Building, BookOpen, Lock, Mail, User, KeyRound, ShieldAlert, CheckCircle2, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface AuthModalProps {
@@ -51,11 +52,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmSignupPassword, setConfirmSignupPassword] = useState('');
   const [role, setRole] = useState<UserRole>('learner');
-  const [roleLabel, setRoleLabel] = useState('Debate Practitioner');
+  const [roleLabel, setRoleLabel] = useState('Senior Debater');
   const [institution, setInstitution] = useState('');
   const [bio, setBio] = useState('');
   const [avatar, setAvatar] = useState(AVATAR_PRESETS[0]);
+  const [signupError, setSignupError] = useState('');
   const [signupSuccess, setSignupSuccess] = useState('');
 
   if (!isOpen) return null;
@@ -64,26 +67,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     e.preventDefault();
     setLoginError('');
 
-    if (!loginEmail.trim()) {
-      setLoginError('Please enter your email address');
+    const cleanEmail = loginEmail.trim().toLowerCase();
+    if (!cleanEmail) {
+      setLoginError('Please enter your registered email address.');
+      return;
+    }
+
+    if (!loginPassword) {
+      setLoginError('Please enter your account password.');
       return;
     }
 
     // Match with existing account
     const matched = existingUsers.find(
-      u => u.email.toLowerCase() === loginEmail.trim().toLowerCase()
+      u => u.email.trim().toLowerCase() === cleanEmail
     );
 
-    if (matched) {
-      if (matched.password && matched.password !== loginPassword) {
-        setLoginError('Incorrect password for this account. Please try again.');
-        return;
-      }
-      onSelectUser(matched);
-      onClose();
-    } else {
-      setLoginError('No user account found with this email. Please create a new account below.');
+    if (!matched) {
+      setLoginError(`No registered account found with email "${loginEmail.trim()}". Access denied.`);
+      return;
     }
+
+    if (matched.password !== loginPassword) {
+      setLoginError(`Incorrect password for account "${loginEmail.trim()}". Access denied. Please enter the correct password.`);
+      return;
+    }
+
+    onSelectUser(matched);
+    onClose();
   };
 
   const handleSendResetCode = () => {
@@ -157,12 +168,47 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    setSignupError('');
+    setSignupSuccess('');
+
+    const cleanName = name.trim();
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanName) {
+      setSignupError('Full name is required.');
+      return;
+    }
+
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      setSignupError('A valid email address is required.');
+      return;
+    }
+
+    // STRICT UNIQUE EMAIL CHECK: Each user must have a unique email
+    const isEmailTaken = existingUsers.some(
+      u => u.email.trim().toLowerCase() === cleanEmail
+    );
+
+    if (isEmailTaken) {
+      setSignupError(`Email address "${cleanEmail}" is already registered. Each account must have a unique email address.`);
+      return;
+    }
+
+    if (!password || password.length < 4) {
+      setSignupError('Password must be at least 4 characters long.');
+      return;
+    }
+
+    if (password !== confirmSignupPassword) {
+      setSignupError('Passwords do not match. Please re-enter your password.');
+      return;
+    }
 
     const newUser: UserProfile = {
       id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      name: name.trim(),
-      email: email.trim() || `${name.toLowerCase().replace(/\s+/g, '.')}@debatecoach.ai`,
+      name: cleanName,
+      email: cleanEmail,
+      password: password,
       role: role,
       roleLabel: roleLabel.trim() || (role === 'learner' ? 'Senior Debater' : role === 'coach' ? 'Debate Coach' : role === 'educator' ? 'Educator' : 'Administrator'),
       avatar: avatar,
@@ -172,6 +218,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     };
 
     onCreateUser(newUser);
+    if (newUser.role === 'learner') {
+      registerLearner(newUser);
+    }
     onSelectUser(newUser);
     setSignupSuccess(`Account created for ${newUser.name}!`);
     setTimeout(() => {
@@ -426,9 +475,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
           ) : (
             <form onSubmit={handleSignup} className="space-y-4">
+              {signupError && (
+                <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2 animate-in fade-in">
+                  <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{signupError}</span>
+                </div>
+              )}
+
               {signupSuccess && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs font-semibold">
-                  ✓ {signupSuccess}
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs font-semibold flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span>{signupSuccess}</span>
                 </div>
               )}
 
@@ -450,11 +507,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Unique Email Address *</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input
                       type="email"
+                      required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="e.g. marcus@debate.org"
@@ -464,34 +522,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
               </div>
 
-              {/* Password & Institution */}
+              {/* Password & Confirm Password */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Password *</label>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input
                       type="password"
+                      required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder="Min 4 characters"
                       className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">School / Organization</label>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">Confirm Password *</label>
                   <div className="relative">
-                    <Building className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input
-                      type="text"
-                      value={institution}
-                      onChange={(e) => setInstitution(e.target.value)}
-                      placeholder="e.g. Stanford Debate Club"
+                      type="password"
+                      required
+                      value={confirmSignupPassword}
+                      onChange={(e) => setConfirmSignupPassword(e.target.value)}
+                      placeholder="Re-enter password"
                       className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Institution */}
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">School / Organization</label>
+                <div className="relative">
+                  <Building className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={institution}
+                    onChange={(e) => setInstitution(e.target.value)}
+                    placeholder="e.g. Stanford Debate Club"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
                 </div>
               </div>
 

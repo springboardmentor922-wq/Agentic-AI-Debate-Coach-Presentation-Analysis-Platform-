@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserRole, UserProfile } from '../../types';
+import { registerLearner } from '../../services/learnerCoachSyncService';
 import bg3DImage from '../../assets/images/login_3d_bg_1786477335668.jpg';
 import { 
   LogIn, 
@@ -58,6 +59,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   // Reset / Change Password Modal state
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -75,11 +77,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [regName, setRegName] = useState('');
   const [regEmail, setRegEmail] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
   const [regRole, setRegRole] = useState<UserRole>('learner');
   const [regRoleLabel, setRegRoleLabel] = useState('Senior Debater');
   const [regInstitution, setRegInstitution] = useState('');
   const [regBio, setRegBio] = useState('');
   const [regAvatar, setRegAvatar] = useState(AVATAR_PRESETS[0]);
+  const [regError, setRegError] = useState('');
   const [regSuccess, setRegSuccess] = useState('');
 
   const handleOpenResetModal = (emailToPrefill?: string) => {
@@ -166,7 +171,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }, 1800);
   };
 
-  // Pre-seeded quick login accounts info
+  // Pre-seeded quick login accounts info with unique email and password
   const demoAccounts: { role: UserRole; title: string; subtitle: string; email: string; pass: string; icon: React.ReactNode; userMatch?: UserProfile }[] = [
     {
       role: 'learner',
@@ -208,18 +213,24 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
   const handleQuickLogin = (demo: typeof demoAccounts[0]) => {
     setLoginError('');
-    // Search by email or role
-    const matched = existingUsers.find(
-      u => u.email.toLowerCase() === demo.email.toLowerCase() || u.role === demo.role
-    );
+    setLoginEmail(demo.email);
+    setLoginPassword(demo.pass);
+    
+    // Validate matching user credentials
+    const cleanEmail = demo.email.trim().toLowerCase();
+    const matched = existingUsers.find(u => u.email.trim().toLowerCase() === cleanEmail);
     if (matched) {
+      if (matched.password && matched.password !== demo.pass) {
+        setLoginError(`Password for ${demo.email} was customized. Please enter the current password.`);
+        return;
+      }
       onLoginSuccess(matched);
     } else {
-      // Fallback build profile
       const fallbackUser: UserProfile = {
         id: `usr_demo_${demo.role}`,
         name: demo.title,
         email: demo.email,
+        password: demo.pass,
         role: demo.role,
         roleLabel: demo.title,
         avatar: AVATAR_PRESETS[0],
@@ -233,40 +244,80 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     e.preventDefault();
     setLoginError('');
 
-    if (!loginEmail.trim()) {
-      setLoginError('Please enter your email address.');
+    const cleanEmail = loginEmail.trim().toLowerCase();
+    if (!cleanEmail) {
+      setLoginError('Please enter your registered email address.');
       return;
     }
 
-    // Check existing users
+    if (!loginPassword) {
+      setLoginError('Please enter your account password.');
+      return;
+    }
+
+    // Check existing users strictly by unique email
     const matched = existingUsers.find(
-      u => u.email.toLowerCase() === loginEmail.trim().toLowerCase()
+      u => u.email.trim().toLowerCase() === cleanEmail
     );
 
-    if (matched) {
-      // Verify password if set on matched or default fallback password check
-      if (matched.password && matched.password !== loginPassword) {
-        setLoginError('Incorrect password for this account. Please try again.');
-        return;
-      }
-      onLoginSuccess(matched);
-    } else {
-      setLoginError('No registered account found with this email. You can register a new profile in the Register tab.');
+    if (!matched) {
+      setLoginError(`No account registered with email "${loginEmail.trim()}". Access denied. Every user must use their own registered email.`);
+      return;
     }
+
+    // Strict Password Verification - No one can login without the matching password
+    if (matched.password !== loginPassword) {
+      setLoginError(`Incorrect password for account "${loginEmail.trim()}". Access denied. Please enter the exact password registered for this account.`);
+      return;
+    }
+
+    onLoginSuccess(matched);
   };
 
   const handleRegisterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!regName.trim() || !regEmail.trim()) {
-      setLoginError('Name and email address are required.');
+    setRegError('');
+    setRegSuccess('');
+
+    const cleanName = regName.trim();
+    const cleanEmail = regEmail.trim().toLowerCase();
+
+    if (!cleanName) {
+      setRegError('Full Name is required.');
+      return;
+    }
+
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      setRegError('Please provide a valid email address.');
+      return;
+    }
+
+    // STRICT UNIQUE EMAIL CHECK: Each user must have a unique email
+    const isEmailTaken = existingUsers.some(
+      u => u.email.trim().toLowerCase() === cleanEmail
+    );
+
+    if (isEmailTaken) {
+      setRegError(`The email address "${cleanEmail}" is already registered. Every user must have a unique email address. Please sign in or use another email.`);
+      return;
+    }
+
+    // Password validations
+    if (!regPassword || regPassword.length < 4) {
+      setRegError('Password must be at least 4 characters long.');
+      return;
+    }
+
+    if (regPassword !== regConfirmPassword) {
+      setRegError('Passwords do not match. Please re-enter your password in both fields.');
       return;
     }
 
     const newUser: UserProfile = {
       id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      name: regName.trim(),
-      email: regEmail.trim().toLowerCase(),
-      password: regPassword || 'password123',
+      name: cleanName,
+      email: cleanEmail,
+      password: regPassword,
       role: regRole,
       roleLabel: regRoleLabel.trim() || (regRole === 'learner' ? 'Senior Debater' : regRole === 'coach' ? 'Debate Coach' : regRole === 'educator' ? 'Educator' : 'Super Admin'),
       avatar: regAvatar,
@@ -276,11 +327,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     };
 
     onCreateUser(newUser);
-    setRegSuccess(`Account successfully created for ${newUser.name}! Directing to ${newUser.roleLabel} Dashboard...`);
+    if (newUser.role === 'learner') {
+      registerLearner(newUser);
+    }
+    setRegSuccess(`Account successfully created for ${newUser.name}! Logging you in with your unique credentials...`);
     
     setTimeout(() => {
       onLoginSuccess(newUser);
-    }, 500);
+    }, 600);
   };
 
   return (
@@ -423,7 +477,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <button
                     type="button"
                     onClick={() => handleOpenResetModal(loginEmail)}
-                    className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold hover:underline flex items-center gap-1 transition-colors"
+                    className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold hover:underline flex items-center gap-1 transition-colors cursor-pointer"
                   >
                     <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
                     <span>Forgot / Change Password?</span>
@@ -432,19 +486,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                   <input
-                    type="password"
+                    type={showLoginPassword ? "text" : "password"}
                     required
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
-                    placeholder="Enter your password (e.g. debater123, coach123, educator123, admin123)"
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="Enter your registered account password"
+                    className="w-full pl-10 pr-10 py-2.5 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-200 cursor-pointer"
+                  >
+                    {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-2"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 mt-2 cursor-pointer"
               >
                 <LogIn className="w-4 h-4" /> Sign In & Launch Dashboard
               </button>
@@ -455,7 +516,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <button
                     type="button"
                     onClick={() => setActiveTab('register')}
-                    className="text-indigo-400 font-bold hover:underline"
+                    className="text-indigo-400 font-bold hover:underline cursor-pointer"
                   >
                     Register a new profile here
                   </button>
@@ -467,11 +528,18 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             <form onSubmit={handleRegisterSubmit} className="space-y-4">
               <div className="space-y-1">
                 <h3 className="text-lg font-bold text-white">Create New Role Account</h3>
-                <p className="text-xs text-slate-400">Register as a Senior Debater, Debate Coach, Educator, or Super Admin</p>
+                <p className="text-xs text-slate-400">Register with a unique email address and secure password</p>
               </div>
 
+              {regError && (
+                <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs flex items-center gap-2 animate-in fade-in">
+                  <ShieldAlert className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{regError}</span>
+                </div>
+              )}
+
               {regSuccess && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs font-semibold flex items-center gap-2">
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                   <span>{regSuccess}</span>
                 </div>
@@ -495,7 +563,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Email Address *</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Unique Email Address *</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input
@@ -510,35 +578,60 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 </div>
               </div>
 
-              {/* Password & Institution */}
+              {/* Password & Confirm Password */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Password *</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-bold text-slate-300">Password *</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      className="text-[10px] text-indigo-400 hover:text-indigo-300 cursor-pointer"
+                    >
+                      {showRegPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
                   <div className="relative">
                     <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input
-                      type="password"
+                      type={showRegPassword ? "text" : "password"}
                       required
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="••••••••"
+                      placeholder="Min 4 characters"
                       className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Institution / School</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1">Confirm Password *</label>
                   <div className="relative">
-                    <Building className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                     <input
-                      type="text"
-                      value={regInstitution}
-                      onChange={(e) => setRegInstitution(e.target.value)}
-                      placeholder="e.g. Oxford Debate Society"
+                      type={showRegPassword ? "text" : "password"}
+                      required
+                      value={regConfirmPassword}
+                      onChange={(e) => setRegConfirmPassword(e.target.value)}
+                      placeholder="Re-enter password"
                       className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Institution */}
+              <div>
+                <label className="block text-xs font-bold text-slate-300 mb-1">Institution / School / Organization</label>
+                <div className="relative">
+                  <Building className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    value={regInstitution}
+                    onChange={(e) => setRegInstitution(e.target.value)}
+                    placeholder="e.g. Oxford Debate Society"
+                    className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-700/80 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
                 </div>
               </div>
 
