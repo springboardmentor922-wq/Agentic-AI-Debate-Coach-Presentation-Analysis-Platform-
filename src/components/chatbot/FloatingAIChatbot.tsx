@@ -23,8 +23,28 @@ export const FloatingAIChatbot: React.FC<FloatingAIChatbotProps> = ({ currentTab
   const [inputQuery, setInputQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [loadingPhraseIndex, setLoadingPhraseIndex] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatbotRef = useRef<HTMLDivElement>(null);
+
+  const loadingPhrases = [
+    'Thinking...',
+    'Analyzing debate context...',
+    'Evaluating argument logic...',
+    'Formulating coaching advice...'
+  ];
+
+  useEffect(() => {
+    let interval: any;
+    if (isLoading) {
+      interval = setInterval(() => {
+        setLoadingPhraseIndex((prev) => (prev + 1) % loadingPhrases.length);
+      }, 1200);
+    } else {
+      setLoadingPhraseIndex(0);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -347,9 +367,21 @@ export const FloatingAIChatbot: React.FC<FloatingAIChatbotProps> = ({ currentTab
             ))}
 
             {isLoading && (
-              <div className="flex items-center gap-2 text-xs text-indigo-400 font-medium bg-slate-800 p-2.5 rounded-xl border border-slate-700 w-fit">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Coordinating agent pipeline...</span>
+              <div className="flex flex-col items-start animate-in fade-in duration-200">
+                <span className="text-[10px] font-bold text-indigo-400 mb-1 px-1 flex items-center gap-1">
+                  <Zap className="w-2.5 h-2.5 text-indigo-400 animate-pulse" /> AI Debate Coach
+                </span>
+                <div className="bg-slate-800 text-slate-200 border border-slate-700/80 px-4 py-3 rounded-2xl rounded-bl-xs shadow-lg flex items-center gap-3 w-fit">
+                  {/* Three Bouncing Dots (ChatGPT Style) */}
+                  <div className="flex items-center gap-1.5 py-0.5">
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 animate-bounce" />
+                  </div>
+                  <span className="text-xs text-slate-300 font-medium tracking-wide">
+                    {loadingPhrases[loadingPhraseIndex]}
+                  </span>
+                </div>
               </div>
             )}
             <div ref={messagesEndRef} />

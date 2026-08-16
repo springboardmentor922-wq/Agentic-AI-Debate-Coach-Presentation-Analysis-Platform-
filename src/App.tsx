@@ -161,11 +161,11 @@ export function App() {
     }
   };
 
-  const handleStartPracticeTopic = (topicTitle?: string) => {
-    const title = topicTitle || 'Universal Basic Income creates a safety net for economic innovation.';
+  const handleStartPracticeTopic = (topicTitle?: string, forceFresh: boolean = true) => {
+    const title = topicTitle || activeDebateTopic || 'Universal Basic Income creates a safety net for economic innovation.';
 
-    // Only start a fresh session if picking a DIFFERENT topic or if current active session was already completed
-    if (activeSession.topic !== title || activeSession.status === 'completed') {
+    // Start a fresh session if forceFresh, or if picking a different topic, or if current session was completed
+    if (forceFresh || activeSession.topic !== title || activeSession.status === 'completed') {
       const freshSession: ActiveDebateSession = {
         id: `session_${Date.now()}`,
         topic: title,
@@ -421,6 +421,7 @@ export function App() {
             activeUser={activeUser}
             activeDebateTopic={activeDebateTopic}
             activeSession={activeSession}
+            onStartNewDebateSession={(topicTitle) => handleStartPracticeTopic(topicTitle)}
             onCompleteSession={() => handleCompleteActiveSession(activeSession)}
           />
         );
@@ -451,6 +452,8 @@ export function App() {
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
         activeDebateTopic={activeDebateTopic}
+        activeTurnsCount={activeSession?.turns?.filter(t => !t.isSample).length || 0}
+        activeSessionStatus={activeSession?.status || 'in_progress'}
       />
 
       {/* Main Workspace Frame */}

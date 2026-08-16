@@ -199,22 +199,35 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {onCompleteSession && (
+              <button
+                onClick={onCompleteSession}
+                className={`px-3.5 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isDark 
+                    ? 'bg-emerald-950/60 hover:bg-emerald-900/80 text-emerald-300 border-emerald-500/40' 
+                    : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+                }`}
+                title="Finish and score this debate now"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" /> Finish & Score ({activeSession.turns?.filter(t => !t.isSample).length} Turns)
+              </button>
+            )}
             <button
               onClick={() => onNavigate('practice-topics')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              className={`px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 isDark 
                   ? 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700' 
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-300 shadow-xs'
               }`}
             >
-              Practice Topics
+              Change Topic
             </button>
             <button
               onClick={() => onNavigate('ai-simulation')}
               className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-md shadow-purple-600/20 flex items-center gap-2 transition-all cursor-pointer"
             >
-              <Play className="w-4 h-4 fill-white" /> Resume Debate Round
+              <Play className="w-4 h-4 fill-white" /> Resume (Turn {Math.min((activeSession.turns?.filter(t => !t.isSample).length || 0) + 1, 5)})
             </button>
           </div>
         </div>
@@ -659,3 +672,4 @@ export const LearnerDashboardView: React.FC<LearnerDashboardViewProps> = ({
   );
 };
 
+export default LearnerDashboardView;
