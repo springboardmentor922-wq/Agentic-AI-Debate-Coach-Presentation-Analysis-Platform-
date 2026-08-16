@@ -6,15 +6,25 @@ A modular, AI-powered platform for debate coaching, argument evaluation, present
 
 ## 🎥 Project Demonstration
 
-**Watch the complete project demonstration:** [▶️ Watch Demo](VIDEO_LINK_HERE)
+**Watch the complete project demonstration:** [▶️ Watch Demo](https://drive.google.com/file/d/1wRkeWmwnK2aWQsPG6JnWnLCDhVK7EQd0/view?usp=sharing)
 
 > The demonstration video covers the major implemented workflows, role-based dashboards, AI debate analysis, presentation analysis, reports/export functionality, and Dockerized execution.
 
-*Note: The demonstration video link will be updated after final recording.*
 
 ---
 
 ## 🏷️ Project Badges
+
+### 🤖 Agentic AI & AI Stack
+
+[![Agentic AI](https://img.shields.io/badge/AI-Agentic%20AI-7B61FF?logo=openai&logoColor=white)](#)
+[![LangGraph](https://img.shields.io/badge/Orchestration-LangGraph-1C3C3C?logo=langchain&logoColor=white)](https://langchain-ai.github.io/langgraph/)
+[![LangChain](https://img.shields.io/badge/Framework-LangChain-1C3C3C?logo=langchain&logoColor=white)](https://www.langchain.com/)
+[![Groq](https://img.shields.io/badge/LLM-Groq-F55036?logo=groq&logoColor=white)](https://groq.com/)
+[![Ollama](https://img.shields.io/badge/Local%20LLM-Ollama-black?logo=ollama&logoColor=white)](https://ollama.com/)
+[![Whisper](https://img.shields.io/badge/Speech--to--Text-Whisper-412991?logo=openai&logoColor=white)](https://github.com/openai/whisper)
+
+### 💻 Full-Stack & Infrastructure
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.138-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -455,16 +465,16 @@ When running under the verified Docker Compose setup or local development:
 ## 🔐 Demo Credentials
 
 > [!NOTE]
-> The database initialization script (`init_db`) automatically seeds demonstration accounts for testing.
+> The following verified test accounts are provided for demonstration and testing of the platform's role-based access control.
 
 | Role | Email | Password |
 | :--- | :--- | :--- |
-| **Learner** | `learner.demo@example.com` | `Demo@Learner2026` |
-| **Debate Coach** | `coach.demo@example.com` | `Demo@Coach2026` |
-| **Educator** | `educator.demo@example.com` | `Demo@Educator2026` |
-| **Administrator** | `admin.demo@example.com` | `Demo@Admin2026` |
+| **Learner** | `learner@test.com` | `Learner@123` |
+| **Debate Coach** | `coach@test.com` | `Coach@123` |
+| **Educator** | `educator@test.com` | `Educator@123` |
+| **Administrator** | `admin@platform.com` | `Admin@123` |
 
-*These accounts are provided only for demonstration and testing purposes and must NOT be used as production credentials.*
+> **Security:** These credentials are intended only for demonstration/testing. Do not use them as production credentials.
 
 ---
 
@@ -618,6 +628,7 @@ Docker Compose provides local multi-container execution for:
 
 #### Login Page
 <!-- Add Login Screenshot Here -->
+
 
 #### Learner Dashboard
 <!-- Add Learner Dashboard Screenshot Here -->
