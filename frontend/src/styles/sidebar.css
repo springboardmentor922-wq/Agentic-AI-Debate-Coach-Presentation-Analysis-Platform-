@@ -1,0 +1,154 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: #0f172a;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 18px;
+  overflow-y: auto;
+  z-index: 1000;
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+
+/* Logo */
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+
+.logo-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: linear-gradient(135deg,#7C3AED,#4F46E5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 26px;
+}
+
+.sidebar-logo h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.sidebar-logo p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #cbd5e1;
+}
+
+/* Section */
+
+.sidebar-title {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 22px 0 10px;
+  letter-spacing: 1px;
+}
+
+/* Links */
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: #e2e8f0;
+  padding: 13px 16px;
+  border-radius: 14px;
+  margin-bottom: 6px;
+  transition: .25s;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.sidebar-link svg {
+  font-size: 18px;
+  min-width: 18px;
+}
+
+.sidebar-link:hover {
+  background: rgba(124,58,237,.15);
+  color: white;
+}
+
+.sidebar-link.active {
+  background: linear-gradient(
+      90deg,
+      #7c3aed,
+      #5b21b6
+  );
+  color: white;
+  box-shadow: 0 8px 25px rgba(124,58,237,.30);
+}
+
+/* Logout */
+
+.logout-btn-sidebar {
+  margin-top: auto;
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  background: #ef4444;
+  color: white;
+  padding: 14px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  transition: .3s;
+}
+
+.logout-btn-sidebar:hover {
+  background: #dc2626;
+}
+
+/* Scroll */
+
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #4f46e5;
+  border-radius: 10px;
+}
+
+/* Dark */
+
+.dark-theme .sidebar {
+  background: #020617;
+}
+
+/* Responsive */
+
+@media(max-width:992px){
+
+    .sidebar {
+        transform: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 280px;
+        height: 100vh;
+        z-index: 1000;
+    }
+
+    .layout-right {
+        margin-left: 280px;
+    }
+
+}

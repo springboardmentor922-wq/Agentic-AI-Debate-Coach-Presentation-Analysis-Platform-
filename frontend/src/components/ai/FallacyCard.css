@@ -1,0 +1,38 @@
+.fallacy-card{
+background:white;
+padding:20px;
+border-radius:18px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+margin-bottom:20px;
+border-left:6px solid #EF4444;
+}
+
+.fallacy-header{
+font-size:20px;
+font-weight:700;
+margin-bottom:15px;
+color:#DC2626;
+}
+
+.fallacy-body h5{
+margin-top:15px;
+font-size:15px;
+color:#334155;
+}
+
+.fallacy-body p{
+color:#64748B;
+line-height:1.7;
+}
+
+.dark-theme .fallacy-card{
+background:#1E293B;
+}
+
+.dark-theme .fallacy-body p{
+color:#CBD5E1;
+}
+
+.dark-theme .fallacy-body h5{
+color:white;
+}

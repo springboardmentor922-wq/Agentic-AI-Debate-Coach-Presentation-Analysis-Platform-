@@ -1,0 +1,36 @@
+.recent-card{
+background:white;
+padding:25px;
+border-radius:18px;
+box-shadow:0 10px 25px rgba(0,0,0,.08);
+margin-top:30px;
+}
+
+.activity-row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:18px 0;
+border-bottom:1px solid #eee;
+}
+
+.activity-row:last-child{
+border:none;
+}
+
+.activity-row h4{
+margin:0;
+}
+
+.activity-row p{
+margin:5px 0;
+color:#666;
+}
+
+.activity-right{
+text-align:right;
+}
+
+.activity-right strong{
+color:#5B4BFF;
+}

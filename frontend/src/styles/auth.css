@@ -1,0 +1,161 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+.auth-page{
+    min-height:100vh;
+    display:flex;
+    font-family:'Poppins',sans-serif;
+    background:linear-gradient(135deg,#eef2ff,#f8fafc,#dbeafe);
+}
+
+.auth-left{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:80px;
+    color:#1e293b;
+}
+
+.back-home{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:40px;
+    color:#4F46E5;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.auth-left h1{
+    font-size:3rem;
+    margin-bottom:20px;
+}
+
+.auth-left p{
+    font-size:18px;
+    line-height:1.8;
+    color:#64748b;
+    max-width:500px;
+}
+
+.auth-right{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.auth-card{
+    width:430px;
+    background:white;
+    border-radius:24px;
+    padding:45px;
+    box-shadow:0 20px 60px rgba(0,0,0,.08);
+}
+
+.auth-card h2{
+    text-align:center;
+    margin-bottom:8px;
+    color:#1e293b;
+}
+
+.auth-card p{
+    text-align:center;
+    color:#64748b;
+    margin-bottom:30px;
+}
+
+.input-group{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    background:#f8fafc;
+    border:1px solid #e2e8f0;
+    border-radius:12px;
+    padding:15px;
+    margin-bottom:20px;
+}
+
+.input-group svg{
+    color:#6366f1;
+}
+
+.input-group input{
+    width:100%;
+    border:none;
+    outline:none;
+    background:transparent;
+    font-size:15px;
+}
+
+.login-button{
+    width:100%;
+    border:none;
+    background:#4F46E5;
+    color:white;
+    padding:16px;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.login-button:hover{
+    background:#4338CA;
+}
+
+.divider{
+    text-align:center;
+    margin:30px 0;
+    color:#94a3b8;
+}
+
+.bottom-text{
+    text-align:center;
+}
+
+.bottom-text a{
+    color:#4F46E5;
+    margin-left:5px;
+    text-decoration:none;
+    font-weight:600;
+}
+
+@media(max-width:900px){
+
+.auth-page{
+    flex-direction:column;
+}
+
+.auth-left{
+    padding:40px;
+    text-align:center;
+}
+
+.auth-card{
+    width:90%;
+    margin-bottom:40px;
+}
+
+}
+
+.input-group select{
+
+    width:100%;
+
+    border:none;
+
+    outline:none;
+
+    background:transparent;
+
+    font-size:15px;
+
+    cursor:pointer;
+
+}
