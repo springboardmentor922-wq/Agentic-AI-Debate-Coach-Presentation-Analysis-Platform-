@@ -1,130 +1,258 @@
-# Agentic AI Debate Coach & Presentation Analysis Platform
+# 🎤 Agentic AI Debate Coach & Presentation Analysis Platform
 
-An AI-powered platform designed to help learners improve their debating, public speaking, critical thinking, and presentation skills.
+A full-stack, role-based AI-powered platform designed to help learners improve their **debating, public speaking, argumentation, critical thinking, communication, and presentation skills**.
 
-## 🚀 Project Overview
+The platform combines **AI debate evaluation, speech-to-text transcription, argument analysis, logical fallacy detection, counterargument generation, rebuttal generation, speech improvement, presentation analysis, performance tracking, coaching, educator monitoring, and administrator management** into a single platform.
 
-The Agentic AI Debate Coach provides an interactive environment where learners can practice debates, receive AI-powered evaluations, analyze arguments, identify logical fallacies, generate counterarguments and rebuttals, and track their performance over time.
+---
 
-The platform also provides coaching and educational features for coaches and educators.
+## 🎥 Screen Recording
 
-## ✨ Key Features
+[View the project screen recording](https://drive.google.com/file/d/1MN-P09Bzr-4u66s9X_gbEVO-8cELTa6-/view?usp=sharing)
 
-### 🎤 Debate Practice
-- Practice using predefined debate topics
-- Create custom debate sessions
-- Select debate position
-- Choose difficulty level
-- Select practice duration
-- Real-time speech transcription
+---
 
-### 🤖 AI Debate Evaluation
-- Grammar analysis
-- Logical reasoning analysis
-- Confidence analysis
-- Relevance analysis
-- Overall performance score
-- Grade generation
-- AI-generated feedback
-- Strengths and weaknesses
-- Personalized coach tips
+# 📌 Project Overview
 
-### 🧠 AI-Powered Debate Tools
-- Argument Analyzer
-- Logical Fallacy Detector
-- Counterargument Generator
-- Rebuttal Generator
-- Speech Improver
-- AI Feedback
+The **Agentic AI Debate Coach** provides an interactive environment where users can practice debates and presentations and receive AI-assisted feedback.
 
-### 📊 Performance Tracking
-- Total debates
-- Average performance score
-- Highest score
-- Skill progress
-- Performance history
-- Evaluation reports
+The system analyzes user arguments and provides feedback related to:
 
-### 👨‍🏫 Coaching
-- Coaching plans
-- Coach feedback
-- Assigned debates
-- Learner progress tracking
-- AI evaluation review
+- Grammar
+- Logic
+- Confidence
+- Relevance
+- Argument quality
+- Logical fallacies
+- Counterarguments
+- Rebuttals
+- Speech improvement
+- Overall performance
 
-### 📚 Learning & Resources
-- Learning resources
-- My Notes
-- Recommended resources
-- Practice challenges
+The platform also provides separate interfaces for different types of users.
 
-### 👤 User Features
-- User authentication
+---
+
+# 👥 User Roles
+
+The platform supports four primary roles:
+
+### 🎓 Learner
+
+Learners can:
+
+- Practice debates
+- Choose debate topics
+- Create debate sessions
+- Use microphone-based speech input
+- View speech transcripts
+- Submit debates for AI evaluation
+- View AI feedback
+- Detect logical fallacies
+- Generate counterarguments
+- Generate rebuttals
+- Improve arguments
+- Track performance
+- View learning resources
+- Manage their profile
+- View previous debates
+
+### 🧑‍🏫 Debate Coach
+
+Coaches can:
+
+- View learners
+- Monitor learner performance
+- View debate sessions
+- Review learner debates
+- Review AI evaluations
+- Provide feedback
+- Review argument analysis
+- Review fallacy reports
+- Manage assigned debates
+- Track learner progress
+- Manage coaching plans
+
+### 👩‍🏫 Educator
+
+Educators can:
+
+- Monitor learners
+- View student progress
+- Track class performance
+- View debate sessions
+- Review assignments
+- Monitor presentation performance
+- View reports
+- Provide educational feedback
+
+### ⚙️ Administrator
+
+Administrators can:
+
+- Monitor the complete platform
+- Manage users
+- Manage roles and permissions
+- Monitor debate sessions
+- View reports
+- View system activity
+- Monitor platform statistics
+- Manage administrative operations
+
+---
+
+# ✨ Main Features
+
+## 🔐 Authentication
+
+The platform provides secure authentication using:
+
+- User registration
+- User login
+- Password hashing
+- JWT authentication
+- Protected routes
 - Role-based access
-- Learner profile
-- Dark mode
-- Notifications
-- Settings
 
-## 🏗️ System Architecture
+---
 
-### Frontend
+# 🎓 Learner Dashboard
 
-- React.js
-- React Router
-- Axios
-- Framer Motion
-- Chart.js
-- React Icons
+The learner dashboard provides an overview of the learner's activity and progress.
 
-### Backend
+It includes:
 
-- FastAPI
-- Python
-- SQLAlchemy
-- PostgreSQL
-- JWT Authentication
+- Debate statistics
+- Performance scores
+- Recent activities
+- Skill tracking
+- Learning resources
+- AI recommendations
+- Debate history
+- Quick actions
 
-### AI
+---
 
-- Gemini AI
-- Local AI fallback
-- AI-powered debate evaluation
-- Speech analysis
+# 🗣️ Debate Topics
 
-## 👥 User Roles
+Learners can browse and select debate topics.
 
-The platform supports multiple user roles:
+Topics can include areas such as:
 
+- Technology
+- Education
+- Environment
+- Healthcare
+- Artificial Intelligence
+- Society
+- Politics
+- General topics
+
+Each topic can have:
+
+- Topic title
+- Category
+- Difficulty
+- Description
+
+---
+
+# 📝 Create Debate Session
+
+Learners can create their own debate sessions.
+
+A debate session can contain:
+
+- Topic
+- Category
+- Difficulty
+- Duration
 - Learner
-- Debate Coach
-- Educator
-- Administrator
+- Assigned coach
+- Session status
 
-## 📁 Project Structure
+Example difficulties:
+
+- Easy
+- Medium
+- Hard
+
+---
+
+# 🎤 Speech-to-Text
+
+The platform supports microphone-based debate practice.
+
+The learner can:
+
+1. Select a debate topic.
+2. Start the microphone.
+3. Speak their argument.
+4. View the generated transcript.
+5. Stop the microphone.
+6. Submit the debate for evaluation.
+
+The speech transcript can then be used for AI analysis.
+
+---
+
+# 🤖 AI Debate Evaluation
+
+The AI evaluates a learner's debate response.
+
+The evaluation contains multiple performance metrics.
+
+### Grammar
+
+Evaluates:
+
+- Sentence structure
+- Grammar correctness
+- Language clarity
+
+### Logic
+
+Evaluates:
+
+- Reasoning
+- Argument structure
+- Logical consistency
+
+### Confidence
+
+Evaluates:
+
+- Communication confidence
+- Clarity
+- Strength of delivery
+
+### Relevance
+
+Evaluates:
+
+- Whether the argument addresses the topic
+- Whether the response remains focused
+
+---
+
+# 📊 Overall Performance
+
+After evaluation, the platform generates:
+
+- Overall score
+- Percentage
+- Grade
+- Performance level
+- AI summary
+
+Example:
 
 ```text
-Agentic-AI-Debate-Coach/
-│
-├── backend/
-│   ├── app/
-│   │   ├── models/
-│   │   ├── routers/
-│   │   ├── schemas/
-│   │   ├── services/
-│   │   └── utils/
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── styles/
-│   ├── package.json
-│   └── vite.config.js
-│
-├── docs/
-│
-├── LICENSE
-└── README.md
+Grammar       82
+Logic         76
+Confidence    85
+Relevance     88
+
+Overall Score: 83
+Percentage:    83%
+Grade:         B+
