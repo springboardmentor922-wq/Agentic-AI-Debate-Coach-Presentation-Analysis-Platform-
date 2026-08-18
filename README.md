@@ -6,7 +6,6 @@ A full-stack, role-based web application for practicing, coaching, and evaluatin
 
 [View the project screen recording](https://drive.google.com/file/d/1x8pQeyRau94WCB1JfJ4yiQKgJOXM8zEr/view?usp=sharing)
 
-📄 Full technical documentation (architecture, database schema, API flow, AI agents, role permissions, and file-by-file breakdown) lives in [`docs/PROJECT_DOCUMENTATION.md`](docs/PROJECT_DOCUMENTATION.md).
 
 ✨ Features
 
