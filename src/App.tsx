@@ -58,8 +58,10 @@ export function App() {
   const { isDark } = useTheme();
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
     try {
-      const saved = localStorage.getItem('ai_debate_logged_in');
-      return saved === 'true';
+      // Clear any legacy persistent login flags so closing/reopening the app always requires login
+      localStorage.removeItem('ai_debate_logged_in');
+      const sessionActive = sessionStorage.getItem('ai_debate_session_logged_in');
+      return sessionActive === 'true';
     } catch {
       return false;
     }
@@ -226,7 +228,7 @@ export function App() {
     setIsLoggedIn(true);
     try {
       localStorage.setItem('ai_debate_active_user', JSON.stringify(user));
-      localStorage.setItem('ai_debate_logged_in', 'true');
+      sessionStorage.setItem('ai_debate_session_logged_in', 'true');
     } catch (e) {
       console.error('Failed to save active user', e);
     }
@@ -258,7 +260,9 @@ export function App() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     try {
-      localStorage.setItem('ai_debate_logged_in', 'false');
+      sessionStorage.removeItem('ai_debate_session_logged_in');
+      localStorage.removeItem('ai_debate_logged_in');
+      localStorage.removeItem('ai_debate_active_user');
     } catch (e) {
       console.error('Failed to save logout state', e);
     }

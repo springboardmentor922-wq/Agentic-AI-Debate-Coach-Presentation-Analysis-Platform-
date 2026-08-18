@@ -51,13 +51,26 @@ export const PracticeTopicsView: React.FC<PracticeTopicsViewProps> = ({ onStartP
   const categories = ['All', 'Technology', 'Environment', 'Society', 'Politics', 'Philosophy', 'Economics'];
   const difficulties = ['Any', 'Beginner', 'Intermediate', 'Advanced'];
 
+  const getAllTopics = (): PracticeTopic[] => {
+    try {
+      const saved = localStorage.getItem('ai_debate_admin_topics');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error('Failed to load admin topics', e);
+    }
+    return MOCK_PRACTICE_TOPICS;
+  };
+
   // Handler to pick a random topic from existing pool or custom filter
   const handleSpinRandom = () => {
     setIsSpinning(true);
     setIsSaved(false);
 
     setTimeout(() => {
-      let pool = MOCK_PRACTICE_TOPICS;
+      let pool = getAllTopics();
       if (randomCategory !== 'All') {
         pool = pool.filter(t => t.category === randomCategory);
       }
@@ -67,7 +80,7 @@ export const PracticeTopicsView: React.FC<PracticeTopicsViewProps> = ({ onStartP
       
       // Fallback if filter turns up empty
       if (pool.length === 0) {
-        pool = MOCK_PRACTICE_TOPICS;
+        pool = getAllTopics();
       }
 
       const randomIndex = Math.floor(Math.random() * pool.length);
@@ -103,7 +116,7 @@ export const PracticeTopicsView: React.FC<PracticeTopicsViewProps> = ({ onStartP
     }
   };
 
-  const filteredTopics = MOCK_PRACTICE_TOPICS.filter((t) => {
+  const filteredTopics = getAllTopics().filter((t) => {
     const matchesCat = selectedCat === 'All' || t.category === selectedCat;
     const matchesQuery = 
       t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
