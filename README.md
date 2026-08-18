@@ -11,3 +11,5 @@ Agentic AI Debate Coach &amp; Presentation Analysis Platform
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+Demo Video link:https://canva.link/9nu81i5fg45dsry
