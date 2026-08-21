@@ -1,0 +1,46 @@
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%);
+    color: #f8fafc;
+}
+
+.app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin-left: 280px;
+    background: rgba(2, 6, 23, 0.7);
+}
+
+.app-content {
+    flex: 1;
+    padding: 28px;
+    overflow-y: auto;
+    background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.16), transparent 32%), rgba(2, 6, 23, 0.75);
+}
+
+.mobile-overlay {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .app-main {
+        margin-left: 0;
+    }
+
+    .app-content {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .mobile-overlay {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.65);
+        z-index: 890;
+    }
+}

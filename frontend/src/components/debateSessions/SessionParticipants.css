@@ -1,0 +1,203 @@
+.participants-container{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:20px;
+
+}
+
+.participants-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+}
+
+.participants-header h3{
+
+    margin:0;
+
+    font-size:22px;
+
+    color:#0f172a;
+
+}
+
+.participants-header span{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+    padding:6px 14px;
+
+    border-radius:20px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+.participants-empty{
+
+    text-align:center;
+
+    padding:40px;
+
+    color:#64748b;
+
+}
+
+.participant-card{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:16px;
+
+    border-radius:14px;
+
+    background:#f8fafc;
+
+    transition:.25s;
+
+}
+
+.participant-card:hover{
+
+    background:#eef4ff;
+
+}
+
+.participant-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:16px;
+
+}
+
+.participant-avatar{
+
+    font-size:50px;
+
+    color:#2563eb;
+
+}
+
+.participant-left h4{
+
+    margin:0;
+
+    color:#0f172a;
+
+}
+
+.participant-left p{
+
+    margin-top:5px;
+
+    color:#64748b;
+
+}
+
+.participant-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    flex-wrap:wrap;
+
+}
+
+.participant-online{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    color:#16a34a;
+
+    font-size:14px;
+
+}
+
+.participant-online svg{
+
+    font-size:10px;
+
+}
+
+.participant-speaking{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    color:#2563eb;
+
+    font-size:14px;
+
+}
+
+.participant-score{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    color:#f59e0b;
+
+    font-size:14px;
+
+}
+
+@media(max-width:768px){
+
+    .participant-card{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:16px;
+
+    }
+
+    .participant-right{
+
+        width:100%;
+
+        justify-content:space-between;
+
+    }
+
+}

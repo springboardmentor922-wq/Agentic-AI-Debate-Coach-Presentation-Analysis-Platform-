@@ -1,0 +1,467 @@
+/*
+=========================================================
+Recording Panel
+=========================================================
+*/
+
+.recording-panel{
+
+    width:100%;
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:28px;
+
+    margin:28px 0;
+
+    border:1px solid #e5e7eb;
+
+    box-shadow:0 10px 30px rgba(15,23,42,.08);
+
+}
+
+/* ======================================
+Header
+====================================== */
+
+.recording-top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    gap:20px;
+
+    margin-bottom:28px;
+
+}
+
+.recording-top h2{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    margin:0;
+
+    color:#2563eb;
+
+    font-size:24px;
+
+}
+
+.recording-top p{
+
+    margin-top:8px;
+
+    color:#64748b;
+
+    line-height:1.6;
+
+}
+
+/* ======================================
+Status Badge
+====================================== */
+
+.recording-badge{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:10px 18px;
+
+    border-radius:999px;
+
+    background:#eff6ff;
+
+    color:#2563eb;
+
+    font-weight:600;
+
+}
+
+.recording-badge.live{
+
+    background:#fee2e2;
+
+    color:#dc2626;
+
+}
+
+.recording-badge.completed{
+
+    background:#dcfce7;
+
+    color:#15803d;
+
+}
+
+/* ======================================
+Recording Center
+====================================== */
+
+.recording-center{
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    margin:20px 0 30px;
+
+}
+
+.mic-circle{
+
+    width:110px;
+
+    height:110px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+
+    color:#ffffff;
+
+    font-size:42px;
+
+    margin-bottom:18px;
+
+    box-shadow:0 0 25px rgba(37,99,235,.35);
+
+}
+
+.recording-center h4{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    margin:0;
+
+    color:#0f172a;
+
+}
+
+.recording-time{
+
+    margin-top:20px;
+
+    font-size:52px;
+
+    font-weight:700;
+
+    color:#2563eb;
+
+    letter-spacing:3px;
+
+}
+
+/* ======================================
+Waveform
+====================================== */
+
+.wave-container{
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:flex-end;
+
+    gap:5px;
+
+    height:90px;
+
+    margin:35px 0;
+
+}
+
+.wave-bar{
+
+    width:7px;
+
+    border-radius:10px;
+
+    background:#cbd5e1;
+
+    transition:.3s;
+
+}
+
+.wave-bar.active{
+
+    background:#2563eb;
+
+    animation:wave 1s infinite ease-in-out;
+
+}
+
+.wave-bar:nth-child(2n){
+
+    animation-delay:.1s;
+
+}
+
+.wave-bar:nth-child(3n){
+
+    animation-delay:.2s;
+
+}
+
+.wave-bar:nth-child(4n){
+
+    animation-delay:.3s;
+
+}
+
+.wave-bar:nth-child(5n){
+
+    animation-delay:.4s;
+
+}
+
+/* ======================================
+Buttons
+====================================== */
+
+.recording-buttons{
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:18px;
+
+    flex-wrap:wrap;
+
+    margin-bottom:30px;
+
+}
+
+.record-btn,
+.pause-btn,
+.resume-btn,
+.stop-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    border:none;
+
+    border-radius:12px;
+
+    padding:14px 26px;
+
+    color:#ffffff;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.record-btn{
+
+    background:#16a34a;
+
+}
+
+.record-btn:hover{
+
+    background:#15803d;
+
+}
+
+.pause-btn{
+
+    background:#f59e0b;
+
+}
+
+.pause-btn:hover{
+
+    background:#d97706;
+
+}
+
+.resume-btn{
+
+    background:#2563eb;
+
+}
+
+.resume-btn:hover{
+
+    background:#1d4ed8;
+
+}
+
+.stop-btn{
+
+    background:#dc2626;
+
+}
+
+.stop-btn:hover{
+
+    background:#b91c1c;
+
+}
+
+/* ======================================
+Footer
+====================================== */
+
+.recording-footer{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:24px;
+
+    margin-top:15px;
+
+    padding-top:24px;
+
+    border-top:1px solid #e5e7eb;
+
+}
+
+.recording-footer strong{
+
+    color:#0f172a;
+
+}
+
+.recording-footer p{
+
+    margin-top:8px;
+
+    color:#64748b;
+
+    line-height:1.6;
+
+}
+
+/* ======================================
+Animation
+====================================== */
+
+@keyframes wave{
+
+    0%{
+
+        transform:scaleY(.45);
+
+    }
+
+    50%{
+
+        transform:scaleY(1.2);
+
+    }
+
+    100%{
+
+        transform:scaleY(.45);
+
+    }
+
+}
+
+/* ======================================
+Responsive
+====================================== */
+
+@media(max-width:992px){
+
+    .recording-top{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+    .recording-footer{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .recording-panel{
+
+        padding:22px;
+
+    }
+
+    .recording-time{
+
+        font-size:40px;
+
+    }
+
+    .mic-circle{
+
+        width:90px;
+
+        height:90px;
+
+        font-size:34px;
+
+    }
+
+}
+
+@media(max-width:576px){
+
+    .recording-buttons{
+
+        flex-direction:column;
+
+    }
+
+    .record-btn,
+    .pause-btn,
+    .resume-btn,
+    .stop-btn{
+
+        width:100%;
+
+        justify-content:center;
+
+    }
+
+}

@@ -1,0 +1,201 @@
+/*
+=========================================================
+Debate Header
+=========================================================
+*/
+
+.debate-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    gap:24px;
+
+    padding:24px;
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.debate-header-left{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+}
+
+.debate-topic-icon{
+
+    width:60px;
+
+    height:60px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+    font-size:24px;
+
+}
+
+.debate-header-left h2{
+
+    margin:0;
+
+    color:#0f172a;
+
+    font-size:24px;
+
+}
+
+.debate-header-left p{
+
+    margin-top:6px;
+
+    color:#64748b;
+
+}
+
+.debate-header-center{
+
+    display:flex;
+
+    gap:36px;
+
+}
+
+.header-item{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:6px;
+
+}
+
+.header-item span{
+
+    color:#64748b;
+
+    font-size:13px;
+
+}
+
+.header-item strong{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    color:#0f172a;
+
+}
+
+.status{
+
+    color:#16a34a;
+
+}
+
+.leave-room-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    border:none;
+
+    background:#ef4444;
+
+    color:#ffffff;
+
+    padding:12px 20px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.leave-room-btn:hover{
+
+    background:#dc2626;
+
+}
+
+@media(max-width:992px){
+
+    .debate-header{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+    .debate-header-center{
+
+        width:100%;
+
+        justify-content:space-between;
+
+        flex-wrap:wrap;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .debate-header{
+
+        padding:20px;
+
+    }
+
+    .debate-header-left h2{
+
+        font-size:20px;
+
+    }
+
+}
+
+.connected{
+
+    color:#16a34a;
+
+}
+
+.disconnected{
+
+    color:#dc2626;
+
+}

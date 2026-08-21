@@ -1,0 +1,510 @@
+/* ==========================================================
+   MODERN DASHBOARD COMPONENTS
+========================================================== */
+
+/* ==========================================================
+   WELCOME CARD
+========================================================== */
+
+.welcome-card{
+
+    position:relative;
+
+    overflow:hidden;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    gap:30px;
+
+    padding:40px;
+
+    margin-bottom:32px;
+
+    border-radius:28px;
+
+    background:
+    linear-gradient(
+        135deg,
+        #4F46E5 0%,
+        #4338CA 40%,
+        #06B6D4 100%
+    );
+
+    color:white;
+
+    box-shadow:
+        0 25px 45px rgba(79,70,229,.28);
+
+}
+
+.welcome-card::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:320px;
+
+    height:320px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.08);
+
+    right:-120px;
+
+    top:-120px;
+
+}
+
+.welcome-left{
+
+    position:relative;
+
+    z-index:2;
+
+    max-width:650px;
+
+}
+
+.welcome-right{
+
+    position:relative;
+
+    z-index:2;
+
+}
+
+.welcome-badge{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:8px 16px;
+
+    border-radius:999px;
+
+    background:rgba(255,255,255,.18);
+
+    backdrop-filter:blur(10px);
+
+    font-size:13px;
+
+    margin-bottom:22px;
+
+}
+
+.welcome-card h1{
+
+    font-size:38px;
+
+    margin-bottom:15px;
+
+    color:white;
+
+}
+
+.welcome-card h1 span{
+
+    color:#FDE68A;
+
+}
+
+.welcome-card p{
+
+    font-size:17px;
+
+    color:#E2E8F0;
+
+    max-width:560px;
+
+    line-height:1.8;
+
+}
+
+/* ==========================================================
+   MINI STATS
+========================================================== */
+
+.welcome-stats{
+
+    display:flex;
+
+    gap:18px;
+
+    margin-top:30px;
+
+}
+
+.mini-stat{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    background:rgba(255,255,255,.12);
+
+    padding:14px 18px;
+
+    border-radius:18px;
+
+    backdrop-filter:blur(14px);
+
+}
+
+.mini-stat svg{
+
+    color:white;
+
+}
+
+.mini-stat strong{
+
+    display:block;
+
+    color:white;
+
+    font-size:20px;
+
+}
+
+.mini-stat span{
+
+    font-size:13px;
+
+    color:#E2E8F0;
+
+}
+
+/* ==========================================================
+   AI ICON
+========================================================== */
+
+.ai-circle{
+
+    width:170px;
+
+    height:170px;
+
+    border-radius:50%;
+
+    background:rgba(255,255,255,.15);
+
+    backdrop-filter:blur(18px);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:72px;
+
+    animation:float 4s ease-in-out infinite;
+
+}
+
+@keyframes float{
+
+0%,100%{
+
+transform:translateY(0);
+
+}
+
+50%{
+
+transform:translateY(-10px);
+
+}
+
+}
+
+/* ==========================================================
+   STAT CARDS
+========================================================== */
+
+.stat-card{
+
+    background:white;
+
+    border-radius:24px;
+
+    padding:28px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:20px;
+
+    border:1px solid #E2E8F0;
+
+    box-shadow:0 15px 35px rgba(15,23,42,.06);
+
+    transition:.35s;
+
+}
+
+.stat-card:hover{
+
+    transform:translateY(-8px);
+
+    box-shadow:0 25px 45px rgba(15,23,42,.12);
+
+}
+
+.stat-icon{
+
+    width:72px;
+
+    height:72px;
+
+    border-radius:22px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:white;
+
+    font-size:30px;
+
+}
+
+.stat-card h2{
+
+    font-size:34px;
+
+    margin-bottom:5px;
+
+    color:#0F172A;
+
+}
+
+.stat-card p{
+
+    color:#64748B;
+
+}
+
+/* ==========================================================
+   ACTION CARDS
+========================================================== */
+
+.action-card{
+
+    background:white;
+
+    border-radius:24px;
+
+    padding:30px;
+
+    text-align:center;
+
+    border:1px solid #E2E8F0;
+
+    box-shadow:0 15px 35px rgba(15,23,42,.06);
+
+    transition:.35s;
+
+}
+
+.action-card:hover{
+
+    transform:translateY(-8px);
+
+    border-color:#4F46E5;
+
+}
+
+.action-icon{
+
+    width:76px;
+
+    height:76px;
+
+    margin:auto auto 20px;
+
+    border-radius:22px;
+
+    background:linear-gradient(135deg,#4F46E5,#06B6D4);
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:white;
+
+    font-size:32px;
+
+}
+
+.action-card h3{
+
+    margin-bottom:12px;
+
+}
+
+.action-card p{
+
+    color:#64748B;
+
+    line-height:1.7;
+
+}
+
+/* ==========================================================
+   ACTIVITY CARD
+========================================================== */
+
+.activity-card{
+
+    background:white;
+
+    border-radius:24px;
+
+    padding:28px;
+
+    border:1px solid #E2E8F0;
+
+    box-shadow:0 15px 35px rgba(15,23,42,.06);
+
+}
+
+.activity-card h3{
+
+    margin-bottom:20px;
+
+}
+
+.activity-card li{
+
+    padding:14px 0;
+
+    border-bottom:1px solid #F1F5F9;
+
+    color:#475569;
+
+}
+
+.activity-card li:last-child{
+
+    border:none;
+
+}
+
+/* ==========================================================
+   GRID
+========================================================== */
+
+.stats-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+
+    gap:24px;
+
+    margin-bottom:30px;
+
+}
+
+.actions-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+
+    gap:24px;
+
+    margin-top:30px;
+
+}
+
+.activities-grid{
+
+    display:grid;
+
+    grid-template-columns:2fr 1fr;
+
+    gap:24px;
+
+}
+
+/* ==========================================================
+   RESPONSIVE
+========================================================== */
+
+@media(max-width:992px){
+
+.welcome-card{
+
+flex-direction:column;
+
+text-align:center;
+
+}
+
+.welcome-stats{
+
+justify-content:center;
+
+flex-wrap:wrap;
+
+}
+
+.activities-grid{
+
+grid-template-columns:1fr;
+
+}
+
+}
+
+@media(max-width:768px){
+
+.welcome-card{
+
+padding:28px;
+
+}
+
+.welcome-card h1{
+
+font-size:30px;
+
+}
+
+.ai-circle{
+
+width:120px;
+
+height:120px;
+
+font-size:52px;
+
+}
+
+.stat-card{
+
+flex-direction:column;
+
+text-align:center;
+
+}
+
+}

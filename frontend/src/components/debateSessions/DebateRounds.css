@@ -1,0 +1,167 @@
+/*
+=========================================================
+Debate Rounds
+=========================================================
+*/
+
+.debate-rounds{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.debate-rounds-header{
+
+    margin-bottom:24px;
+
+}
+
+.debate-rounds-header h2{
+
+    margin:0;
+
+    color:#0f172a;
+
+    font-size:24px;
+
+}
+
+.debate-rounds-header p{
+
+    margin-top:8px;
+
+    color:#64748b;
+
+}
+
+.rounds-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.round-card{
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:space-between;
+
+    gap:18px;
+
+    padding:18px;
+
+    border-radius:14px;
+
+    border:1px solid #e2e8f0;
+
+    transition:.25s;
+
+}
+
+.round-card:hover{
+
+    transform:translateY(-2px);
+
+}
+
+.round-icon{
+
+    font-size:26px;
+
+}
+
+.round-content{
+
+    flex:1;
+
+}
+
+.round-content h3{
+
+    margin:0;
+
+    color:#0f172a;
+
+    font-size:18px;
+
+}
+
+.round-content p{
+
+    margin-top:6px;
+
+    color:#64748b;
+
+    font-size:14px;
+
+}
+
+.round-duration{
+
+    font-weight:600;
+
+    color:#1e293b;
+
+}
+
+.round-completed{
+
+    color:#16a34a;
+
+}
+
+.round-active{
+
+    color:#2563eb;
+
+}
+
+.round-pending{
+
+    color:#94a3b8;
+
+}
+
+.round-card.completed{
+
+    background:#f0fdf4;
+
+}
+
+.round-card.active{
+
+    background:#eff6ff;
+
+    border-color:#2563eb;
+
+}
+
+.round-card.pending{
+
+    background:#ffffff;
+
+}
+
+@media(max-width:768px){
+
+    .round-card{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+    }
+
+}

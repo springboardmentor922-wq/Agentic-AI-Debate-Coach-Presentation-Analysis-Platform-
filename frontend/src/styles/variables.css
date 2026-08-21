@@ -1,0 +1,97 @@
+/* ======================================================
+   Modern AI SaaS Design System
+====================================================== */
+
+:root {
+
+  /* ==========================
+     Primary Brand
+  ========================== */
+
+  --primary: #4F46E5;
+  --primary-hover: #4338CA;
+  --primary-light: #EEF2FF;
+
+  /* ==========================
+     Accent Colors
+  ========================== */
+
+  --secondary: #06B6D4;
+  --secondary-light: #ECFEFF;
+
+  /* ==========================
+     Backgrounds
+  ========================== */
+
+  --background: #F8FAFC;
+  --background-secondary: #F1F5F9;
+  --surface: #FFFFFF;
+
+  /* Sidebar & Navbar */
+
+  --sidebar: #0F172A;
+  --sidebar-hover: #1E293B;
+  --sidebar-active: #312E81;
+
+  --navbar: #FFFFFF;
+
+  /* ==========================
+     Text
+  ========================== */
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-light: #94A3B8;
+  --text-white: #FFFFFF;
+
+  /* ==========================
+     Status Colors
+  ========================== */
+
+  --success: #22C55E;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+
+  /* ==========================
+     Borders
+  ========================== */
+
+  --border: #E2E8F0;
+  --border-light: #F1F5F9;
+
+  /* ==========================
+     Shadows
+  ========================== */
+
+  --shadow-xs: 0 2px 4px rgba(15,23,42,0.05);
+
+  --shadow-sm: 0 6px 18px rgba(15,23,42,0.08);
+
+  --shadow-md: 0 12px 32px rgba(15,23,42,0.12);
+
+  --shadow-lg: 0 25px 50px rgba(15,23,42,0.16);
+
+  /* ==========================
+     Radius
+  ========================== */
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+
+  /* ==========================
+     Typography
+  ========================== */
+
+  --font-family: "Poppins", sans-serif;
+
+  /* ==========================
+     Layout
+  ========================== */
+
+  --navbar-height: 72px;
+  --sidebar-width: 280px;
+
+}

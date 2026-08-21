@@ -1,0 +1,358 @@
+.session-card{
+
+    background:#ffffff;
+
+    border-radius:18px;
+
+    padding:24px;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:20px;
+
+    transition:.3s;
+
+}
+
+.session-card:hover{
+
+    transform:translateY(-5px);
+
+}
+
+.session-card-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+}
+
+.session-card-header h3{
+
+    margin:0;
+
+    font-size:22px;
+
+    color:#1e293b;
+
+}
+
+.session-card-header p{
+
+    margin-top:6px;
+
+    color:#64748b;
+
+}
+
+.session-status{
+
+    padding:8px 16px;
+
+    border-radius:30px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+.session-status.scheduled{
+
+    background:#dbeafe;
+
+    color:#2563eb;
+
+}
+
+.session-status.active{
+
+    background:#dcfce7;
+
+    color:#16a34a;
+
+}
+
+.session-status.completed{
+
+    background:#ede9fe;
+
+    color:#7c3aed;
+
+}
+
+.session-status.cancelled{
+
+    background:#fee2e2;
+
+    color:#dc2626;
+
+}
+
+.session-card-body{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:18px;
+
+}
+
+.session-item{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    color:#475569;
+
+}
+
+.session-card-footer{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:12px;
+
+}
+
+.session-card-footer button{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:10px 18px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    font-weight:600;
+
+}
+
+.btn-primary{
+
+    background:#2563eb;
+
+    color:white;
+
+}
+
+.btn-primary:hover{
+
+    background:#1d4ed8;
+
+}
+
+.btn-outline{
+
+    background:white;
+
+    color:#2563eb;
+
+    border:1px solid #2563eb !important;
+
+}
+
+.btn-warning{
+
+    background:#f59e0b;
+
+    color:white;
+
+}
+
+.btn-warning:hover{
+
+    background:#d97706;
+
+}
+
+.btn-success{
+
+    background:#22c55e;
+
+    color:white;
+
+}
+
+.btn-success:hover{
+
+    background:#16a34a;
+
+}
+
+.btn-danger{
+
+    background:#ef4444;
+
+    color:white;
+
+}
+
+.btn-danger:hover{
+
+    background:#dc2626;
+
+}
+
+@media(max-width:768px){
+
+    .session-card-body{
+
+        grid-template-columns:1fr;
+
+    }
+
+    .session-card-footer{
+
+        flex-direction:column;
+
+    }
+
+    .session-card-footer button{
+
+        width:100%;
+
+        justify-content:center;
+
+    }
+
+}
+.session-card{
+
+    border:1px solid #edf2f7;
+
+}
+
+.session-card:hover{
+
+    transform:translateY(-6px);
+
+    box-shadow:0 16px 40px rgba(37,99,235,.12);
+
+}
+
+.session-title{
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:#1e293b;
+
+    margin-bottom:10px;
+
+}
+.format-badge{
+
+    display:inline-block;
+
+    padding:6px 14px;
+
+    border-radius:20px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+    margin-top:8px;
+
+}
+
+.format-badge.oxford-debate{
+
+    background:#dbeafe;
+
+    color:#1d4ed8;
+
+}
+
+
+.format-badge.oxford-debate{
+
+    background:#dbeafe;
+
+    color:#1d4ed8;
+
+}
+
+.format-badge.lincoln-douglas{
+
+    background:#dcfce7;
+
+    color:#16a34a;
+
+}
+
+.format-badge.parliamentary{
+
+    background:#fee2e2;
+
+    color:#dc2626;
+
+}
+
+.format-badge.one-on-one{
+
+    background:#ffedd5;
+
+    color:#ea580c;
+
+}
+
+.format-badge.team-debate{
+
+    background:#cffafe;
+
+    color:#0891b2;
+
+}
+
+.btn-outline{
+
+    border:1px solid #2563eb !important;
+
+    transition:.3s;
+
+}
+
+.btn-outline:hover{
+
+    background:#2563eb;
+
+    color:white;
+
+}
+
+.btn-primary{
+
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+
+}
+
+.btn-primary:hover{
+
+    transform:translateY(-2px);
+
+}

@@ -1,0 +1,227 @@
+.session-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:flex-start;
+
+    gap:30px;
+
+    margin-bottom:35px;
+
+    flex-wrap:wrap;
+
+}
+
+/* Left */
+
+.session-header-left{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+}
+
+.breadcrumb{
+
+    font-size:14px;
+
+    color:#64748b;
+
+}
+
+.breadcrumb-divider{
+
+    margin:0 8px;
+
+}
+
+.session-header-left h1{
+
+    margin:0;
+
+    font-size:38px;
+
+    color:#0f172a;
+
+    font-weight:700;
+
+}
+
+.session-header-left p{
+
+    margin:0;
+
+    color:#64748b;
+
+    font-size:16px;
+
+}
+
+/* Right */
+
+.session-header-right{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    flex-wrap:wrap;
+
+}
+
+.session-stat-card{
+
+    background:#ffffff;
+
+    border-radius:16px;
+
+    padding:18px 22px;
+
+    min-width:140px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.06);
+
+}
+
+.session-stat-card svg{
+
+    font-size:24px;
+
+    color:#2563eb;
+
+}
+
+.session-stat-card h4{
+
+    margin:0;
+
+    font-size:22px;
+
+    color:#0f172a;
+
+}
+
+.session-stat-card span{
+
+    color:#64748b;
+
+    font-size:13px;
+
+}
+
+/* Buttons */
+
+.refresh-session-btn,
+
+.create-session-btn{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    border:none;
+
+    cursor:pointer;
+
+    border-radius:12px;
+
+    padding:12px 22px;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.refresh-session-btn{
+
+    background:#ffffff;
+
+    color:#2563eb;
+
+    border:1px solid #2563eb;
+
+}
+
+.refresh-session-btn:hover{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+}
+
+.create-session-btn{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+}
+
+.create-session-btn:hover{
+
+    background:#1d4ed8;
+
+}
+
+/* Responsive */
+
+@media(max-width:1200px){
+
+    .session-header{
+
+        flex-direction:column;
+
+    }
+
+    .session-header-right{
+
+        width:100%;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .session-header-left h1{
+
+        font-size:30px;
+
+    }
+
+    .session-header-right{
+
+        flex-direction:column;
+
+        align-items:stretch;
+
+    }
+
+    .session-stat-card,
+
+    .refresh-session-btn,
+
+    .create-session-btn{
+
+        width:100%;
+
+    }
+
+}

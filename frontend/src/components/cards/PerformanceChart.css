@@ -1,0 +1,33 @@
+.chart-card{
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:24px;
+
+    border:1px solid #E2E8F0;
+
+    box-shadow:0 15px 35px rgba(15,23,42,.06);
+
+    margin-bottom:30px;
+
+}
+
+.chart-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+}
+
+.chart-header p{
+
+    color:#64748B;
+
+}

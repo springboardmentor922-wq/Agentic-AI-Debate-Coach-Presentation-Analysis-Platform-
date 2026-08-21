@@ -1,0 +1,230 @@
+
+/* ===========================================
+   Back Navigation
+=========================================== */
+
+.back-navigation{
+
+    display:flex;
+
+    align-items:center;
+
+}
+
+.back-button{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    border:1px solid #2563eb;
+
+    background:#ffffff;
+
+    color:#2563eb;
+
+    padding:12px 18px;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.back-button:hover{
+
+    background:#2563eb;
+
+    color:#ffffff;
+
+}
+
+.back-button svg{
+
+    font-size:14px;
+
+}
+/*
+=========================================================
+Session Details
+Pre-Debate Lobby
+=========================================================
+*/
+
+.session-details-page{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:28px;
+
+    padding:30px;
+
+    min-height:100vh;
+
+    background:#f8fafc;
+
+    animation:fadeIn .35s ease;
+
+}
+
+/* =====================================================
+   Header Section
+===================================================== */
+
+.session-status-section{
+
+    display:flex;
+
+    justify-content:flex-end;
+
+    align-items:center;
+
+}
+
+/* =====================================================
+   Content Cards
+===================================================== */
+
+.session-details-page > *{
+
+    width:100%;
+
+}
+
+/* =====================================================
+   Hover Animation
+===================================================== */
+
+.session-details-page .session-info-card,
+
+.session-details-page .session-participants,
+
+.session-details-page .debate-rounds,
+
+.session-details-page .debate-rules-card,
+
+.session-details-page .debate-timer,
+
+.session-details-page .action-panel{
+
+    transition:.25s ease;
+
+}
+
+.session-details-page .session-info-card:hover,
+
+.session-details-page .session-participants:hover,
+
+.session-details-page .debate-rounds:hover,
+
+.session-details-page .debate-rules-card:hover,
+
+.session-details-page .debate-timer:hover,
+
+.session-details-page .action-panel:hover{
+
+    transform:translateY(-2px);
+
+}
+
+/* =====================================================
+   Divider
+===================================================== */
+
+.section-divider{
+
+    width:100%;
+
+    height:1px;
+
+    background:#e2e8f0;
+
+}
+
+/* =====================================================
+   Responsive
+===================================================== */
+
+@media(max-width:1200px){
+
+    .session-details-page{
+
+        padding:28px;
+
+    }
+
+}
+
+@media(max-width:992px){
+
+    .session-details-page{
+
+        padding:24px;
+
+        gap:24px;
+
+    }
+
+}
+
+@media(max-width:768px){
+
+    .session-details-page{
+
+        padding:20px;
+
+        gap:22px;
+
+    }
+
+    .session-status-section{
+
+        justify-content:center;
+
+    }
+
+}
+
+@media(max-width:576px){
+
+    .session-details-page{
+
+        padding:16px;
+
+        gap:18px;
+
+    }
+
+}
+
+/* =====================================================
+   Animation
+===================================================== */
+
+@keyframes fadeIn{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(12px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
+}

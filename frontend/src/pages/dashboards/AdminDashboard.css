@@ -1,0 +1,107 @@
+/* =====================================================
+   Administrator Dashboard
+===================================================== */
+
+@import "./LearnerDashboard.css";
+
+
+/* =====================================================
+   Platform Analytics
+===================================================== */
+
+.analytics-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:16px;
+
+    margin-top:20px;
+}
+
+.analytics-card{
+
+    background:#F8FAFC;
+
+    border:1px solid #E2E8F0;
+
+    border-radius:12px;
+
+    padding:18px;
+
+    text-align:center;
+
+    transition:.3s;
+}
+
+.analytics-card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:0 10px 25px rgba(37,99,235,.12);
+}
+
+.analytics-card h3{
+
+    color:#2563EB;
+
+    font-size:28px;
+
+    margin-bottom:8px;
+}
+
+.analytics-card p{
+
+    color:#64748B;
+
+    font-size:14px;
+}
+
+
+/* =====================================================
+   System Status
+===================================================== */
+
+.system-status{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:16px;
+
+    margin-top:18px;
+}
+
+.status-item{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding-bottom:10px;
+
+    border-bottom:1px solid #E2E8F0;
+}
+
+.status-item:last-child{
+
+    border-bottom:none;
+}
+
+.status-online{
+
+    color:#16A34A;
+
+    font-weight:600;
+}
+
+.status-warning{
+
+    color:#D97706;
+
+    font-weight:600;
+}
